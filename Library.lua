@@ -3019,12 +3019,12 @@ function Library:CreateWindow(...)
     });
 
     local TabArea = Library:Create('Frame', {
-        BackgroundTransparency = 1;
-        Position = UDim2.new(0, 8, 1, -21 - 8); -- Позиция вкладок внизу
-        Size = UDim2.new(1, -16, 0, 21);
-        ZIndex = 1;
-        Parent = MainSectionInner;
-    });
+    BackgroundTransparency = 1;
+    Position = UDim2.new(0, 8, 1, -29); 
+    Size = UDim2.new(1, -16, 0, 21);
+    ZIndex = 1;
+    Parent = MainSectionInner;
+});
 
     local TabListLayout = Library:Create('UIListLayout', {
         Padding = UDim.new(0, Config.TabPadding);
@@ -3034,13 +3034,13 @@ function Library:CreateWindow(...)
     });
 
     local TabContainer = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 8); -- Контейнер контента сверху
-        Size = UDim2.new(1, -16, 1, -38); -- Высота с учетом вкладок снизу
-        ZIndex = 2;
-        Parent = MainSectionInner;
-    });
+    BackgroundColor3 = Library.MainColor;
+    BorderColor3 = Library.OutlineColor;
+    Position = UDim2.new(0, 8, 0, 8);
+    Size = UDim2.new(1, -16, 1, -45); 
+    ZIndex = 2;
+    Parent = MainSectionInner;
+});
     
 
     Library:AddToRegistry(TabContainer, {
