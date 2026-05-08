@@ -150,11 +150,26 @@ end;
 function Library:CreateLabel(Properties, IsHud)
     local _Instance = Library:Create('TextLabel', {
         BackgroundTransparency = 1;
-        Font = Library.Font;
         TextColor3 = Library.FontColor;
         TextSize = 16;
         TextStrokeTransparency = 0;
     });
+
+    -- Проверяем тип шрифта: если это объект Font (наш Base64), используем Face
+    if typeof(Library.Font) == "Font" then
+        _Instance.FontFace = Library.Font
+    else
+        _Instance.Font = Library.Font
+    end
+
+    Library:ApplyTextStroke(_Instance);
+
+    Library:AddToRegistry(_Instance, {
+        TextColor3 = 'FontColor';
+    }, IsHud);
+
+    return Library:Create(_Instance, Properties);
+end
 
     Library:ApplyTextStroke(_Instance);
 
