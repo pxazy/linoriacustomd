@@ -1728,22 +1728,16 @@ do
 
         local Box = Library:Create('TextBox', {
             BackgroundTransparency = 1;
-
-            Position = UDim2.fromOffset(0, 0),
-            Size = UDim2.fromScale(5, 1),
-
-            Font = Library.Font;
-            PlaceholderColor3 = Color3.fromRGB(190, 190, 190);
-            PlaceholderText = Info.Placeholder or '';
-
+            Position = UDim2.fromOffset(5, 0),
+            Size = UDim2.new(1, -10, 1, 0),
+            FontFace = Library.Font;
             Text = Info.Default or '';
             TextColor3 = Library.FontColor;
             TextSize = 14;
-            TextStrokeTransparency = 0;
+            TextStrokeTransparency = 1;
             TextXAlignment = Enum.TextXAlignment.Left;
-
             ZIndex = 7;
-            Parent = Container;
+            Parent = Outer;
         });
 
         Library:ApplyTextStroke(Box);
