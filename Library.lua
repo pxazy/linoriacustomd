@@ -3088,14 +3088,14 @@ function Library:CreateWindow(...)
         });
 
         local Blocker = Library:Create('Frame', {
-            BackgroundColor3 = Library.MainColor;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0, 0, 1, 0);
-            Size = UDim2.new(1, 0, 0, 1);
-            BackgroundTransparency = 1;
-            ZIndex = 3;
-            Parent = TabButton;
-        });
+    BackgroundColor3 = Library.MainColor;
+    BorderSizePixel = 0;
+    Position = UDim2.new(0, 0, 0, -1); 
+    Size = UDim2.new(1, 0, 0, 1);
+    BackgroundTransparency = 1;
+    ZIndex = 3;
+    Parent = TabButton;
+});
 
         Library:AddToRegistry(Blocker, {
             BackgroundColor3 = 'MainColor';
