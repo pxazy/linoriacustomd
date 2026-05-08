@@ -2087,6 +2087,7 @@ do
         end;
 
         function Slider:GetValueFromXOffset(X)
+            Slider.MaxSize = SliderInner.AbsoluteSize.X
             return Round(Library:MapValue(X, 0, Slider.MaxSize, Slider.Min, Slider.Max));
         end;
 
