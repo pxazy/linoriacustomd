@@ -1981,7 +1981,6 @@ do
             ZIndex = 5;
             Parent = Container;
         });
-
         Groupbox:AddBlank(3);
     end
 
@@ -1993,9 +1992,7 @@ do
         Parent = Container;
     });
 
-    Library:AddToRegistry(SliderOuter, {
-        BorderColor3 = 'Black';
-    });
+    Library:AddToRegistry(SliderOuter, { BorderColor3 = 'Black' });
 
     local SliderInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -2006,57 +2003,37 @@ do
         Parent = SliderOuter;
     });
 
-    Library:AddToRegistry(SliderInner, {
-        BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'OutlineColor';
-    });
+    Library:AddToRegistry(SliderInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; });
 
     local Fill = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderColor3 = Library.AccentColorDark;
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
         Size = UDim2.new(0, 0, 1, 0);
         ZIndex = 7;
         Parent = SliderInner;
     });
 
-    Library:AddToRegistry(Fill, {
-        BackgroundColor3 = 'AccentColor';
-        BorderColor3 = 'AccentColorDark';
-    });
-
-    local HideBorderRight = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(1, 0, 0, 0);
-        Size = UDim2.new(0, 1, 1, 0);
-        ZIndex = 8;
+    local FillGradient = Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Library.AccentColor),
+            ColorSequenceKeypoint.new(0.5, Library:GetDarkerColor(Library.AccentColor)),
+            ColorSequenceKeypoint.new(1, Library.AccentColor)
+        });
+        Rotation = 90;
         Parent = Fill;
-    });
-
-    Library:AddToRegistry(HideBorderRight, {
-        BackgroundColor3 = 'AccentColor';
     });
 
     local DisplayLabel = Library:CreateLabel({
         Size = UDim2.new(1, 0, 1, 0);
         TextSize = 14;
-        Text = 'Infinite';
         ZIndex = 9;
         Parent = SliderInner;
     });
 
-    Library:OnHighlight(SliderOuter, SliderOuter,
-        { BorderColor3 = 'AccentColor' },
-        { BorderColor3 = 'Black' }
-    );
-
-    if type(Info.Tooltip) == 'string' then
-        Library:AddToolTip(Info.Tooltip, SliderOuter)
-    end
+    Library:OnHighlight(SliderOuter, SliderOuter, { BorderColor3 = 'AccentColor' }, { BorderColor3 = 'Black' });
 
     function Slider:Display()
         local Suffix = Info.Suffix or '';
-
         if Info.Compact then
             DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
         elseif Info.HideMax then
@@ -2065,35 +2042,19 @@ do
             DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
         end
 
-        local MaxSize = SliderInner.AbsoluteSize.X;
-        local X = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, MaxSize));
-        Fill.Size = UDim2.new(0, X, 1, 0);
-
-        HideBorderRight.Visible = not (X == MaxSize or X == 0);
-    end;
-
-    function Slider:OnChanged(Func)
-        Slider.Changed = Func;
-        Func(Slider.Value);
+        local Ratio = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min);
+        Fill.Size = UDim2.fromScale(Ratio, 1);
     end;
 
     local function Round(Value)
-        if Slider.Rounding == 0 then
-            return math.floor(Value);
-        end;
+        if Slider.Rounding == 0 then return math.floor(Value); end;
         return tonumber(string.format('%.' .. Slider.Rounding .. 'f', Value))
-    end;
-
-    function Slider:GetValueFromXOffset(X)
-        local MaxSize = SliderInner.AbsoluteSize.X;
-        return Round(Library:MapValue(X, 0, MaxSize, Slider.Min, Slider.Max));
     end;
 
     function Slider:SetValue(Str)
         local Num = tonumber(Str);
         if (not Num) then return; end;
-        Num = math.clamp(Num, Slider.Min, Slider.Max);
-        Slider.Value = Num;
+        Slider.Value = math.clamp(Round(Num), Slider.Min, Slider.Max);
         Slider:Display();
         Library:SafeCallback(Slider.Callback, Slider.Value);
         Library:SafeCallback(Slider.Changed, Slider.Value);
@@ -2101,29 +2062,25 @@ do
 
     SliderInner.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
-            local function UpdateSlider()
-                local MaxSize = SliderInner.AbsoluteSize.X;
-                local mPos = Mouse.X;
-                local relativeX = math.clamp(mPos - SliderInner.AbsolutePosition.X, 0, MaxSize);
+            local function Update()
+                local AbsPos = SliderInner.AbsolutePosition;
+                local AbsSize = SliderInner.AbsoluteSize;
+                local RelX = math.clamp((Mouse.X - AbsPos.X) / AbsSize.X, 0, 1);
+                local NewVal = Round(Slider.Min + (RelX * (Slider.Max - Slider.Min)));
                 
-                local nValue = Slider:GetValueFromXOffset(relativeX);
-                local OldValue = Slider.Value;
-                Slider.Value = nValue;
-
-                Slider:Display();
-
-                if nValue ~= OldValue then
+                if NewVal ~= Slider.Value then
+                    Slider.Value = NewVal;
+                    Slider:Display();
                     Library:SafeCallback(Slider.Callback, Slider.Value);
                     Library:SafeCallback(Slider.Changed, Slider.Value);
                 end;
-            end
+            end;
 
-            UpdateSlider();
-
+            Update();
             local Connection;
             Connection = RunService.RenderStepped:Connect(function()
                 if InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-                    UpdateSlider();
+                    Update();
                 else
                     Connection:Disconnect();
                     Library:AttemptSave();
@@ -2135,10 +2092,92 @@ do
     Slider:Display();
     Groupbox:AddBlank(Info.BlankSize or 6);
     Groupbox:Resize();
-
     Options[Idx] = Slider;
-
     return Slider;
+end;
+
+function Funcs:AddToggle(Idx, Info)
+    local Toggle = {
+        Value = Info.Default or false;
+        Type = 'Toggle';
+        Callback = Info.Callback or function(Value) end;
+        Addons = {};
+    };
+
+    local Groupbox = self;
+    local Container = Groupbox.Container;
+
+    local ToggleOuter = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(0, 0, 0);
+        BorderColor3 = Color3.new(0, 0, 0);
+        Size = UDim2.new(0, 13, 0, 13);
+        ZIndex = 5;
+        Parent = Container;
+    });
+
+    Library:AddToRegistry(ToggleOuter, { BorderColor3 = 'Black' });
+
+    local ToggleInner = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderColor3 = Library.OutlineColor;
+        BorderMode = Enum.BorderMode.Inset;
+        Size = UDim2.new(1, 0, 1, 0);
+        ZIndex = 6;
+        Parent = ToggleOuter;
+    });
+
+    local ToggleGradient = Library:Create('UIGradient', {
+        Rotation = 90;
+        Parent = ToggleInner;
+    });
+
+    local ToggleLabel = Library:CreateLabel({
+        Size = UDim2.new(0, 216, 1, 0);
+        Position = UDim2.new(1, 6, 0, 0);
+        TextSize = 14;
+        Text = Info.Text;
+        TextXAlignment = Enum.TextXAlignment.Left;
+        ZIndex = 6;
+        Parent = ToggleInner;
+    });
+
+    function Toggle:Display()
+        if Toggle.Value then
+            ToggleGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Library.AccentColor),
+                ColorSequenceKeypoint.new(0.5, Library:GetDarkerColor(Library.AccentColor)),
+                ColorSequenceKeypoint.new(1, Library.AccentColor)
+            });
+            ToggleInner.BorderColor3 = Library.AccentColorDark;
+        else
+            ToggleGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Library.MainColor),
+                ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
+            });
+            ToggleInner.BorderColor3 = Library.OutlineColor;
+        end;
+    end;
+
+    function Toggle:SetValue(Bool)
+        Toggle.Value = not not Bool;
+        Toggle:Display();
+        Library:SafeCallback(Toggle.Callback, Toggle.Value);
+        Library:SafeCallback(Toggle.Changed, Toggle.Value);
+        Library:UpdateDependencyBoxes();
+    end;
+
+    ToggleOuter.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
+            Toggle:SetValue(not Toggle.Value);
+            Library:AttemptSave();
+        end;
+    end);
+
+    Toggle:Display();
+    Groupbox:AddBlank(Info.BlankSize or 7);
+    Groupbox:Resize();
+    Toggles[Idx] = Toggle;
+    return Toggle;
 end;
 
     function Funcs:AddDropdown(Idx, Info)
