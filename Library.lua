@@ -1958,7 +1958,7 @@ do
             Min = Info.Min;
             Max = Info.Max;
             Rounding = Info.Rounding;
-            MaxSize = 330;
+            MaxSize = 100;
             Type = 'Slider';
             Callback = Info.Callback or function(Value) end;
         };
