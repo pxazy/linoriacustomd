@@ -1954,14 +1954,14 @@ do
 
     function Funcs:AddSlider(Idx, Info)
     local Slider = {
-        Value = Info.Default;
-        Min = Info.Min;
-        Max = Info.Max;
-        Rounding = Info.Rounding;
-        MaxSize = 372;
-        Type = 'Slider';
-        Callback = Info.Callback or function(Value) end;
-    };
+            Value = Info.Default;
+            Min = Info.Min;
+            Max = Info.Max;
+            Rounding = Info.Rounding;
+            MaxSize = 330;
+            Type = 'Slider';
+            Callback = Info.Callback or function(Value) end;
+        };
 
         local Groupbox = self;
         local Container = Groupbox.Container;
