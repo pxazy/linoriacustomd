@@ -2042,8 +2042,13 @@ do
             DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
         end
 
-        local Ratio = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min);
+        local Ratio = math.clamp((Slider.Value - Slider.Min) / (Slider.Max - Slider.Min), 0, 1);
         Fill.Size = UDim2.fromScale(Ratio, 1);
+    end;
+
+    function Slider:OnChanged(Func)
+        Slider.Changed = Func;
+        Func(Slider.Value);
     end;
 
     local function Round(Value)
@@ -2090,94 +2095,10 @@ do
     end);
 
     Slider:Display();
-    Groupbox:AddBlank(Info.BlankSize or 6);
+    Groupbox:AddBlank(6);
     Groupbox:Resize();
     Options[Idx] = Slider;
     return Slider;
-end;
-
-function Funcs:AddToggle(Idx, Info)
-    local Toggle = {
-        Value = Info.Default or false;
-        Type = 'Toggle';
-        Callback = Info.Callback or function(Value) end;
-        Addons = {};
-    };
-
-    local Groupbox = self;
-    local Container = Groupbox.Container;
-
-    local ToggleOuter = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(0, 0, 0);
-        BorderColor3 = Color3.new(0, 0, 0);
-        Size = UDim2.new(0, 13, 0, 13);
-        ZIndex = 5;
-        Parent = Container;
-    });
-
-    Library:AddToRegistry(ToggleOuter, { BorderColor3 = 'Black' });
-
-    local ToggleInner = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(1, 1, 1);
-        BorderColor3 = Library.OutlineColor;
-        BorderMode = Enum.BorderMode.Inset;
-        Size = UDim2.new(1, 0, 1, 0);
-        ZIndex = 6;
-        Parent = ToggleOuter;
-    });
-
-    local ToggleGradient = Library:Create('UIGradient', {
-        Rotation = 90;
-        Parent = ToggleInner;
-    });
-
-    local ToggleLabel = Library:CreateLabel({
-        Size = UDim2.new(0, 216, 1, 0);
-        Position = UDim2.new(1, 6, 0, 0);
-        TextSize = 14;
-        Text = Info.Text;
-        TextXAlignment = Enum.TextXAlignment.Left;
-        ZIndex = 6;
-        Parent = ToggleInner;
-    });
-
-    function Toggle:Display()
-        if Toggle.Value then
-            ToggleGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library.AccentColor),
-                ColorSequenceKeypoint.new(0.5, Library:GetDarkerColor(Library.AccentColor)),
-                ColorSequenceKeypoint.new(1, Library.AccentColor)
-            });
-            ToggleInner.BorderColor3 = Library.AccentColorDark;
-        else
-            ToggleGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library.MainColor),
-                ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
-            });
-            ToggleInner.BorderColor3 = Library.OutlineColor;
-        end;
-    end;
-
-    function Toggle:SetValue(Bool)
-        Toggle.Value = not not Bool;
-        Toggle:Display();
-        Library:SafeCallback(Toggle.Callback, Toggle.Value);
-        Library:SafeCallback(Toggle.Changed, Toggle.Value);
-        Library:UpdateDependencyBoxes();
-    end;
-
-    ToggleOuter.InputBegan:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
-            Toggle:SetValue(not Toggle.Value);
-            Library:AttemptSave();
-        end;
-    end);
-
-    Toggle:Display();
-    Groupbox:AddBlank(Info.BlankSize or 7);
-    Groupbox:Resize();
-    Toggles[Idx] = Toggle;
-    return Toggle;
 end;
 
     function Funcs:AddDropdown(Idx, Info)
