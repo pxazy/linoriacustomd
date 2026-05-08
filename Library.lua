@@ -2954,15 +2954,15 @@ function Library:CreateWindow(...)
     };
 
     local Outer = Library:Create('Frame', {
-    AnchorPoint = Config.AnchorPoint,
-    BackgroundColor3 = Color3.new(0, 0, 0);
-    BorderSizePixel = 0;
-    Position = Config.Position,
-    Size = UDim2.fromOffset(800, 500);
-    Visible = false;
-    ZIndex = 1;
-    Parent = ScreenGui;
-});
+        AnchorPoint = Config.AnchorPoint,
+        BackgroundColor3 = Color3.new(0, 0, 0);
+        BorderSizePixel = 0;
+        Position = Config.Position,
+        Size = UDim2.fromOffset(850, 550);
+        Visible = false;
+        ZIndex = 1;
+        Parent = ScreenGui;
+    });
 
     Library:MakeDraggable(Outer, 25);
 
@@ -3019,28 +3019,28 @@ function Library:CreateWindow(...)
     });
 
     local TabArea = Library:Create('Frame', {
-    BackgroundTransparency = 1;
-    Position = UDim2.new(0, 8, 1, -29); 
-    Size = UDim2.new(1, -16, 0, 21);
-    ZIndex = 1;
-    Parent = MainSectionInner;
-});
+        BackgroundTransparency = 1;
+        Position = UDim2.new(0, 8, 0, 8);
+        Size = UDim2.new(0, 130, 1, -16);
+        ZIndex = 1;
+        Parent = MainSectionInner;
+    });
 
     local TabListLayout = Library:Create('UIListLayout', {
-        Padding = UDim.new(0, Config.TabPadding);
-        FillDirection = Enum.FillDirection.Horizontal;
+        Padding = UDim.new(0, 4);
+        FillDirection = Enum.FillDirection.Vertical;
         SortOrder = Enum.SortOrder.LayoutOrder;
         Parent = TabArea;
     });
 
     local TabContainer = Library:Create('Frame', {
-    BackgroundColor3 = Library.MainColor;
-    BorderColor3 = Library.OutlineColor;
-    Position = UDim2.new(0, 8, 0, 8);
-    Size = UDim2.new(1, -16, 1, -45); 
-    ZIndex = 2;
-    Parent = MainSectionInner;
-});
+        BackgroundColor3 = Library.MainColor;
+        BorderColor3 = Library.OutlineColor;
+        Position = UDim2.new(0, 146, 0, 8);
+        Size = UDim2.new(1, -154, 1, -16);
+        ZIndex = 2;
+        Parent = MainSectionInner;
+    });
     
 
     Library:AddToRegistry(TabContainer, {
