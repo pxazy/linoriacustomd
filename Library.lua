@@ -1,3 +1,27 @@
+local BASE64_FONT = ""
+
+local function DecodeBase64(data)
+    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r, f = '', (b:find(x) - 1)
+        for i = 6, 1, -1 do r = r .. (f % 2^i - f % 2^(i-1) > 0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d%d%d%d%d%d', function(x)
+        local n = 0
+        for i = 1, 8 do n = n + (x:sub(i, i) == '1' and 2^(8 - i) or 0) end
+        return string.char(n)
+    end))
+end
+
+local CustomFont = Font.new("rbxasset://fonts/families/SourceSansPro.json")
+if BASE64_FONT ~= "" then
+    local success, result = pcall(function()
+        return Font.new(DecodeBase64(BASE64_FONT))
+    end)
+    if success then CustomFont = result end
+end
 local InputService = game:GetService('UserInputService');
 local TextService = game:GetService('TextService');
 local CoreGui = game:GetService('CoreGui');
