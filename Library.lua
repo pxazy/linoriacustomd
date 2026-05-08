@@ -3106,30 +3106,26 @@ function Library:CreateWindow(...)
         });
 
         local LeftSide = Library:Create('ScrollingFrame', {
-            BackgroundTransparency = 1;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 1, -16);
-            CanvasSize = UDim2.new(0, 0, 0, 0);
-            BottomImage = '';
-            TopImage = '';
-            ScrollBarThickness = 0;
-            ZIndex = 2;
-            Parent = TabFrame;
-        });
+    BackgroundTransparency = 1;
+    BorderSizePixel = 0;
+    Position = UDim2.new(0, 8, 0, 8);
+    Size = UDim2.new(0.5, -12, 1, -16);
+    CanvasSize = UDim2.new(0, 0, 0, 0);
+    ScrollBarThickness = 0;
+    ZIndex = 2;
+    Parent = TabFrame;
+});
 
-        local RightSide = Library:Create('ScrollingFrame', {
-            BackgroundTransparency = 1;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 1, -16);
-            CanvasSize = UDim2.new(0, 0, 0, 0);
-            BottomImage = '';
-            TopImage = '';
-            ScrollBarThickness = 0;
-            ZIndex = 2;
-            Parent = TabFrame;
-        });
+local RightSide = Library:Create('ScrollingFrame', {
+    BackgroundTransparency = 1;
+    BorderSizePixel = 0;
+    Position = UDim2.new(0.5, 4, 0, 8);
+    Size = UDim2.new(0.5, -12, 1, -16);
+    CanvasSize = UDim2.new(0, 0, 0, 0);
+    ScrollBarThickness = 0;
+    ZIndex = 2;
+    Parent = TabFrame;
+});
 
         Library:Create('UIListLayout', {
             Padding = UDim.new(0, 8);
