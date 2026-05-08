@@ -176,8 +176,11 @@ function Library:Create(Class, Properties)
     return _Instance;
 end;
 
-function Library:ApplyTextStroke(Inst)
-    Inst.TextStrokeTransparency = 1;
+function Library:ApplyTextStroke(Instance)
+    if Instance:IsA('TextLabel') then
+        Instance.TextStrokeTransparency = 1
+    end
+end
 
     Library:Create('UIStroke', {
         Color = Color3.new(0, 0, 0);
