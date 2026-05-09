@@ -3612,10 +3612,14 @@ VerticalLine.To = Vector2.new(mPos.X, mPos.Y + size);
 
         task.wait(FadeTime);
 
-        Outer.Visible = Toggled;
-
-        Fading = false;
+    Outer.Visible = Toggled;
+    
+    if not Toggled then
+        InputService.MouseIconEnabled = true;
     end
+
+    Fading = false;
+end
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
         if type(Library.ToggleKeybind) == 'table' and Library.ToggleKeybind.Type == 'KeyPicker' then
