@@ -3254,16 +3254,22 @@ function Library:CreateWindow(...)
             });
 
             function Groupbox:Resize()
-                local Size = 0;
-
-                for _, Element in next, Groupbox.Container:GetChildren() do
-                    if (not Element:IsA('UIListLayout')) and Element.Visible then
-                        Size = Size + Element.Size.Y.Offset;
-                    end;
-                end;
-
-                BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 2 + 2);
-            end;
+    local Size = 0;
+    for _, Element in next, Groupbox.Container:GetChildren() do
+        if (not Element:IsA('UIListLayout')) and Element.Visible then
+            Size = Size + Element.Size.Y.Offset;
+        end;
+    end;
+    BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 4);
+    
+    
+    if LeftSide.UIListLayout then
+        LeftSide.CanvasSize = UDim2.fromOffset(0, LeftSide.UIListLayout.AbsoluteContentSize.Y);
+    end
+    if RightSide.UIListLayout then
+        RightSide.CanvasSize = UDim2.fromOffset(0, RightSide.UIListLayout.AbsoluteContentSize.Y);
+    end
+end;
 
             Groupbox.Container = Container;
             setmetatable(Groupbox, BaseGroupbox);
