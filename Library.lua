@@ -2964,28 +2964,28 @@ function Library:CreateWindow(...)
         Tabs = {};
     };
 
-    local Outer = Library:Create('Frame', {
-        AnchorPoint = Config.AnchorPoint,
-        BackgroundColor3 = Color3.new(0, 0, 0);
-        BorderSizePixel = 0;
-        Position = Config.Position,
-        Size = Config.Size,
-        Visible = false;
-        ZIndex = 1;
-        Parent = ScreenGui;
-    });
+   local Outer = Library:Create('Frame', {
+    AnchorPoint = Config.AnchorPoint,
+    BackgroundColor3 = Color3.new(0, 0, 0);
+    BorderSizePixel = 0;
+    Position = Config.Position,
+    Size = Config.Size,
+    Visible = false;
+    ZIndex = 100;
+    Parent = ScreenGui;
+});
 
     Library:MakeDraggable(Outer, 25);
 
     local Inner = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
-        BorderMode = Enum.BorderMode.Inset;
-        Position = UDim2.new(0, 1, 0, 1);
-        Size = UDim2.new(1, -2, 1, -2);
-        ZIndex = 1;
-        Parent = Outer;
-    });
+    BackgroundColor3 = Library.MainColor;
+    BorderColor3 = Library.AccentColor;
+    BorderMode = Enum.BorderMode.Inset;
+    Position = UDim2.new(0, 1, 0, 1);
+    Size = UDim2.new(1, -2, 1, -2);
+    ZIndex = 101;
+    Parent = Outer;
+});
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
