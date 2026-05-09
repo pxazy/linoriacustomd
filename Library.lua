@@ -2997,13 +2997,14 @@ function Library:CreateWindow(...)
     });
 
     local MainSectionOuter = Library:Create('Frame', {
-        BackgroundColor3 = Library.BackgroundColor;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 25);
-        Size = UDim2.new(1, -16, 1, -33);
-        ZIndex = 1;
-        Parent = Inner;
-    });
+    BackgroundColor3 = Library.BackgroundColor;
+    BorderColor3 = Library.OutlineColor;
+    Position = UDim2.new(0, 8, 0, 25);
+    Size = UDim2.new(1, -16, 1, -33);
+    ClipsDescendants = true;
+    ZIndex = 1;
+    Parent = Inner;
+});
 
     Library:AddToRegistry(MainSectionOuter, {
         BackgroundColor3 = 'BackgroundColor';
