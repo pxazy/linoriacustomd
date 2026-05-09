@@ -3000,7 +3000,7 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 8, 0, 25);
-        Size = UDim2.new(1, -16, 1, -33);
+        Size = UDim2.new(1, -16, 1, -31);
         ZIndex = 1;
         Parent = Inner;
     });
