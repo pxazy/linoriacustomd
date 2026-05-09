@@ -3133,6 +3133,80 @@ Window.Sidebar = Sidebar;
     AutoScroll(LeftSide)
     AutoScroll(RightSide)
 
+    function Tab:AddGroupbox(Info)
+        local Groupbox = {};
+
+        local BoxOuter = Library:Create('Frame', {
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderColor3 = Library.OutlineColor;
+            BorderMode = Enum.BorderMode.Inset;
+            Size = UDim2.new(1, 0, 0, 0);
+            ZIndex = 2;
+            Parent = Info.Side == 1 and LeftSide or RightSide;
+        });
+
+        local BoxInner = Library:Create('Frame', {
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderColor3 = Color3.new(0, 0, 0);
+            Size = UDim2.new(1, -2, 1, -2);
+            Position = UDim2.new(0, 1, 0, 1);
+            ZIndex = 4;
+            Parent = BoxOuter;
+        });
+
+        local Highlight = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, 0, 0, 2);
+            ZIndex = 5;
+            Parent = BoxInner;
+        });
+
+        local GroupboxLabel = Library:CreateLabel({
+            Size = UDim2.new(1, 0, 0, 18);
+            Position = UDim2.new(0, 4, 0, 2);
+            TextSize = 14;
+            Text = Info.Name;
+            TextXAlignment = Enum.TextXAlignment.Left;
+            ZIndex = 5;
+            Parent = BoxInner;
+        });
+
+        local Container = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0, 4, 0, 20);
+            Size = UDim2.new(1, -4, 1, -20);
+            ZIndex = 1;
+            Parent = BoxInner;
+        });
+
+        Library:Create('UIListLayout', {
+            FillDirection = Enum.FillDirection.Vertical;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = Container;
+        });
+
+        function Groupbox:Resize()
+            local Size = 0;
+            for _, Element in next, Groupbox.Container:GetChildren() do
+                if (not Element:IsA('UIListLayout')) and Element.Visible then
+                    Size = Size + Element.Size.Y.Offset;
+                end;
+            end;
+            BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 4);
+        end;
+
+        Groupbox.Container = Container;
+        setmetatable(Groupbox, BaseGroupbox);
+        Groupbox:AddBlank(3);
+        Groupbox:Resize();
+
+        return Groupbox;
+    end;
+
+    function Tab:AddLeftGroupbox(Name) return Tab:AddGroupbox({ Side = 1; Name = Name; }) end;
+    function Tab:AddRightGroupbox(Name) return Tab:AddGroupbox({ Side = 2; Name = Name; }) end;
+
     function Tab:ShowTab()
         for _, t in next, Window.Tabs do t:HideTab() end
         TabFrame.Visible = true
