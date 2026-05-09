@@ -3103,14 +3103,15 @@ function Library:CreateWindow(...)
         });
 
         local TabFrame = Library:Create('Frame', {
-            Name = 'TabFrame',
-            BackgroundTransparency = 1;
-            Position = UDim2.new(0, 0, 0, 0);
-            Size = UDim2.new(1, 0, 1, 0);
-            Visible = false;
-            ZIndex = 2;
-            Parent = TabContainer;
-        });
+    Name = 'TabFrame',
+    BackgroundTransparency = 1;
+    Position = UDim2.new(0, 0, 0, 0);
+    Size = UDim2.new(1, 0, 1, 0);
+    Visible = false;
+    ClipsDescendants = true;
+    ZIndex = 2;
+    Parent = TabContainer;
+});
 
         local LeftSide = Library:Create('ScrollingFrame', {
     BackgroundTransparency = 1;
