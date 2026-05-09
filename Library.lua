@@ -3082,18 +3082,15 @@ Window.Sidebar = Sidebar;
         ["Config"] = "rbxassetid://111530106485541"
     }
 
-    local ButtonsCount = 4
-    local ButtonSize = 40
-    local SidebarHeight = Window.Sidebar.AbsoluteSize.Y
-    local Spacing = (SidebarHeight - (ButtonsCount * ButtonSize)) / (ButtonsCount + 1)
-
+    local ButtonSize = 34
     local TabButton = Library:Create('ImageButton', {
         BackgroundTransparency = 1;
         Image = Icons[Name] or "";
         ImageColor3 = Color3.new(1, 1, 1);
         ScaleType = Enum.ScaleType.Fit;
         Size = UDim2.new(0, ButtonSize, 0, ButtonSize);
-        Position = UDim2.new(0, 2, 0, (Library:GetTableCount(Window.Tabs) * (ButtonSize + Spacing)) + Spacing);
+        Position = UDim2.new(0.5, 0, 0, (Library:GetTableCount(Window.Tabs) * 45) + 10);
+        AnchorPoint = Vector2.new(0.5, 0);
         ZIndex = 3;
         Parent = Window.Sidebar;
     });
@@ -3141,20 +3138,44 @@ Window.Sidebar = Sidebar;
     AutoScroll(RightSide)
 
     function Tab:AddGroupbox(Info)
-        local Groupbox = {};
+        local Groupbox = { Container = nil };
         local BoxOuter = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
             BorderColor3 = Library.OutlineColor;
             Size = UDim2.new(1, 0, 0, 0);
             Parent = Info.Side == 1 and LeftSide or RightSide;
         });
-        Groupbox.Container = Library:Create('Frame', {
+        
+        local BoxInner = Library:Create('Frame', {
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderColor3 = Color3.new(0, 0, 0);
+            Size = UDim2.new(1, -2, 1, -2);
+            Position = UDim2.new(0, 1, 0, 1);
+            Parent = BoxOuter;
+        });
+
+        local Container = Library:Create('Frame', {
             BackgroundTransparency = 1;
             Position = UDim2.new(0, 4, 0, 20);
             Size = UDim2.new(1, -4, 1, -20);
-            Parent = BoxOuter;
+            Parent = BoxInner;
         });
-        setmetatable(Groupbox, BaseGroupbox);
+
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 4);
+            Parent = Container;
+        });
+
+        function Groupbox:Resize()
+            local Size = 24
+            for _, v in next, Container:GetChildren() do
+                if v:IsA('GuiObject') then Size = Size + v.Size.Y.Offset + 4 end
+            end
+            BoxOuter.Size = UDim2.new(1, 0, 0, Size)
+        end
+
+        Groupbox.Container = Container
+        setmetatable(Groupbox, BaseGroupbox)
         return Groupbox
     end
 
@@ -3173,12 +3194,8 @@ Window.Sidebar = Sidebar;
     end
 
     TabButton.MouseButton1Click:Connect(function() Tab:ShowTab() end)
-    
     Window.Tabs[Name] = Tab
-    
-    if Library:GetTableCount(Window.Tabs) == 1 then 
-        Tab:ShowTab() 
-    end
+    if Library:GetTableCount(Window.Tabs) == 1 then Tab:ShowTab() end
 
     return Tab
 end
