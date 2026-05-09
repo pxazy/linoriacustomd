@@ -13,13 +13,22 @@ local base64FontData = "AAEAAAAMAIAAAwBAT1MvMojrdJAAAAFIAAAATmNtYXACEiN1AAADoAAA
 local customFontFace = nil
 
 if getcustomasset and writefile and b64decode then
-    local folder = "CustomFontData"
+    local folder = "ProggyFontData"
     if not isfolder(folder) then makefolder(folder) end
     
-    writefile(folder.."/f.ttf", b64decode(base64FontData:gsub("[^%w%+/=]", "")))
-    writefile(folder.."/f.font", [[{"name":"CFont","faces":[{"name":"Reg","weight":400,"style":"normal","assetId":"]]..getcustomasset(folder.."/f.ttf")..[["}]}]] )
+    local ttfPath = folder .. "/ProggyClean.ttf"
+    local fontPath = folder .. "/ProggyClean.font"
     
-    customFontFace = Font.new(getcustomasset(folder.."/f.font"))
+    if not isfile(ttfPath) then
+        writefile(ttfPath, b64decode(base64FontData:gsub("[^%w%+/=]", "")))
+    end
+    
+    if not isfile(fontPath) then
+        local asset = getcustomasset(ttfPath)
+        writefile(fontPath, [[{"name":"ProggyClean","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"]] .. asset .. [["}]}]] )
+    end
+    
+    customFontFace = Font.new(getcustomasset(fontPath))
 end
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end);
