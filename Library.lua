@@ -3024,27 +3024,27 @@ function Library:CreateWindow(...)
     });
 
     local TabArea = Library:Create('Frame', {
-        BackgroundTransparency = 1;
-        Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(1, -16, 0, 21);
-        ZIndex = 1;
-        Parent = MainSectionInner;
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 8, 0, 35),
+        Size = UDim2.new(0, 120, 1, -45),
+        ZIndex = 1,
+        Parent = Inner;
     });
 
     local TabListLayout = Library:Create('UIListLayout', {
-        Padding = UDim.new(0, Config.TabPadding);
-        FillDirection = Enum.FillDirection.Horizontal;
-        SortOrder = Enum.SortOrder.LayoutOrder;
+        Padding = UDim.new(0, 5),
+        FillDirection = Enum.FillDirection.Vertical,
+        SortOrder = Enum.SortOrder.LayoutOrder,
         Parent = TabArea;
     });
 
     local TabContainer = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 30);
-        Size = UDim2.new(1, -16, 1, -38);
-        ZIndex = 2;
-        Parent = MainSectionInner;
+        BackgroundColor3 = Library.BackgroundColor,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 135, 0, 35),
+        Size = UDim2.new(1, -143, 1, -45),
+        ZIndex = 2,
+        Parent = Inner;
     });
     
 
