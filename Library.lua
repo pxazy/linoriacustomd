@@ -2114,30 +2114,33 @@ end;
 
         SliderInner.InputBegan:Connect(function(Input)
     if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
-        local mPos = Mouse.X;
-        local gPos = Fill.Size.X.Offset;
-        local Diff = mPos - (Fill.AbsolutePosition.X + gPos);
-
-        while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+        local function UpdateSlider()
             local MaxSize = SliderInner.AbsoluteSize.X;
-            local nMPos = Mouse.X;
-            local nX = math.clamp(gPos + (nMPos - mPos) + Diff, 0, MaxSize);
-
+            local MousePos = Mouse.X;
+            local CanvasPos = SliderInner.AbsolutePosition.X;
+            
+            local nX = math.clamp(MousePos - CanvasPos, 0, MaxSize);
             local nValue = Round(Library:MapValue(nX, 0, MaxSize, Slider.Min, Slider.Max));
-            local OldValue = Slider.Value;
-            Slider.Value = nValue;
-
-            Slider:Display();
-
-            if nValue ~= OldValue then
+            
+            if nValue ~= Slider.Value then
+                Slider.Value = nValue;
+                Slider:Display();
                 Library:SafeCallback(Slider.Callback, Slider.Value);
                 Library:SafeCallback(Slider.Changed, Slider.Value);
             end;
-
-            RenderStepped:Wait();
         end;
 
-        Library:AttemptSave();
+        UpdateSlider();
+
+        local Connection;
+        Connection = RunService.RenderStepped:Connect(function()
+            if InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+                UpdateSlider();
+            else
+                Connection:Disconnect();
+                Library:AttemptSave();
+            end;
+        end);
     end;
 end);
 
