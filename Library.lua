@@ -3013,7 +3013,7 @@ function Library:CreateWindow(...)
     Position = UDim2.new(0, 8, 0, 25);
     Size = UDim2.new(1, -16, 1, -33);
     ClipsDescendants = true;
-    ZIndex = 1;
+    ZIndex = 3;
     Parent = Inner;
 });
 
