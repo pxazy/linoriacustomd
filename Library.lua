@@ -2948,7 +2948,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(550, 500) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(550, 600) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2997,12 +2997,12 @@ function Library:CreateWindow(...)
     });
 
     local MainSectionOuter = Library:Create('Frame', {
-    BackgroundColor3 = Library.BackgroundColor;
-    BorderColor3 = Library.OutlineColor;
-    Position = UDim2.new(0, 80, 0, 25);
-    Size = UDim2.new(1, -88, 1, -31);
-    ZIndex = 1;
-    Parent = Inner;
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderColor3 = Library.OutlineColor;
+        Position = UDim2.new(0, 8, 0, 25);
+        Size = UDim2.new(1, -16, 1, -33);
+        ZIndex = 1;
+        Parent = Inner;
     });
 
     Library:AddToRegistry(MainSectionOuter, {
@@ -3025,29 +3025,28 @@ function Library:CreateWindow(...)
     });
 
     local TabArea = Library:Create('Frame', {
-    BackgroundTransparency = 1;
-    Position = UDim2.new(0, 8, 0, 25);
-    Size = UDim2.new(0, 65, 1, -33);
-    ZIndex = 1;
-    Parent = Inner;
-});
+        BackgroundTransparency = 1;
+        Position = UDim2.new(0, 8, 0, 8);
+        Size = UDim2.new(1, -16, 0, 21);
+        ZIndex = 1;
+        Parent = MainSectionInner;
+    });
 
-local TabListLayout = Library:Create('UIListLayout', {
-    Padding = UDim.new(0, 5);
-    FillDirection = Enum.FillDirection.Vertical;
-    SortOrder = Enum.SortOrder.LayoutOrder;
-    Parent = TabArea;
-});
+    local TabListLayout = Library:Create('UIListLayout', {
+        Padding = UDim.new(0, Config.TabPadding);
+        FillDirection = Enum.FillDirection.Horizontal;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = TabArea;
+    });
 
     local TabContainer = Library:Create('Frame', {
-    BackgroundColor3 = Library.MainColor;
-    BorderColor3 = Library.OutlineColor;
-    Position = UDim2.new(0, 0, 0, 0);
-    Size = UDim2.new(1, 0, 1, 0);
-    ClipsDescendants = true;
-    ZIndex = 2;
-    Parent = MainSectionInner;
-});
+        BackgroundColor3 = Library.MainColor;
+        BorderColor3 = Library.OutlineColor;
+        Position = UDim2.new(0, 8, 0, 30);
+        Size = UDim2.new(1, -16, 1, -38);
+        ZIndex = 2;
+        Parent = MainSectionInner;
+    });
     
 
     Library:AddToRegistry(TabContainer, {
@@ -3068,12 +3067,12 @@ local TabListLayout = Library:Create('UIListLayout', {
         local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, 16);
 
         local TabButton = Library:Create('Frame', {
-    BackgroundColor3 = Library.BackgroundColor;
-    BorderColor3 = Library.OutlineColor;
-    Size = UDim2.new(1, 0, 0, 30);
-    ZIndex = 1;
-    Parent = TabArea;
-});
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderColor3 = Library.OutlineColor;
+            Size = UDim2.new(0, TabButtonWidth + 8 + 4, 1, 0);
+            ZIndex = 1;
+            Parent = TabArea;
+        });
 
         Library:AddToRegistry(TabButton, {
             BackgroundColor3 = 'BackgroundColor';
@@ -3089,57 +3088,54 @@ local TabListLayout = Library:Create('UIListLayout', {
         });
 
         local Blocker = Library:Create('Frame', {
-    BackgroundColor3 = Library.MainColor;
-    BorderSizePixel = 0;
-    Position = UDim2.new(1, 0, 0, 0);
-    Size = UDim2.new(0, 1, 1, 0);
-    BackgroundTransparency = 1;
-    ZIndex = 3;
-    Parent = TabButton;
-});
+            BackgroundColor3 = Library.MainColor;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 0, 1, 0);
+            Size = UDim2.new(1, 0, 0, 1);
+            BackgroundTransparency = 1;
+            ZIndex = 3;
+            Parent = TabButton;
+        });
 
         Library:AddToRegistry(Blocker, {
             BackgroundColor3 = 'MainColor';
         });
 
         local TabFrame = Library:Create('Frame', {
-    Name = 'TabFrame',
-    BackgroundTransparency = 1;
-    Position = UDim2.new(0, 0, 0, 0);
-    Size = UDim2.new(1, 0, 1, 0);
-    Visible = false;
-    ClipsDescendants = true;
-    ZIndex = 2;
-    Parent = TabContainer;
-});
+            Name = 'TabFrame',
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0, 0, 0, 0);
+            Size = UDim2.new(1, 0, 1, 0);
+            Visible = false;
+            ZIndex = 2;
+            Parent = TabContainer;
+        });
 
         local LeftSide = Library:Create('ScrollingFrame', {
-    BackgroundTransparency = 1;
-    BorderSizePixel = 0;
-    Position = UDim2.new(0, 8, 0, 8);
-    Size = UDim2.new(0.5, -12, 1, -16);
-    CanvasSize = UDim2.new(0, 0, 0, 0);
-    BottomImage = '';
-    TopImage = '';
-    ScrollBarThickness = 0;
-    ClipsDescendants = true;
-    ZIndex = 2;
-    Parent = TabFrame;
-});
+            BackgroundTransparency = 1;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
+            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            CanvasSize = UDim2.new(0, 0, 0, 0);
+            BottomImage = '';
+            TopImage = '';
+            ScrollBarThickness = 0;
+            ZIndex = 2;
+            Parent = TabFrame;
+        });
 
         local RightSide = Library:Create('ScrollingFrame', {
-    BackgroundTransparency = 1;
-    BorderSizePixel = 0;
-    Position = UDim2.new(0.5, 4, 0, 8);
-    Size = UDim2.new(0.5, -12, 1, -16);
-    CanvasSize = UDim2.new(0, 0, 0, 0);
-    BottomImage = '';
-    TopImage = '';
-    ScrollBarThickness = 0;
-    ClipsDescendants = true;
-    ZIndex = 2;
-    Parent = TabFrame;
-});
+            BackgroundTransparency = 1;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
+            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            CanvasSize = UDim2.new(0, 0, 0, 0);
+            BottomImage = '';
+            TopImage = '';
+            ScrollBarThickness = 0;
+            ZIndex = 2;
+            Parent = TabFrame;
+        });
 
         Library:Create('UIListLayout', {
             Padding = UDim.new(0, 8);
@@ -3193,7 +3189,7 @@ local TabListLayout = Library:Create('UIListLayout', {
                 BackgroundColor3 = Library.BackgroundColor;
                 BorderColor3 = Library.OutlineColor;
                 BorderMode = Enum.BorderMode.Inset;
-                Size = UDim2.new(1, 0, 0, 0);
+                Size = UDim2.new(1, 0, 0, 507 + 2);
                 ZIndex = 2;
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
@@ -3254,22 +3250,16 @@ local TabListLayout = Library:Create('UIListLayout', {
             });
 
             function Groupbox:Resize()
-    local Size = 0;
-    for _, Element in next, Groupbox.Container:GetChildren() do
-        if (not Element:IsA('UIListLayout')) and Element.Visible then
-            Size = Size + Element.Size.Y.Offset;
-        end;
-    end;
-    BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 4);
-    
-    
-    if LeftSide.UIListLayout then
-        LeftSide.CanvasSize = UDim2.fromOffset(0, LeftSide.UIListLayout.AbsoluteContentSize.Y);
-    end
-    if RightSide.UIListLayout then
-        RightSide.CanvasSize = UDim2.fromOffset(0, RightSide.UIListLayout.AbsoluteContentSize.Y);
-    end
-end;
+                local Size = 0;
+
+                for _, Element in next, Groupbox.Container:GetChildren() do
+                    if (not Element:IsA('UIListLayout')) and Element.Visible then
+                        Size = Size + Element.Size.Y.Offset;
+                    end;
+                end;
+
+                BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 2 + 2);
+            end;
 
             Groupbox.Container = Container;
             setmetatable(Groupbox, BaseGroupbox);
