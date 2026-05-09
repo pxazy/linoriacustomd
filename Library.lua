@@ -46,6 +46,12 @@ local Library = {
     ScreenGui = ScreenGui;
 };
 
+function Library:GetTableCount(t)
+    local count = 0
+    for _ in pairs(t) do count = count + 1 end
+    return count
+end
+
 local RainbowStep = 0
 local Hue = 0
 
