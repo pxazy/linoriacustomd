@@ -2071,11 +2071,13 @@ do
         DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
     end
 
-local MaxSize = SliderInner.AbsoluteSize.X - 2;
-local X = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, MaxSize));
-Fill.Size = UDim2.new(0, X, 1, 0);
-
-HideBorderRight.Visible = not (X >= MaxSize or X <= 0);
+    local InnerWidth = SliderInner.AbsoluteSize.X - 2;
+    local Progress = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min);
+    local X = math.floor(Progress * InnerWidth);
+    
+    Fill.Size = UDim2.new(0, X, 1, 0);
+            
+    HideBorderRight.Visible = not (X >= InnerWidth or X <= 0);
 end;
 
         function Slider:OnChanged(Func)
