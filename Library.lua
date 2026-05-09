@@ -2117,20 +2117,22 @@ end;
         SliderInner.InputBegan:Connect(function(Input)
     if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
         local function UpdateSlider()
-            local MaxSize = SliderInner.AbsoluteSize.X;
-            local MousePos = Mouse.X;
-            local CanvasPos = SliderInner.AbsolutePosition.X;
-            
-            local nX = math.clamp(MousePos - CanvasPos, 0, MaxSize);
-            local nValue = Round(Library:MapValue(nX, 0, MaxSize, Slider.Min, Slider.Max));
-            
-            if nValue ~= Slider.Value then
-                Slider.Value = nValue;
-                Slider:Display();
-                Library:SafeCallback(Slider.Callback, Slider.Value);
-                Library:SafeCallback(Slider.Changed, Slider.Value);
-            end;
-        end;
+    local InnerWidth = SliderInner.AbsoluteSize.X - 2;
+    local MousePos = Mouse.X;
+    local CanvasPos = SliderInner.AbsolutePosition.X + 1;
+    
+    local nX = math.clamp(MousePos - CanvasPos, 0, InnerWidth);
+    local Ratio = nX / InnerWidth;
+    
+    local nValue = Round(Slider.Min + (Ratio * (Slider.Max - Slider.Min)));
+    
+    if nValue ~= Slider.Value then
+        Slider.Value = nValue;
+        Slider:Display();
+        Library:SafeCallback(Slider.Callback, Slider.Value);
+        Library:SafeCallback(Slider.Changed, Slider.Value);
+    end;
+end;
 
         UpdateSlider();
 
