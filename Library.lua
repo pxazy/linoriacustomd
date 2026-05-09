@@ -168,9 +168,9 @@ end;
 function Library:CreateLabel(Properties, IsHud)
     local _Instance = Library:Create('TextLabel', {
         BackgroundTransparency = 1;
-        FontFace = customFontFace or Font.fromEnum(Library.Font); 
+        FontFace = customFontFace or Font.fromEnum(Library.Font);
+        TextSize = 13;
         TextColor3 = Library.FontColor;
-        TextSize = 6;
         TextStrokeTransparency = 0;
     });
 
@@ -178,7 +178,7 @@ function Library:CreateLabel(Properties, IsHud)
     Library:AddToRegistry(_Instance, { TextColor3 = 'FontColor'; }, IsHud);
 
     return Library:Create(_Instance, Properties);
-end;
+end
 
 function Library:MakeDraggable(Instance, Cutoff)
     Instance.Active = true;
