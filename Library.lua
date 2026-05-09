@@ -3132,6 +3132,7 @@ function Library:CreateWindow(...)
             ScrollBarThickness = 0;
             ZIndex = 2;
             Parent = TabFrame;
+            ClipsDescendants = true;
         });
 
         local RightSide = Library:Create('ScrollingFrame', {
@@ -3145,6 +3146,7 @@ function Library:CreateWindow(...)
             ScrollBarThickness = 0;
             ZIndex = 2;
             Parent = TabFrame;
+            ClipsDescendants = true;
         });
 
         Library:Create('UIListLayout', {
