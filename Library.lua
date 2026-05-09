@@ -169,7 +169,7 @@ function Library:CreateLabel(Properties, IsHud)
     local _Instance = Library:Create('TextLabel', {
         BackgroundTransparency = 1;
         FontFace = customFontFace or Font.fromEnum(Library.Font);
-        TextSize = 13;
+        TextSize = 2;
         TextColor3 = Library.FontColor;
         TextStrokeTransparency = 0;
     });
