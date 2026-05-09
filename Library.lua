@@ -2975,7 +2975,7 @@ function Library:CreateWindow(...)
     Position = Config.Position,
     Size = Config.Size,
     Visible = false;
-    ZIndex = 100;
+    ZIndex = 1;
     Parent = ScreenGui;
 });
 
@@ -2987,7 +2987,7 @@ function Library:CreateWindow(...)
     BorderMode = Enum.BorderMode.Inset;
     Position = UDim2.new(0, 1, 0, 1);
     Size = UDim2.new(1, -2, 1, -2);
-    ZIndex = 101;
+    ZIndex = 2;
     Parent = Outer;
 });
 
