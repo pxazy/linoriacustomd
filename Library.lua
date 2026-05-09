@@ -3025,14 +3025,6 @@ function Library:CreateWindow(...)
         BackgroundColor3 = 'BackgroundColor';
     });
 
-    local TabArea = Library:Create('Frame', {
-        BackgroundTransparency = 1;
-        Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(1, -16, 0, 21);
-        ZIndex = 1;
-        Parent = MainSectionInner;
-    });
-
     local TabListLayout = Library:Create('UIListLayout', {
         Padding = UDim.new(0, Config.TabPadding);
         FillDirection = Enum.FillDirection.Horizontal;
@@ -3040,14 +3032,26 @@ function Library:CreateWindow(...)
         Parent = TabArea;
     });
 
-    local TabContainer = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 30);
-        Size = UDim2.new(1, -16, 1, -38);
-        ZIndex = 2;
-        Parent = MainSectionInner;
-    });
+    local Sidebar = Library:Create('Frame', {
+    BackgroundColor3 = Library.BackgroundColor;
+    BorderColor3 = Library.OutlineColor;
+    Position = UDim2.new(0, 5, 0, 25);
+    Size = UDim2.new(0, 45, 1, -33);
+    ZIndex = 2;
+    Parent = MainSectionInner;
+});
+
+local TabContainer = Library:Create('Frame', {
+    BackgroundColor3 = Library.MainColor;
+    BorderColor3 = Library.OutlineColor;
+    Position = UDim2.new(0, 55, 0, 25);
+    Size = UDim2.new(1, -63, 1, -33);
+    ZIndex = 2;
+    ClipsDescendants = true;
+    Parent = MainSectionInner;
+});
+
+Window.Sidebar = Sidebar;
     
 
     Library:AddToRegistry(TabContainer, {
