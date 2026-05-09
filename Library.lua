@@ -1456,8 +1456,8 @@ do
             local Inner = Library:Create('Frame', {
     BackgroundColor3 = Library.MainColor;
     BorderSizePixel = 0;
-    Position = UDim2.new(0, 1, 0, 1);
-    Size = UDim2.new(1, -2, 1, -2);
+    Position = UDim2.new(0, 2, 0, 2);
+    Size = UDim2.new(1, -4, 1, -4);
     ZIndex = 1;
     Parent = Outer;
 });
