@@ -3048,13 +3048,14 @@ function Library:CreateWindow(...)
     });
 
     local TabContainer = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 130, 0, 5);
-        Size = UDim2.new(1, -135, 1, -10);
-        ZIndex = 2;
-        Parent = MainSectionInner;
-    });
+    BackgroundColor3 = Library.MainColor;
+    BorderColor3 = Library.OutlineColor;
+    Position = UDim2.new(0, 130, 0, 5);
+    Size = UDim2.new(1, -135, 1, -10);
+    ClipsDescendants = true;
+    ZIndex = 2;
+    Parent = MainSectionInner;
+});
     
 
     Library:AddToRegistry(TabContainer, {
