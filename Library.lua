@@ -2062,7 +2062,7 @@ do
 
         function Slider:Display()
     local Suffix = Info.Suffix or '';
-
+    
     if Info.Compact then
         DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
     elseif Info.HideMax then
@@ -2071,13 +2071,15 @@ do
         DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
     end
 
-    local InnerWidth = SliderInner.AbsoluteSize.X - 2;
+    local FullWidth = SliderInner.AbsoluteSize.X;
+    if FullWidth == 0 then FullWidth = 232 end
+
+    local InnerWidth = FullWidth - 2;
     local Progress = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min);
-    local X = math.floor(Progress * InnerWidth);
     
-    Fill.Size = UDim2.new(0, X, 1, 0);
-            
-    HideBorderRight.Visible = not (X >= InnerWidth or X <= 0);
+    
+    Fill.Size = UDim2.new(0, math.clamp(math.floor(Progress * InnerWidth), 0, InnerWidth), 1, 0);
+    HideBorderRight.Visible = not (Progress >= 1 or Progress <= 0);
 end;
 
         function Slider:OnChanged(Func)
