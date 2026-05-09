@@ -2967,7 +2967,7 @@ function Library:CreateWindow(...)
     Size = Config.Size,
     Visible = false;
     ZIndex = 1;
-    ClipsDescendants = true;
+    ClipsDescendants = true,
     Parent = ScreenGui;
 });
 
