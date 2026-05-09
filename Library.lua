@@ -3112,11 +3112,11 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
-        local LeftSide = Library:Create('ScrollingFrame', {
+local LeftSide = Library:Create('ScrollingFrame', {
     BackgroundTransparency = 1;
     BorderSizePixel = 0;
-    Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-    Size = UDim2.new(0.5, -12 + 2, 1, -16);
+    Position = UDim2.new(0, 7, 0, 7);
+    Size = UDim2.new(0.5, -10, 1, -14);
     CanvasSize = UDim2.new(0, 0, 0, 0);
     BottomImage = '';
     TopImage = '';
@@ -3128,8 +3128,8 @@ function Library:CreateWindow(...)
 local RightSide = Library:Create('ScrollingFrame', {
     BackgroundTransparency = 1;
     BorderSizePixel = 0;
-    Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
-    Size = UDim2.new(0.5, -12 + 2, 1, -16);
+    Position = UDim2.new(0.5, 3, 0, 7);
+    Size = UDim2.new(0.5, -10, 1, -14);
     CanvasSize = UDim2.new(0, 0, 0, 0);
     BottomImage = '';
     TopImage = '';
