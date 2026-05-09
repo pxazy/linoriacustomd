@@ -151,6 +151,18 @@ function Library:Create(Class, Properties)
         _Instance[Property] = Value;
     end;
 
+    if _Instance:IsA("TextLabel") or _Instance:IsA("TextBox") or _Instance:IsA("TextButton") then
+        _Instance.TextSize = 14;
+        if customFontFace then
+            _Instance.FontFace = customFontFace;
+        end;
+    end;
+
+    
+    if (_Instance:IsA("Frame") or _Instance:IsA("ScrollingFrame")) and not Properties.BorderColor3 then
+        _Instance.BorderSizePixel = 0;
+    end;
+
     return _Instance;
 end;
 
