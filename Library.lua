@@ -410,6 +410,7 @@ function Library:Unload()
         Library.OnUnload()
     end
 
+    InputService.MouseIconEnabled = true;
     ScreenGui:Destroy()
 end
 
