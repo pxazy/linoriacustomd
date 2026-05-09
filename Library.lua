@@ -3557,23 +3557,24 @@ function Library:CreateWindow(...)
 
                     local mPos = InputService:GetMouseLocation();
 
-                    Cursor.Color = Library.AccentColor;
+                    local color = Library.AccentColor;
+local size = 4;
 
-                    Cursor.PointA = Vector2.new(mPos.X, mPos.Y);
-                    Cursor.PointB = Vector2.new(mPos.X + 16, mPos.Y + 6);
-                    Cursor.PointC = Vector2.new(mPos.X + 6, mPos.Y + 16);
+HorizontalLine.Color = color;
+HorizontalLine.From = Vector2.new(mPos.X - size, mPos.Y);
+HorizontalLine.To = Vector2.new(mPos.X + size, mPos.Y);
 
-                    CursorOutline.PointA = Cursor.PointA;
-                    CursorOutline.PointB = Cursor.PointB;
-                    CursorOutline.PointC = Cursor.PointC;
+VerticalLine.Color = color;
+VerticalLine.From = Vector2.new(mPos.X, mPos.Y - size);
+VerticalLine.To = Vector2.new(mPos.X, mPos.Y + size);
 
                     RenderStepped:Wait();
                 end;
 
                 InputService.MouseIconEnabled = State;
 
-                Cursor:Remove();
-                CursorOutline:Remove();
+                HorizontalLine:Remove();
+                VerticalLine:Remove();
             end);
         end;
 
