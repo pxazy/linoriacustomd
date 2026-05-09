@@ -8,6 +8,19 @@ local TweenService = game:GetService('TweenService');
 local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 local Mouse = LocalPlayer:GetMouse();
+local b64decode = (crypt and crypt.base64 and crypt.base64.decode) or (crypt and crypt.base64decode) or base64_decode
+local base64FontData = "ТВОЙ_КОД_ТУТ"
+local customFontFace = nil
+
+if getcustomasset and writefile and b64decode then
+    local folder = "CustomFontData"
+    if not isfolder(folder) then makefolder(folder) end
+    
+    writefile(folder.."/f.ttf", b64decode(base64FontData:gsub("[^%w%+/=]", "")))
+    writefile(folder.."/f.font", [[{"name":"CFont","faces":[{"name":"Reg","weight":400,"style":"normal","assetId":"]]..getcustomasset(folder.."/f.ttf")..[["}]}]] )
+    
+    customFontFace = Font.new(getcustomasset(folder.."/f.font"))
+end
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end);
 
