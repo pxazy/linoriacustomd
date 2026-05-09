@@ -1454,13 +1454,13 @@ do
             });
 
             local Inner = Library:Create('Frame', {
-                BackgroundColor3 = Library.MainColor;
-                BorderColor3 = Library.OutlineColor;
-                BorderMode = Enum.BorderMode.Inset;
-                Size = UDim2.new(1, 0, 1, 0);
-                ZIndex = 6;
-                Parent = Outer;
-            });
+    BackgroundColor3 = Library.MainColor;
+    BorderSizePixel = 0;
+    Position = UDim2.new(0, 1, 0, 1);
+    Size = UDim2.new(1, -2, 1, -2);
+    ZIndex = 1;
+    Parent = Outer;
+});
 
             local Label = Library:CreateLabel({
                 Size = UDim2.new(1, 0, 1, 0);
