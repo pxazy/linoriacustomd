@@ -3055,6 +3055,7 @@ function Library:CreateWindow(...)
         Position = UDim2.new(0, 0, 0, 0);
         Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 1;
+        ClipsDescendants = true;
         Parent = MainSectionOuter;
     });
 
