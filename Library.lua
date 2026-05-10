@@ -3130,6 +3130,20 @@ function Library:CreateWindow(...)
             Parent = TabButton;
         });
 
+        local Indicator = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 0, 0, 2);
+            Size = UDim2.new(0, 2, 1, -4);
+            Visible = false;
+            ZIndex = 2;
+            Parent = TabButton;
+        });
+
+        Library:AddToRegistry(Indicator, {
+            BackgroundColor3 = 'AccentColor';
+        });
+
         local Blocker = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderSizePixel = 0;
