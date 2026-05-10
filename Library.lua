@@ -3149,23 +3149,20 @@ function Library:CreateWindow(...)
         
         function Tab:ShowTab()
             
-            if Window.CurrentTab and Window.CurrentTab ~= Tab and typeof(Window.CurrentTab) == "table" then
+            if Window.CurrentTab and Window.CurrentTab ~= Tab then
                 Window.CurrentTab:HideTab()
             end
 
             Window.CurrentTab = Tab
-            Indicator.Visible = true
-            TabFrame.Visible = true
+            
+            if Indicator then Indicator.Visible = true end
+            if TabFrame then TabFrame.Visible = true end
         end
 
         function Tab:HideTab()
             
-            if Indicator then
-                Indicator.Visible = false
-            end
-            if TabFrame then
-                TabFrame.Visible = false
-            end
+            if Indicator then Indicator.Visible = false end
+            if TabFrame then TabFrame.Visible = false end
         end
 
         TabButton.InputBegan:Connect(function(Input)
