@@ -3594,12 +3594,12 @@ function Library:CreateWindow(...)
         end
 
         Window.Tabs[Name] = Tab
+
         local TabCount = 0
         for _ in next, Window.Tabs do TabCount = TabCount + 1 end
-
+        
         if TabCount == 1 then
-            Indicator.Visible = true
-            TabFrame.Visible = true
+            Tab:ShowTab()
         else
             Tab:HideTab()
         end
