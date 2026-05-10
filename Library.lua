@@ -3203,10 +3203,12 @@ function Library:CreateWindow(...)
         end;
 
         function Tab:ShowTab()
+            -- Проходим по всем вкладкам окна и вызываем деактивацию
             for _, V in next, Window.Tabs do
                 V:HideTab();
             end;
-            
+
+            -- Делаем ТЕКУЩУЮ вкладку активной
             TabButtonLabel.TextColor3 = Library.AccentColor;
             
             if Library.RegistryMap[TabButtonLabel] then
@@ -3214,6 +3216,17 @@ function Library:CreateWindow(...)
             end;
             
             TabFrame.Visible = true;
+        end;
+
+        function Tab:HideTab()
+            -- Принудительно возвращаем обычный цвет
+            TabButtonLabel.TextColor3 = Library.FontColor;
+            
+            if Library.RegistryMap[TabButtonLabel] then
+                Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'FontColor';
+            end;
+            
+            TabFrame.Visible = false;
         end;
 
         function Tab:HideTab()
