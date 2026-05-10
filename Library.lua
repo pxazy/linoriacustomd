@@ -2995,6 +2995,7 @@ function Library:CreateWindow(...)
 
     local Window = {
         Tabs = {};
+        CurrentTab = nil;
     };
 
     local Outer = Library:Create('Frame', {
