@@ -185,6 +185,10 @@ function Library:CreateLabel(Properties, IsHud)
         TextSize = 16;
         TextStrokeTransparency = 0;
     });
+    
+    if Library.CustomFont then
+        _Instance.FontFace = Library.CustomFont
+    end
 
     Library:ApplyTextStroke(_Instance);
 
