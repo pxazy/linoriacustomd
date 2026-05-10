@@ -3206,11 +3206,21 @@ function Library:CreateWindow(...)
             for _, Tab in next, Window.Tabs do
                 Tab:HideTab();
             end;
-
-            Blocker.BackgroundTransparency = 0;
-            TabButton.BackgroundColor3 = Library.MainColor;
-            Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
+            
+            TabButtonLabel.TextColor3 = Library.AccentColor;
+            
+            Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'AccentColor';
+            
             TabFrame.Visible = true;
+        end;
+
+        function Tab:HideTab()
+            
+            TabButtonLabel.TextColor3 = Library.FontColor;
+            
+            Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'FontColor';
+            
+            TabFrame.Visible = false;
         end;
 
         function Tab:HideTab()
