@@ -323,10 +323,13 @@ function Library:MapValue(Value, MinA, MaxA, MinB, MaxB)
     return (1 - ((Value - MinA) / (MaxA - MinA))) * MinB + ((Value - MinA) / (MaxA - MinA)) * MaxB;
 end;
 
-function Library:GetTextBounds(Text, fontParam, Size, Resolution)
-    local fontFace = (typeof(fontParam) == "Font") and fontParam.Family or fontParam
-    
-    local Bounds = TextService:GetTextSize(Text, Size, fontFace, Resolution or Vector2.new(1920, 1080))
+function Library:GetTextBounds(Text, Font, Size, Resolution)
+    local fontArg = Font
+    if typeof(Font) == "Font" then
+        fontArg = Font.Family
+    end
+
+    local Bounds = TextService:GetTextSize(Text, Size, fontArg, Resolution or Vector2.new(1920, 1080))
     return Bounds.X, Bounds.Y
 end;
 
