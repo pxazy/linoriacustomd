@@ -3120,10 +3120,12 @@ function Library:CreateWindow(...)
         });
 
         local TabButtonLabel = Library:CreateLabel({
-            Position = UDim2.new(0, 0, 0, 0);
-            Size = UDim2.new(1, 0, 1, 0);
+            Position = UDim2.new(0, 10, 0, 0);
+            Size = UDim2.new(1, -10, 1, 0);
             TextSize = 14;
             Text = Name;
+            TextColor3 = Library.FontColor;
+            TextXAlignment = Enum.TextXAlignment.Left;
             ZIndex = 1;
             Parent = TabButton;
         });
