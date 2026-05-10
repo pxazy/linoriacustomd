@@ -3586,16 +3586,16 @@ function Library:CreateWindow(...)
                 Tab:ShowTab();
             end;
         end);
-
-        if #TabContainer:GetChildren() == 1 then
-            Tab:ShowTab();
+        
+        if #TabArea:GetChildren() == 2 then
+            Tab:ShowTab()
         else
-            Tab:HideTab();
-        end;
+            Tab:HideTab()
+        end
 
-        Window.Tabs[Name] = Tab;
-        return Tab;
-    end;
+        Window.Tabs[Name] = Tab
+        return Tab
+    end
 
     local ModalElement = Library:Create('TextButton', {
         BackgroundTransparency = 1;
