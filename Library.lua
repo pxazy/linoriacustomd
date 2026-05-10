@@ -3594,8 +3594,18 @@ function Library:CreateWindow(...)
         end
 
         Window.Tabs[Name] = Tab
+        local TabCount = 0
+        for _ in next, Window.Tabs do TabCount = TabCount + 1 end
+
+        if TabCount == 1 then
+            Indicator.Visible = true
+            TabFrame.Visible = true
+        else
+            Tab:HideTab()
+        end
+
         return Tab
-    end
+    end;
 
     local ModalElement = Library:Create('TextButton', {
         BackgroundTransparency = 1;
