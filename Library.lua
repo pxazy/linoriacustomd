@@ -3563,9 +3563,10 @@ function Library:CreateWindow(...)
             end;
         end);
 
-        -- This was the first tab added, so we show it by default.
         if #TabContainer:GetChildren() == 1 then
             Tab:ShowTab();
+        else
+            Tab:HideTab();
         end;
 
         Window.Tabs[Name] = Tab;
