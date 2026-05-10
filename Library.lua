@@ -3523,23 +3523,23 @@ function Library:CreateWindow(...)
             Tab:HideTab()
         end
         
-        Window.Tabs[Name] = Tab
+        Window.Tabs[Name] = Tab;
         
-        local TabCount = 0
+        local TabCount = 0;
         for _ in next, Window.Tabs do 
             TabCount = TabCount + 1 
-        end
+        end;
 
         if TabCount == 1 then
             
             Window.CurrentTab = Tab
-            Indicator.Visible = true
-            TabFrame.Visible = true
+            if Indicator then Indicator.Visible = true end
+            if TabFrame then TabFrame.Visible = true end
         else
             Tab:HideTab()
         end
 
-        return Tab
+        return Tab;
     end
 
     local ModalElement = Library:Create('TextButton', {
