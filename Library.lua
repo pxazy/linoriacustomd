@@ -3223,13 +3223,13 @@ function Library:CreateWindow(...)
             for _, TabInstance in next, Window.Tabs do
                 TabInstance:HideTab()
             end
-
             
             Indicator.Visible = true
             TabFrame.Visible = true
         end
 
         function Tab:HideTab()
+            
             Indicator.Visible = false
             TabFrame.Visible = false
         end
