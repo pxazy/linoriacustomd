@@ -3521,19 +3521,21 @@ function Library:CreateWindow(...)
         else
             Tab:HideTab()
         end
-
-        Window.Tabs[Name] = Tab
-
-        local TabCount = 0
-        for _ in next, Window.Tabs do TabCount = TabCount + 1 end
         
+        Window.Tabs[Name] = Tab;
+        
+        local TabCount = 0;
+        for _ in next, Window.Tabs do 
+            TabCount = TabCount + 1 
+        end;
+
         if TabCount == 1 then
             Tab:ShowTab()
         else
             Tab:HideTab()
         end
 
-        return Tab
+        return Tab;
     end;
 
     local ModalElement = Library:Create('TextButton', {
