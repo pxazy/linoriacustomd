@@ -619,7 +619,7 @@ do
                 ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
             });
             Rotation = 90;
-            Parent = HueBoxInner;
+            Parent = TabButton;
         });
 
         local HueBox = Library:Create('TextBox', {
