@@ -3219,20 +3219,27 @@ function Library:CreateWindow(...)
         end;
 
         function Tab:ShowTab()
-            for _, V in next, Window.Tabs do
-                V:HideTab();
-            end;
+            
+            for _, TabInstance in next, Window.Tabs do
+                TabInstance:HideTab()
+            end
 
-            Indicator.Visible = true;
-            TabButtonLabel.TextColor3 = Library.FontColor;
-            TabFrame.Visible = true;
-        end;
+            
+            Indicator.Visible = true
+            TabFrame.Visible = true
+        end
 
         function Tab:HideTab()
-            Indicator.Visible = false;
-            TabButtonLabel.TextColor3 = Library.FontColor;
-            TabFrame.Visible = false;
-        end;
+            Indicator.Visible = false
+            TabFrame.Visible = false
+        end
+
+        TabButton.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                
+                Tab:ShowTab()
+            end
+        end)
 
         function Tab:HideTab()
             
