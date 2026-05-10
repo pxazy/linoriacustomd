@@ -3219,18 +3219,19 @@ function Library:CreateWindow(...)
         end;
 
         function Tab:ShowTab()
-            
             for _, V in next, Window.Tabs do
                 V:HideTab();
             end;
 
-            TabButtonLabel.TextColor3 = Library.AccentColor;
-            
-            if Library.RegistryMap[TabButtonLabel] then
-                Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'AccentColor';
-            end;
-            
+            Indicator.Visible = true;
+            TabButtonLabel.TextColor3 = Library.FontColor;
             TabFrame.Visible = true;
+        end;
+
+        function Tab:HideTab()
+            Indicator.Visible = false;
+            TabButtonLabel.TextColor3 = Library.FontColor;
+            TabFrame.Visible = false;
         end;
 
         function Tab:HideTab()
