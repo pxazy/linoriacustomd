@@ -3220,8 +3220,8 @@ function Library:CreateWindow(...)
 
         function Tab:ShowTab()
             
-            for _, TabInstance in next, Window.Tabs do
-                TabInstance:HideTab()
+            for _, OtherTab in next, Window.Tabs do
+                OtherTab:HideTab()
             end
             
             Indicator.Visible = true
