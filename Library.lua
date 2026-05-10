@@ -71,6 +71,7 @@ local Library = {
 
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code,
+    CustomFont = CustomFontAsset,
 
     OpenedFrames = {};
     DependencyBoxes = {};
