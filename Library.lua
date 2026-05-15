@@ -2982,6 +2982,20 @@ function Library:CreateWindow(...)
         ZIndex = 1;
         Parent = Inner;
     });
+
+    local TitleLine = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 0, 25);
+        Size = UDim2.new(1, 0, 0, 1);
+        ZIndex = 2;
+        Parent = Inner;
+    });
+
+    Library:AddToRegistry(TitleLine, {
+        BackgroundColor3 = 'AccentColor';
+    });
+    
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
