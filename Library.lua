@@ -1852,10 +1852,10 @@ do
 
         local ToggleGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 48, 48));
                 ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18));
             });
-            Rotation = 135;
+            Rotation = 90;
             Parent = ToggleInner;
         });
 
@@ -1912,12 +1912,12 @@ do
             if ToggleGradient then
                 if Toggle.Value then
                     ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 100));
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(45, 45, 45));
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 120, 255));
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 60, 190));
                     });
                 else
                     ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 48, 48));
                         ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18));
                     });
                 end;
@@ -2032,8 +2032,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 45));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 15));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(42, 42, 42));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 16, 16));
             });
             Rotation = 90;
             Parent = SliderInner;
@@ -2054,8 +2054,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(90, 90, 90));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 110, 255));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 55, 180));
             });
             Rotation = 90;
             Parent = Fill;
@@ -2309,8 +2309,8 @@ do
         local MAX_DROPDOWN_ITEMS = 8;
 
         local ListOuter = Library:Create('Frame', {
-            BackgroundColor3 = Color3.new(0, 0, 0);
-            BorderColor3 = Color3.new(0, 0, 0);
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
             ZIndex = 20;
             Visible = false;
             Parent = ScreenGui;
@@ -2337,6 +2337,15 @@ do
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 21;
             Parent = ListOuter;
+        });
+
+        Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(38, 38, 38));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 16, 16));
+            });
+            Rotation = 90;
+            Parent = ListInner;
         });
 
         Library:AddToRegistry(ListInner, {
@@ -2428,6 +2437,15 @@ do
                     ZIndex = 23;
                     Active = true,
                     Parent = Scrolling;
+                });
+
+                Library:Create('UIGradient', {
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40));
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18));
+                    });
+                    Rotation = 90;
+                    Parent = Button;
                 });
 
                 Library:AddToRegistry(Button, {
@@ -3126,11 +3144,10 @@ function Library:CreateWindow(...)
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(65, 65, 65));
-                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(38, 38, 38));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(62, 62, 62));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(22, 22, 22));
             });
-            Rotation = 135;
+            Rotation = 90;
             Parent = TabButton;
         });
 
@@ -3230,9 +3247,8 @@ function Library:CreateWindow(...)
             local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
             if grad then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 100));
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(65, 65, 65));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 35));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(95, 95, 95));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(38, 38, 38));
                 });
             end;
             TabFrame.Visible = true;
@@ -3245,9 +3261,8 @@ function Library:CreateWindow(...)
             local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
             if grad then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(65, 65, 65));
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(38, 38, 38));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(62, 62, 62));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(22, 22, 22));
                 });
             end;
             TabFrame.Visible = false;
@@ -3287,8 +3302,8 @@ function Library:CreateWindow(...)
 
             Library:Create('UIGradient', {
                 Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 32, 42));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 18, 24));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 14, 14));
                 });
                 Rotation = 90;
                 Parent = BoxInner;
