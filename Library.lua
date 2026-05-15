@@ -577,8 +577,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
             });
             Rotation = 90;
             Parent = HueBoxInner;
@@ -1453,8 +1453,8 @@ do
 
             Library:Create('UIGradient', {
                 Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 90, 200));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 35, 100));
                 });
                 Rotation = 90;
                 Parent = Inner;
@@ -1687,8 +1687,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 60, 140));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 22, 65));
             });
             Rotation = 90;
             Parent = TextBoxInner;
@@ -1850,7 +1850,6 @@ do
             Parent = ToggleOuter;
         });
 
-        -- Gradient on checkbox (off state = dark blue, on state = bright blue)
         local ToggleGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 45, 100));
@@ -1910,12 +1909,11 @@ do
             Library.RegistryMap[ToggleInner].Properties.BackgroundColor3 = Toggle.Value and 'AccentColor' or 'MainColor';
             Library.RegistryMap[ToggleInner].Properties.BorderColor3 = Toggle.Value and 'AccentColorDark' or 'OutlineColor';
 
-            -- Update gradient based on state
             if ToggleGradient then
                 if Toggle.Value then
                     ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 130, 255));
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 70, 200));
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(85, 135, 255));
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 75, 205));
                     });
                 else
                     ToggleGradient.Color = ColorSequence.new({
@@ -2032,7 +2030,6 @@ do
             Parent = SliderOuter;
         });
 
-        -- Blue gradient on empty part of slider
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 45, 100));
@@ -2055,11 +2052,10 @@ do
             Parent = SliderInner;
         });
 
-        -- Blue gradient on filled part of slider
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 130, 255));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 70, 200));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(85, 135, 255));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 75, 205));
             });
             Rotation = 90;
             Parent = Fill;
@@ -2271,8 +2267,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 60, 140));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 22, 65));
             });
             Rotation = 90;
             Parent = DropdownInner;
@@ -3070,7 +3066,7 @@ function Library:CreateWindow(...)
     });
 
     local TabArea = Library:Create('Frame', {
-        BackgroundColor3 = Library.BackgroundColor;
+        BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 8, 0, 8);
         Size = UDim2.new(0, 120, 1, -16);
@@ -3079,12 +3075,12 @@ function Library:CreateWindow(...)
     });
 
     Library:AddToRegistry(TabArea, {
-        BackgroundColor3 = 'BackgroundColor';
+        BackgroundColor3 = 'MainColor';
         BorderColor3 = 'OutlineColor';
     });
 
     local TabListLayout = Library:Create('UIListLayout', {
-        Padding = UDim.new(0, Config.TabPadding);
+        Padding = UDim.new(0, 2);
         FillDirection = Enum.FillDirection.Vertical;
         SortOrder = Enum.SortOrder.LayoutOrder;
         Parent = TabArea;
@@ -3118,24 +3114,24 @@ function Library:CreateWindow(...)
         local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, 16);
 
         local TabButton = Library:Create('Frame', {
-            BackgroundColor3 = Library.BackgroundColor;
+            BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(1, 0, 0, 28);
+            Size = UDim2.new(1, 0, 0, 30);
             ZIndex = 1;
             Parent = TabArea;
         });
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 55, 55));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(28, 28, 28));
             });
             Rotation = 90;
             Parent = TabButton;
         });
 
         Library:AddToRegistry(TabButton, {
-            BackgroundColor3 = 'BackgroundColor';
+            BackgroundColor3 = 'MainColor';
             BorderColor3 = 'OutlineColor';
         });
 
@@ -3227,12 +3223,11 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 0;
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
-            -- Brighten gradient for active tab
             local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
             if grad then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 70, 70));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(90, 90, 90));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50));
                 });
             end;
             TabFrame.Visible = true;
@@ -3242,12 +3237,11 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 1;
             TabButton.BackgroundColor3 = Library.BackgroundColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'BackgroundColor';
-            -- Dim gradient for inactive tab
             local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
             if grad then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 55, 55));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(28, 28, 28));
                 });
             end;
             TabFrame.Visible = false;
