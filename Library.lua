@@ -2944,9 +2944,12 @@ function Library:CreateWindow(...)
     end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(450, 450) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(500, 500) end
 
-    local Window = { Tabs = {}; };
+    if Config.Center then
+        Config.AnchorPoint = Vector2.new(0.5, 0.5)
+        Config.Position = UDim2.fromScale(0.5, 0.5)
+    end
     
     local Outer = Library:Create('Frame', {
         AnchorPoint = Config.AnchorPoint,
