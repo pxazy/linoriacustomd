@@ -2803,14 +2803,18 @@ do
         Parent = KeybindInner;
     });
 
-    Library:Create('UIGradient', {
+    local KeybindGradientProps = {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.35, 1),
+            NumberSequenceKeypoint.new(0.2, 1), -- Теперь начинает появляться раньше (было 0.35)
             NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(0.65, 1),
+            NumberSequenceKeypoint.new(0.8, 1), -- Теперь исчезает позже (было 0.65)
             NumberSequenceKeypoint.new(1, 1)
         }),
+    }
+
+    Library:Create('UIGradient', {
+        Transparency = KeybindGradientProps.Transparency,
         Parent = TopLine;
     });
 
@@ -2822,24 +2826,18 @@ do
         ZIndex = 104;
         Parent = KeybindInner;
     });
-    
+
     local ColorFrame = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 0, 0, 32);
+        Position = UDim2.new(0, 0, 0, 28);
         Size = UDim2.new(1, 0, 0, 1);
         ZIndex = 102;
         Parent = KeybindInner;
     });
 
     Library:Create('UIGradient', {
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.35, 1),
-            NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(0.65, 1),
-            NumberSequenceKeypoint.new(1, 1)
-        }),
+        Transparency = KeybindGradientProps.Transparency,
         Parent = ColorFrame;
     });
 
