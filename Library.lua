@@ -3006,7 +3006,9 @@ function Library:CreateWindow(...)
     local LineGradient = Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.2, 1),
             NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(0.8, 1),
             NumberSequenceKeypoint.new(1, 1)
         }),
         Parent = TitleLine;
