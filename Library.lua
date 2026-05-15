@@ -3015,7 +3015,7 @@ function Library:CreateWindow(...)
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
+        BorderColor3 = Library.OutlineColor;
         BorderMode = Enum.BorderMode.Inset;
         Position = UDim2.new(0, 1, 0, 1);
         Size = UDim2.new(1, -2, 1, -2);
@@ -3025,7 +3025,7 @@ function Library:CreateWindow(...)
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'AccentColor';
+        BorderColor3 = 'OutlineColor';
     });
 
     local WindowLabel = Library:CreateLabel({
@@ -3116,6 +3116,7 @@ function Library:CreateWindow(...)
         local TabButton = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
+            ClipsDescendants = true;
             Size = UDim2.new(1, 0, 0, 30);
             ZIndex = 1;
             Parent = TabArea;
@@ -3279,20 +3280,34 @@ function Library:CreateWindow(...)
                 Parent = BoxOuter;
             });
 
+            Library:Create('UIGradient', {
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 32, 42));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 18, 24));
+                });
+                Rotation = 90;
+                Parent = BoxInner;
+            });
+
             Library:AddToRegistry(BoxInner, {
                 BackgroundColor3 = 'BackgroundColor';
             });
 
             local Highlight = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
+                BackgroundColor3 = Color3.fromRGB(55, 55, 55);
                 BorderSizePixel = 0;
                 Size = UDim2.new(1, 0, 0, 2);
                 ZIndex = 5;
                 Parent = BoxInner;
             });
 
-            Library:AddToRegistry(Highlight, {
-                BackgroundColor3 = 'AccentColor';
+            Library:Create('UIGradient', {
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 80, 80));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 35));
+                });
+                Rotation = 0;
+                Parent = Highlight;
             });
 
             local GroupboxLabel = Library:CreateLabel({
@@ -3384,15 +3399,20 @@ function Library:CreateWindow(...)
             });
 
             local Highlight = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
+                BackgroundColor3 = Color3.fromRGB(55, 55, 55);
                 BorderSizePixel = 0;
                 Size = UDim2.new(1, 0, 0, 2);
                 ZIndex = 10;
                 Parent = BoxInner;
             });
 
-            Library:AddToRegistry(Highlight, {
-                BackgroundColor3 = 'AccentColor';
+            Library:Create('UIGradient', {
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 80, 80));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 35));
+                });
+                Rotation = 0;
+                Parent = Highlight;
             });
 
             local TabboxButtons = Library:Create('Frame', {
