@@ -577,8 +577,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
             });
             Rotation = 90;
             Parent = HueBoxInner;
@@ -1155,10 +1155,9 @@ do
             ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
 
             ContainerLabel.Visible = true;
-            ContainerLabel.TextColor3 = State and Library.AccentColor or Color3.fromRGB(150, 150, 150);
-            ContainerLabel.TextXAlignment = Enum.TextXAlignment.Left;
+            ContainerLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
 
-            Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or function() return Color3.fromRGB(150, 150, 150) end;
+            Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
 
             local YSize = 0
             local XSize = 0
@@ -1172,7 +1171,7 @@ do
                 end;
             end;
 
-            Library.KeybindFrame.Size = UDim2.new(0, 180, 0, YSize + 35)
+            Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 10, 210), 0, YSize + 23)
         end;
 
         function KeyPicker:GetState()
@@ -1454,8 +1453,8 @@ do
 
             Library:Create('UIGradient', {
                 Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
                 });
                 Rotation = 90;
                 Parent = Inner;
@@ -1688,8 +1687,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
             });
             Rotation = 90;
             Parent = TextBoxInner;
@@ -1851,6 +1850,16 @@ do
             Parent = ToggleOuter;
         });
 
+        -- Gradient on checkbox (off state = dark blue, on state = bright blue)
+        local ToggleGradient = Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 45, 100));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 18, 50));
+            });
+            Rotation = 90;
+            Parent = ToggleInner;
+        });
+
         Library:AddToRegistry(ToggleInner, {
             BackgroundColor3 = 'MainColor';
             BorderColor3 = 'OutlineColor';
@@ -1900,6 +1909,21 @@ do
 
             Library.RegistryMap[ToggleInner].Properties.BackgroundColor3 = Toggle.Value and 'AccentColor' or 'MainColor';
             Library.RegistryMap[ToggleInner].Properties.BorderColor3 = Toggle.Value and 'AccentColorDark' or 'OutlineColor';
+
+            -- Update gradient based on state
+            if ToggleGradient then
+                if Toggle.Value then
+                    ToggleGradient.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 130, 255));
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 70, 200));
+                    });
+                else
+                    ToggleGradient.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 45, 100));
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 18, 50));
+                    });
+                end;
+            end;
         end;
 
         function Toggle:OnChanged(Func)
@@ -2008,6 +2032,16 @@ do
             Parent = SliderOuter;
         });
 
+        -- Blue gradient on empty part of slider
+        Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 45, 100));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 18, 50));
+            });
+            Rotation = 90;
+            Parent = SliderInner;
+        });
+
         Library:AddToRegistry(SliderInner, {
             BackgroundColor3 = 'MainColor';
             BorderColor3 = 'OutlineColor';
@@ -2019,6 +2053,16 @@ do
             Size = UDim2.new(0, 0, 1, 0);
             ZIndex = 7;
             Parent = SliderInner;
+        });
+
+        -- Blue gradient on filled part of slider
+        Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 130, 255));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 70, 200));
+            });
+            Rotation = 90;
+            Parent = Fill;
         });
 
         Library:AddToRegistry(Fill, {
@@ -2227,8 +2271,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 80, 180)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 90))
             });
             Rotation = 90;
             Parent = DropdownInner;
@@ -2762,17 +2806,18 @@ do
 
     local KeybindOuter = Library:Create('Frame', {
         AnchorPoint = Vector2.new(0, 0.5);
-        BackgroundColor3 = Color3.fromRGB(20, 20, 20);
-        BorderSizePixel = 0;
+        BorderColor3 = Color3.new(0, 0, 0);
         Position = UDim2.new(0, 10, 0.5, 0);
-        Size = UDim2.new(0, 180, 0, 25);
+        Size = UDim2.new(0, 210, 0, 20);
         Visible = false;
         ZIndex = 100;
         Parent = ScreenGui;
     });
 
     local KeybindInner = Library:Create('Frame', {
-        BackgroundTransparency = 1;
+        BackgroundColor3 = Library.MainColor;
+        BorderColor3 = Library.OutlineColor;
+        BorderMode = Enum.BorderMode.Inset;
         Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 101;
         Parent = KeybindOuter;
@@ -2794,60 +2839,21 @@ do
     Library:AddToRegistry(ColorFrame, {
         BackgroundColor3 = 'AccentColor';
     }, true);
-    
-    local TopLine = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Size = UDim2.new(1, 0, 0, 1);
-        ZIndex = 102;
-        Parent = KeybindInner;
-    });
-
-    local KeybindGradientProps = {
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.2, 1), -- Теперь начинает появляться раньше (было 0.35)
-            NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(0.8, 1), -- Теперь исчезает позже (было 0.65)
-            NumberSequenceKeypoint.new(1, 1)
-        }),
-    }
-
-    Library:Create('UIGradient', {
-        Transparency = KeybindGradientProps.Transparency,
-        Parent = TopLine;
-    });
 
     local KeybindLabel = Library:CreateLabel({
-        Size = UDim2.new(1, 0, 0, 25);
-        Position = UDim2.new(0, 0, 0, 2);
-        TextXAlignment = Enum.TextXAlignment.Center;
+        Size = UDim2.new(1, 0, 0, 20);
+        Position = UDim2.fromOffset(5, 2),
+        TextXAlignment = Enum.TextXAlignment.Left,
+
         Text = 'Keybinds';
         ZIndex = 104;
         Parent = KeybindInner;
     });
 
-    local ColorFrame = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(0, 0, 0, 28);
-        Size = UDim2.new(1, 0, 0, 1);
-        ZIndex = 102;
-        Parent = KeybindInner;
-    });
-
-    Library:Create('UIGradient', {
-        Transparency = KeybindGradientProps.Transparency,
-        Parent = ColorFrame;
-    });
-
-    Library:AddToRegistry(TopLine, { BackgroundColor3 = 'AccentColor' });
-    Library:AddToRegistry(ColorFrame, { BackgroundColor3 = 'AccentColor' });
-
     local KeybindContainer = Library:Create('Frame', {
         BackgroundTransparency = 1;
-        Size = UDim2.new(1, 0, 1, -35);
-        Position = UDim2.new(0, 0, 0, 35);
+        Size = UDim2.new(1, 0, 1, -20);
+        Position = UDim2.new(0, 0, 0, 20);
         ZIndex = 1;
         Parent = KeybindInner;
     });
@@ -2987,7 +2993,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(550, 600) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(500, 500) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3064,16 +3070,22 @@ function Library:CreateWindow(...)
     });
 
     local TabArea = Library:Create('Frame', {
-        BackgroundTransparency = 1;
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(1, -16, 0, 21);
+        Size = UDim2.new(0, 90, 1, -16);
         ZIndex = 1;
         Parent = MainSectionInner;
     });
 
+    Library:AddToRegistry(TabArea, {
+        BackgroundColor3 = 'BackgroundColor';
+        BorderColor3 = 'OutlineColor';
+    });
+
     local TabListLayout = Library:Create('UIListLayout', {
         Padding = UDim.new(0, Config.TabPadding);
-        FillDirection = Enum.FillDirection.Horizontal;
+        FillDirection = Enum.FillDirection.Vertical;
         SortOrder = Enum.SortOrder.LayoutOrder;
         Parent = TabArea;
     });
@@ -3081,8 +3093,8 @@ function Library:CreateWindow(...)
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 30);
-        Size = UDim2.new(1, -16, 1, -38);
+        Position = UDim2.new(0, 106, 0, 8);
+        Size = UDim2.new(1, -114, 1, -16);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
@@ -3108,9 +3120,19 @@ function Library:CreateWindow(...)
         local TabButton = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(0, TabButtonWidth + 8 + 4, 1, 0);
+            Size = UDim2.new(1, 0, 0, 28);
             ZIndex = 1;
             Parent = TabArea;
+        });
+
+        Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 60, 120));
+                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 35, 80));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 55));
+            });
+            Rotation = 90;
+            Parent = TabButton;
         });
 
         Library:AddToRegistry(TabButton, {
@@ -3206,6 +3228,15 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 0;
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
+            -- Brighten gradient for active tab
+            local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
+            if grad then
+                grad.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 100, 220));
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 60, 160));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 35, 110));
+                });
+            end;
             TabFrame.Visible = true;
         end;
 
@@ -3213,6 +3244,15 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 1;
             TabButton.BackgroundColor3 = Library.BackgroundColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'BackgroundColor';
+            -- Dim gradient for inactive tab
+            local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
+            if grad then
+                grad.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 60, 120));
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 35, 80));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 55));
+                });
+            end;
             TabFrame.Visible = false;
         end;
 
