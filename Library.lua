@@ -2765,7 +2765,7 @@ do
         BackgroundColor3 = Color3.fromRGB(20, 20, 20);
         BorderSizePixel = 0;
         Position = UDim2.new(0, 10, 0.5, 0);
-        Size = UDim2.new(0, 140, 0, 140);
+        Size = UDim2.new(0, 180, 0, 25);
         Visible = false;
         ZIndex = 100;
         Parent = ScreenGui;
