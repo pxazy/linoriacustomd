@@ -1155,9 +1155,10 @@ do
             ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
 
             ContainerLabel.Visible = true;
-            ContainerLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
+            ContainerLabel.TextColor3 = State and Library.AccentColor or Color3.fromRGB(150, 150, 150);
+            ContainerLabel.TextXAlignment = Enum.TextXAlignment.Left;
 
-            Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
+            Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or function() return Color3.fromRGB(150, 150, 150) end;
 
             local YSize = 0
             local XSize = 0
