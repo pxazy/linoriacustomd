@@ -2795,14 +2795,34 @@ do
     }, true);
 
     local KeybindLabel = Library:CreateLabel({
-        Size = UDim2.new(1, 0, 0, 20);
-        Position = UDim2.fromOffset(5, 2),
-        TextXAlignment = Enum.TextXAlignment.Left,
+        Size = UDim2.new(1, 0, 0, 25);
+        Position = UDim2.new(0, 0, 0, 0);
+        TextXAlignment = Enum.TextXAlignment.Center;
 
         Text = 'Keybinds';
         ZIndex = 104;
         Parent = KeybindInner;
     });
+
+    local ColorFrame = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 0, 25);
+        Size = UDim2.new(1, 0, 0, 1);
+        ZIndex = 102;
+        Parent = KeybindInner;
+    });
+
+    local KeybindGradient = Library:Create('UIGradient', {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        }),
+        Parent = ColorFrame;
+    });
+
+    Library:AddToRegistry(ColorFrame, { BackgroundColor3 = 'AccentColor' });
 
     local KeybindContainer = Library:Create('Frame', {
         BackgroundTransparency = 1;
