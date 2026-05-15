@@ -3073,7 +3073,7 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(0, 90, 1, -16);
+        Size = UDim2.new(0, 120, 1, -16);
         ZIndex = 1;
         Parent = MainSectionInner;
     });
@@ -3093,8 +3093,8 @@ function Library:CreateWindow(...)
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 106, 0, 8);
-        Size = UDim2.new(1, -114, 1, -16);
+        Position = UDim2.new(0, 136, 0, 8);
+        Size = UDim2.new(1, -144, 1, -16);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
@@ -3127,9 +3127,8 @@ function Library:CreateWindow(...)
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 60, 120));
-                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 35, 80));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 55));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25));
             });
             Rotation = 90;
             Parent = TabButton;
@@ -3175,8 +3174,8 @@ function Library:CreateWindow(...)
         local LeftSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            Position = UDim2.new(0, 7, 0, 7);
+            Size = UDim2.new(0.5, -11, 1, -14);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3188,8 +3187,8 @@ function Library:CreateWindow(...)
         local RightSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            Position = UDim2.new(0.5, 5, 0, 7);
+            Size = UDim2.new(0.5, -12, 1, -14);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3232,9 +3231,8 @@ function Library:CreateWindow(...)
             local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
             if grad then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 100, 220));
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 60, 160));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 35, 110));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 70, 70));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40));
                 });
             end;
             TabFrame.Visible = true;
@@ -3248,9 +3246,8 @@ function Library:CreateWindow(...)
             local grad = TabButton:FindFirstChildWhichIsA('UIGradient');
             if grad then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 60, 120));
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 35, 80));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 55));
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25));
                 });
             end;
             TabFrame.Visible = false;
@@ -3268,7 +3265,7 @@ function Library:CreateWindow(...)
                 BackgroundColor3 = Library.BackgroundColor;
                 BorderColor3 = Library.OutlineColor;
                 BorderMode = Enum.BorderMode.Inset;
-                Size = UDim2.new(1, 0, 0, 507 + 2);
+                Size = UDim2.new(1, 0, 0, 0);
                 ZIndex = 2;
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
