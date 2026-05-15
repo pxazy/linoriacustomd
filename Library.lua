@@ -1454,7 +1454,9 @@ do
             Library:Create('UIGradient', {
                 Color = ColorSequence.new({
                     ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 180, 180)),
+                    ColorSequenceKeypoint.new(0.51, Color3.fromRGB(100, 100, 100)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
                 });
                 Rotation = 90;
                 Parent = Inner;
