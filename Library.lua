@@ -442,6 +442,20 @@ do
             Parent = ToggleLabel;
         });
 
+        Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255));
+                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(180, 180, 180));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60));
+            });
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.55);
+                NumberSequenceKeypoint.new(1, 0.55);
+            });
+            Rotation = 135;
+            Parent = DisplayFrame;
+        });
+
         -- Transparency image taken from https://github.com/matas3535/SplixPrivateDrawingLibrary/blob/main/Library.lua cus i'm lazy
         local CheckerFrame = Library:Create('ImageLabel', {
             BorderSizePixel = 0;
@@ -1451,15 +1465,7 @@ do
                 Parent = Inner;
             });
 
-            Library:Create('UIGradient', {
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 70, 70));
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 40, 40));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18));
-                });
-                Rotation = 135;
-                Parent = Inner;
-            });
+
 
             Library:AddToRegistry(Outer, {
                 BorderColor3 = 'Black';
@@ -1686,15 +1692,7 @@ do
             Library:AddToolTip(Info.Tooltip, TextBoxOuter)
         end
 
-        Library:Create('UIGradient', {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
-                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 30, 30));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 15));
-            });
-            Rotation = 135;
-            Parent = TextBoxInner;
-        });
+
 
         local Container = Library:Create('Frame', {
             BackgroundTransparency = 1;
@@ -1989,7 +1987,7 @@ do
             Min = Info.Min;
             Max = Info.Max;
             Rounding = Info.Rounding;
-            MaxSize = 232;
+            MaxSize = 232; -- будет перезаписан динамически
             Type = 'Slider';
             Callback = Info.Callback or function(Value) end;
         };
@@ -2088,6 +2086,15 @@ do
             ZIndex = 9;
             Parent = SliderInner;
         });
+
+        -- Динамически обновлять MaxSize под реальную ширину слайдера
+        SliderInner:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
+            local newMax = math.floor(SliderInner.AbsoluteSize.X) - 2;
+            if newMax > 0 then
+                Slider.MaxSize = newMax;
+                Slider:Display();
+            end;
+        end);
 
         Library:OnHighlight(SliderOuter, SliderOuter,
             { BorderColor3 = 'AccentColor' },
@@ -2267,15 +2274,7 @@ do
             BorderColor3 = 'OutlineColor';
         });
 
-        Library:Create('UIGradient', {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
-                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 30, 30));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 15));
-            });
-            Rotation = 135;
-            Parent = DropdownInner;
-        });
+
 
         local DropdownArrow = Library:Create('ImageLabel', {
             AnchorPoint = Vector2.new(0, 0.5);
@@ -2992,7 +2991,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(480, 460) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(600, 580) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
