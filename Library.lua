@@ -2848,8 +2848,8 @@ do
 
     local KeybindContainer = Library:Create('Frame', {
         BackgroundTransparency = 1;
-        Size = UDim2.new(1, 0, 1, -20);
-        Position = UDim2.new(0, 0, 0, 20);
+        Size = UDim2.new(1, 0, 1, -35);
+        Position = UDim2.new(0, 0, 0, 35);
         ZIndex = 1;
         Parent = KeybindInner;
     });
