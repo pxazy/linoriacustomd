@@ -2991,7 +2991,7 @@ function Library:CreateWindow(...)
         ZIndex = 1;
         Parent = Inner;
     });
-    
+
     local TitleLine = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
@@ -3001,22 +3001,23 @@ function Library:CreateWindow(...)
         Parent = Inner;
     });
 
+    local LineGradient = Library:Create('UIGradient', {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        }),
+        Parent = TitleLine;
+    });
+
     Library:AddToRegistry(TitleLine, {
         BackgroundColor3 = 'AccentColor';
     });
-    
-    local MainSectionOuter = Library:Create('Frame', {
-        BackgroundColor3 = Library.BackgroundColor;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 25);
-        Size = UDim2.new(1, -16, 1, -33);
-        ZIndex = 1;
-        Parent = Inner;
-    });
 
-    Library:AddToRegistry(MainSectionOuter, {
-        BackgroundColor3 = 'BackgroundColor';
-        BorderColor3 = 'OutlineColor';
+    Library:AddToRegistry(LineGradient, {
+        Color = function()
+            return ColorSequence.new(Library.AccentColor)
+        end
     });
 
     local MainSectionInner = Library:Create('Frame', {
