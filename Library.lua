@@ -3118,8 +3118,8 @@ function Library:CreateWindow(...)
         local TabFrame = Library:Create('Frame', {
             Name = 'TabFrame',
             BackgroundTransparency = 1;
-            Position = UDim2.new(0, 0, 0, 0);
-            Size = UDim2.new(1, 0, 1, 0);
+            Position = UDim2.new(0, 5, 0, 5);
+            Size = UDim2.new(1, -10, 1, -10);
             Visible = false;
             ZIndex = 2;
             Parent = TabContainer;
