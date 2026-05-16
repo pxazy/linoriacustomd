@@ -1924,15 +1924,18 @@ do
             Library.RegistryMap[ToggleInner].Properties.BorderColor3 = Toggle.Value and 'AccentColorDark' or 'OutlineColor';
             if ToggleGradient then
                 if Toggle.Value then
-                    local h, s, v = Color3.toHSV(Library.AccentColor);
+                    -- светлый оттенок акцента сверху → тёмный снизу
+                    local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
+                    local light = Color3.new(math.min(r * 1.7, 1), math.min(g * 1.7, 1), math.min(b * 1.7, 1));
+                    local dark  = Color3.new(r * 0.35, g * 0.35, b * 0.35);
                     ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromHSV(h, s, math.min(v * 1.5, 1)));
-                        ColorSequenceKeypoint.new(1, Color3.fromHSV(h, s, v * 0.5));
+                        ColorSequenceKeypoint.new(0, light);
+                        ColorSequenceKeypoint.new(1, dark);
                     });
                 else
                     ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18));
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(52, 52, 52));
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 16, 16));
                     });
                 end;
             end;
@@ -2047,8 +2050,8 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(44, 44, 44));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 16, 16));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 48, 48));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 14, 14));
             });
             Rotation = 90;
             Parent = SliderInner;
@@ -2073,10 +2076,13 @@ do
             Parent = SliderInner;
         });
 
+        local _ar, _ag, _ab = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
+        local _light = Color3.new(math.min(_ar*1.7,1), math.min(_ag*1.7,1), math.min(_ab*1.7,1));
+        local _dark  = Color3.new(_ar*0.35, _ag*0.35, _ab*0.35);
         local FillGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 130, 255));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 60, 200));
+                ColorSequenceKeypoint.new(0, _light);
+                ColorSequenceKeypoint.new(1, _dark);
             });
             Rotation = 90;
             Parent = Fill;
@@ -2120,10 +2126,12 @@ do
         function Slider:UpdateColors()
             Fill.BorderColor3 = Library.AccentColorDark;
             if FillGradient then
-                local h, s, v = Color3.toHSV(Library.AccentColor);
+                local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
+                local light = Color3.new(math.min(r * 1.7, 1), math.min(g * 1.7, 1), math.min(b * 1.7, 1));
+                local dark  = Color3.new(r * 0.35, g * 0.35, b * 0.35);
                 FillGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromHSV(h, s, math.min(v * 1.5, 1)));
-                    ColorSequenceKeypoint.new(1, Color3.fromHSV(h, s, v * 0.5));
+                    ColorSequenceKeypoint.new(0, light);
+                    ColorSequenceKeypoint.new(1, dark);
                 });
             end;
         end;
