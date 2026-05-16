@@ -1233,7 +1233,7 @@ do
                 end;
             end;
 
-            Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 10, 210), 0, YSize + 23)
+            Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 10, 180), 0, YSize + 23)
         end;
 
         function KeyPicker:GetState()
@@ -1905,12 +1905,12 @@ do
 
         local ToggleGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
-                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 160, 160));
             });
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.4);
-                NumberSequenceKeypoint.new(1, 0.65);
+                NumberSequenceKeypoint.new(0, 0.3);
+                NumberSequenceKeypoint.new(1, 0.55);
             });
             Rotation = 90;
             Parent = ToggleInner;
@@ -2075,12 +2075,12 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
-                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 160, 160));
             });
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.6);
-                NumberSequenceKeypoint.new(1, 0.8);
+                NumberSequenceKeypoint.new(0, 0.5);
+                NumberSequenceKeypoint.new(1, 0.72);
             });
             Rotation = 90;
             Parent = SliderInner;
@@ -2106,12 +2106,12 @@ do
 
         local FillGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
-                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255));
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 160, 160));
             });
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.4);
-                NumberSequenceKeypoint.new(1, 0.65);
+                NumberSequenceKeypoint.new(0, 0.3);
+                NumberSequenceKeypoint.new(1, 0.55);
             });
             Rotation = 90;
             Parent = Fill;
@@ -2875,7 +2875,7 @@ do
         AnchorPoint = Vector2.new(0, 0.5);
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 10, 0.5, 0);
-        Size = UDim2.new(0, 210, 0, 20);
+        Size = UDim2.new(0, 180, 0, 20);
         Visible = false;
         ZIndex = 100;
         Parent = ScreenGui;
@@ -2883,16 +2883,34 @@ do
 
     local KeybindInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
+        BorderColor3 = Library.AccentColor;
         BorderMode = Enum.BorderMode.Inset;
         Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 101;
         Parent = KeybindOuter;
     });
 
+    local KeybindInnerBg = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 1, 0, 1);
+        Size = UDim2.new(1, -2, 1, -2);
+        ZIndex = 101;
+        Parent = KeybindInner;
+    });
+
+    Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor));
+            ColorSequenceKeypoint.new(1, Library.MainColor);
+        });
+        Rotation = -90;
+        Parent = KeybindInnerBg;
+    });
+
     Library:AddToRegistry(KeybindInner, {
         BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'OutlineColor';
+        BorderColor3 = 'AccentColor';
     }, true);
 
     local KeybindStripe = Library:Create('Frame', {
@@ -2900,7 +2918,7 @@ do
         BorderSizePixel = 0;
         Size = UDim2.new(1, 0, 0, 1);
         ZIndex = 102;
-        Parent = KeybindInner;
+        Parent = KeybindInnerBg;
     });
     Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
@@ -2921,15 +2939,15 @@ do
         TextXAlignment = Enum.TextXAlignment.Center,
         Text = 'Keybinds';
         ZIndex = 104;
-        Parent = KeybindInner;
+        Parent = KeybindInnerBg;
     });
 
     local KeybindContainer = Library:Create('Frame', {
         BackgroundTransparency = 1;
         Size = UDim2.new(1, 0, 1, -20);
         Position = UDim2.new(0, 0, 0, 20);
-        ZIndex = 1;
-        Parent = KeybindInner;
+        ZIndex = 104;
+        Parent = KeybindInnerBg;
     });
 
     Library:Create('UIListLayout', {
