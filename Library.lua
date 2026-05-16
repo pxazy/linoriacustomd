@@ -9,6 +9,39 @@ local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 local Mouse = LocalPlayer:GetMouse();
 
+local b64decode = (crypt and crypt.base64 and crypt.base64.decode) or (crypt and crypt.base64decode) or base64_decode
+local base64FontData = "BASE64HERE"
+local fontAssetId = nil
+
+if getcustomasset and writefile and isfile and b64decode then
+    local fontData = base64FontData:gsub("[^%w%+/=]", "")
+    if #fontData > 100 then
+        if isfolder and makefolder and not isfolder("Base64FontTest") then 
+            makefolder("Base64FontTest") 
+        end
+        
+        local ttfPath = "Base64FontTest/font.ttf"
+        local jsonPath = "Base64FontTest/font.font"
+        
+        if not isfile(ttfPath) then
+            local success, decoded = pcall(b64decode, fontData)
+            if success and decoded then
+                writefile(ttfPath, decoded)
+            end
+        end
+        
+        if isfile(ttfPath) and not isfile(jsonPath) then
+            local assetPath = getcustomasset(ttfPath)
+            local fontJson = [[{"name": "CustomFont","faces":[{"name": "Regular","weight": 400,"style": "normal","assetId": "]] .. assetPath .. [["}]}]]
+            writefile(jsonPath, fontJson)
+        end
+        
+        if isfile(jsonPath) then
+            fontAssetId = getcustomasset(jsonPath)
+        end
+    end
+end
+
 local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end);
 
 local ScreenGui = Instance.new('ScreenGui');
