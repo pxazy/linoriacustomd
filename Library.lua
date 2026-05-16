@@ -1871,8 +1871,8 @@ do
                 ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
             });
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.35);
-                NumberSequenceKeypoint.new(1, 0.55);
+                NumberSequenceKeypoint.new(0, 0.25);
+                NumberSequenceKeypoint.new(1, 0.45);
             });
             Rotation = 90;
             Parent = ToggleInner;
@@ -2042,7 +2042,7 @@ do
                 ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
             });
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.6);
+                NumberSequenceKeypoint.new(0, 0.55);
                 NumberSequenceKeypoint.new(1, 0.75);
             });
             Rotation = 90;
@@ -2068,15 +2068,14 @@ do
             Parent = SliderInner;
         });
 
-        -- Градиент на Fill: сверху белый (светлее) → снизу чёрный (темнее), поверх AccentColor
         local FillGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
                 ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
             });
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.35);
-                NumberSequenceKeypoint.new(1, 0.55);
+                NumberSequenceKeypoint.new(0, 0.25);
+                NumberSequenceKeypoint.new(1, 0.45);
             });
             Rotation = 90;
             Parent = Fill;
@@ -2120,7 +2119,7 @@ do
         function Slider:UpdateColors()
             Fill.BackgroundColor3 = Library.AccentColor;
             Fill.BorderColor3 = Library.AccentColorDark;
-            -- FillGradient поверх AccentColor, не нужно пересчитывать
+            Library.RegistryMap[Fill].Properties.BackgroundColor3 = 'AccentColor';
         end;
 
         function Slider:Display()
@@ -3070,8 +3069,8 @@ function Library:CreateWindow(...)
     Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1);
-            NumberSequenceKeypoint.new(0.05, 0);
-            NumberSequenceKeypoint.new(0.95, 0);
+            NumberSequenceKeypoint.new(0.1, 0);
+            NumberSequenceKeypoint.new(0.9, 0);
             NumberSequenceKeypoint.new(1, 1);
         });
         Parent = TitleStripe;
@@ -3170,7 +3169,7 @@ function Library:CreateWindow(...)
             });
             Transparency = NumberSequence.new({
                 NumberSequenceKeypoint.new(0, 0.55);
-                NumberSequenceKeypoint.new(1, 0.7);
+                NumberSequenceKeypoint.new(1, 0.75);
             });
             Rotation = 90;
             Parent = TabButton;
@@ -3327,8 +3326,8 @@ function Library:CreateWindow(...)
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.05, 0);
-                    NumberSequenceKeypoint.new(0.95, 0);
+                    NumberSequenceKeypoint.new(0.1, 0);
+                    NumberSequenceKeypoint.new(0.9, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
@@ -3434,8 +3433,8 @@ function Library:CreateWindow(...)
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.05, 0);
-                    NumberSequenceKeypoint.new(0.95, 0);
+                    NumberSequenceKeypoint.new(0.1, 0);
+                    NumberSequenceKeypoint.new(0.9, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
