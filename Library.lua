@@ -1867,8 +1867,12 @@ do
 
         local ToggleGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18));
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
+                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+            });
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.35);
+                NumberSequenceKeypoint.new(1, 0.55);
             });
             Rotation = 90;
             Parent = ToggleInner;
@@ -1922,23 +1926,7 @@ do
             ToggleInner.BorderColor3 = Toggle.Value and Library.AccentColorDark or Library.OutlineColor;
             Library.RegistryMap[ToggleInner].Properties.BackgroundColor3 = Toggle.Value and 'AccentColor' or 'MainColor';
             Library.RegistryMap[ToggleInner].Properties.BorderColor3 = Toggle.Value and 'AccentColorDark' or 'OutlineColor';
-            if ToggleGradient then
-                if Toggle.Value then
-                    -- светлый оттенок акцента сверху → тёмный снизу
-                    local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
-                    local light = Color3.new(math.min(r*1.8,1), math.min(g*1.8,1), math.min(b*1.8,1));
-                    local dark  = Color3.new(r*0.3, g*0.3, b*0.3);
-                    ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, light);
-                        ColorSequenceKeypoint.new(1, dark);
-                    });
-                else
-                    ToggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(52, 52, 52));
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(16, 16, 16));
-                    });
-                end;
-            end;
+            -- UIGradient overlay (белый→чёрный) сам работает поверх BackgroundColor3
         end;
 
         function Toggle:OnChanged(Func)
@@ -2050,8 +2038,12 @@ do
 
         Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 48, 48));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 14, 14));
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
+                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+            });
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.6);
+                NumberSequenceKeypoint.new(1, 0.75);
             });
             Rotation = 90;
             Parent = SliderInner;
@@ -2076,17 +2068,15 @@ do
             Parent = SliderInner;
         });
 
-        local function MakeAccentGradientColors()
-            local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
-            return
-                Color3.new(math.min(r*1.8,1), math.min(g*1.8,1), math.min(b*1.8,1)),
-                Color3.new(r*0.3, g*0.3, b*0.3);
-        end;
-        local _fl, _fd = MakeAccentGradientColors();
+        -- Градиент на Fill: сверху белый (светлее) → снизу чёрный (темнее), поверх AccentColor
         local FillGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, _fl);
-                ColorSequenceKeypoint.new(1, _fd);
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
+                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+            });
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.35);
+                NumberSequenceKeypoint.new(1, 0.55);
             });
             Rotation = 90;
             Parent = Fill;
@@ -2128,14 +2118,9 @@ do
         end
 
         function Slider:UpdateColors()
+            Fill.BackgroundColor3 = Library.AccentColor;
             Fill.BorderColor3 = Library.AccentColorDark;
-            if FillGradient then
-                local light, dark = MakeAccentGradientColors();
-                FillGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, light);
-                    ColorSequenceKeypoint.new(1, dark);
-                });
-            end;
+            -- FillGradient поверх AccentColor, не нужно пересчитывать
         end;
 
         function Slider:Display()
@@ -3078,15 +3063,15 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
         Position = UDim2.new(0, 0, 0, 24);
-        Size = UDim2.new(1, 0, 0, 2);
+        Size = UDim2.new(1, 0, 0, 1);
         ZIndex = 2;
         Parent = Inner;
     });
     Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1);
-            NumberSequenceKeypoint.new(0.08, 0);
-            NumberSequenceKeypoint.new(0.92, 0);
+            NumberSequenceKeypoint.new(0.05, 0);
+            NumberSequenceKeypoint.new(0.95, 0);
             NumberSequenceKeypoint.new(1, 1);
         });
         Parent = TitleStripe;
@@ -3180,8 +3165,12 @@ function Library:CreateWindow(...)
 
         local TabBtnGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(58, 58, 58));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(24, 24, 24));
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
+                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0));
+            });
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.55);
+                NumberSequenceKeypoint.new(1, 0.7);
             });
             Rotation = 90;
             Parent = TabButton;
@@ -3279,10 +3268,7 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 0;
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
-            TabBtnGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(88, 88, 88));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(42, 42, 42));
-            });
+            -- градиент overlay не меняем, меняется через BackgroundColor3
             TabFrame.Visible = true;
         end;
 
@@ -3290,10 +3276,7 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 1;
             TabButton.BackgroundColor3 = Library.BackgroundColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'BackgroundColor';
-            TabBtnGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(58, 58, 58));
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(24, 24, 24));
-            });
+            -- градиент overlay не меняем, меняется через BackgroundColor3
             TabFrame.Visible = false;
         end;
 
@@ -3337,15 +3320,15 @@ function Library:CreateWindow(...)
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 2);
+                Size = UDim2.new(1, 0, 0, 1);
                 ZIndex = 5;
                 Parent = BoxInner;
             });
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.08, 0);
-                    NumberSequenceKeypoint.new(0.92, 0);
+                    NumberSequenceKeypoint.new(0.05, 0);
+                    NumberSequenceKeypoint.new(0.95, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
@@ -3444,15 +3427,15 @@ function Library:CreateWindow(...)
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 2);
+                Size = UDim2.new(1, 0, 0, 1);
                 ZIndex = 10;
                 Parent = BoxInner;
             });
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.08, 0);
-                    NumberSequenceKeypoint.new(0.92, 0);
+                    NumberSequenceKeypoint.new(0.05, 0);
+                    NumberSequenceKeypoint.new(0.95, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
