@@ -1926,8 +1926,8 @@ do
                 if Toggle.Value then
                     -- светлый оттенок акцента сверху → тёмный снизу
                     local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
-                    local light = Color3.new(math.min(r * 1.7, 1), math.min(g * 1.7, 1), math.min(b * 1.7, 1));
-                    local dark  = Color3.new(r * 0.35, g * 0.35, b * 0.35);
+                    local light = Color3.new(math.min(r*1.8,1), math.min(g*1.8,1), math.min(b*1.8,1));
+                    local dark  = Color3.new(r*0.3, g*0.3, b*0.3);
                     ToggleGradient.Color = ColorSequence.new({
                         ColorSequenceKeypoint.new(0, light);
                         ColorSequenceKeypoint.new(1, dark);
@@ -2076,13 +2076,17 @@ do
             Parent = SliderInner;
         });
 
-        local _ar, _ag, _ab = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
-        local _light = Color3.new(math.min(_ar*1.7,1), math.min(_ag*1.7,1), math.min(_ab*1.7,1));
-        local _dark  = Color3.new(_ar*0.35, _ag*0.35, _ab*0.35);
+        local function MakeAccentGradientColors()
+            local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
+            return
+                Color3.new(math.min(r*1.8,1), math.min(g*1.8,1), math.min(b*1.8,1)),
+                Color3.new(r*0.3, g*0.3, b*0.3);
+        end;
+        local _fl, _fd = MakeAccentGradientColors();
         local FillGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, _light);
-                ColorSequenceKeypoint.new(1, _dark);
+                ColorSequenceKeypoint.new(0, _fl);
+                ColorSequenceKeypoint.new(1, _fd);
             });
             Rotation = 90;
             Parent = Fill;
@@ -2126,9 +2130,7 @@ do
         function Slider:UpdateColors()
             Fill.BorderColor3 = Library.AccentColorDark;
             if FillGradient then
-                local r, g, b = Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B;
-                local light = Color3.new(math.min(r * 1.7, 1), math.min(g * 1.7, 1), math.min(b * 1.7, 1));
-                local dark  = Color3.new(r * 0.35, g * 0.35, b * 0.35);
+                local light, dark = MakeAccentGradientColors();
                 FillGradient.Color = ColorSequence.new({
                     ColorSequenceKeypoint.new(0, light);
                     ColorSequenceKeypoint.new(1, dark);
@@ -3076,15 +3078,15 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
         Position = UDim2.new(0, 0, 0, 24);
-        Size = UDim2.new(1, 0, 0, 1);
+        Size = UDim2.new(1, 0, 0, 2);
         ZIndex = 2;
         Parent = Inner;
     });
     Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1);
-            NumberSequenceKeypoint.new(0.2, 0);
-            NumberSequenceKeypoint.new(0.8, 0);
+            NumberSequenceKeypoint.new(0.08, 0);
+            NumberSequenceKeypoint.new(0.92, 0);
             NumberSequenceKeypoint.new(1, 1);
         });
         Parent = TitleStripe;
@@ -3327,32 +3329,23 @@ function Library:CreateWindow(...)
             });
 
             -- Градиент на фоне панели: светлее сверху, темнее снизу
-            Library:Create('UIGradient', {
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(32, 32, 32));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 14, 14));
-                });
-                Rotation = 90;
-                Parent = BoxInner;
-            });
-
             Library:AddToRegistry(BoxInner, {
                 BackgroundColor3 = 'BackgroundColor';
             });
 
-            -- Полоска accent сверху, прозрачная по краям
+            -- Полоска accent сверху: шире, раньше пропадает по краям
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 1);
+                Size = UDim2.new(1, 0, 0, 2);
                 ZIndex = 5;
                 Parent = BoxInner;
             });
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.15, 0);
-                    NumberSequenceKeypoint.new(0.85, 0);
+                    NumberSequenceKeypoint.new(0.08, 0);
+                    NumberSequenceKeypoint.new(0.92, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
@@ -3444,15 +3437,6 @@ function Library:CreateWindow(...)
                 Parent = BoxOuter;
             });
 
-            Library:Create('UIGradient', {
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(32, 32, 32));
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 14, 14));
-                });
-                Rotation = 90;
-                Parent = BoxInner;
-            });
-
             Library:AddToRegistry(BoxInner, {
                 BackgroundColor3 = 'BackgroundColor';
             });
@@ -3460,15 +3444,15 @@ function Library:CreateWindow(...)
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 1);
+                Size = UDim2.new(1, 0, 0, 2);
                 ZIndex = 10;
                 Parent = BoxInner;
             });
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.15, 0);
-                    NumberSequenceKeypoint.new(0.85, 0);
+                    NumberSequenceKeypoint.new(0.08, 0);
+                    NumberSequenceKeypoint.new(0.92, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
