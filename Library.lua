@@ -42,6 +42,17 @@ local Library = {
 
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code,
+    FontSize = 14;
+
+    FontMode = 'Default';
+
+    NotifyDuration = 5;
+    NotifyTransparency = 0;
+    NotifyPosition = 'Left';
+    NotifyStripePosition = 'Left';
+    NotifyStripeStyle = 'Default';
+
+    KeybindTransparency = 0;
 
     OpenedFrames = {};
     DependencyBoxes = {};
@@ -174,14 +185,21 @@ local function Library_LoadCustomFont()
     end
 end
 
+function Library:GetActiveFont()
+    if Library.FontMode == 'Monocraft' and _customFontId then
+        return nil, Font.new(_customFontId), Enum.Font.Unknown
+    end
+    return Library.Font, nil, Library.Font
+end
+
 function Library:CreateLabel(Properties, IsHud)
-    local _font = _customFontId and Font.new(_customFontId) or nil
+    local baseFont, fontFace, enumFont = Library:GetActiveFont()
     local _Instance = Library:Create('TextLabel', {
         BackgroundTransparency = 1;
-        Font = _customFontId and Enum.Font.Unknown or Library.Font;
-        FontFace = _font or nil;
+        Font = enumFont;
+        FontFace = fontFace or nil;
         TextColor3 = Library.FontColor;
-        TextSize = 16;
+        TextSize = Library.FontSize;
         TextStrokeTransparency = 0;
     });
 
@@ -189,6 +207,7 @@ function Library:CreateLabel(Properties, IsHud)
 
     Library:AddToRegistry(_Instance, {
         TextColor3 = 'FontColor';
+        TextSize = 'FontSize';
     }, IsHud);
 
     return Library:Create(_Instance, Properties);
@@ -386,16 +405,35 @@ function Library:RemoveFromRegistry(Instance)
 end;
 
 function Library:UpdateColorsUsingRegistry()
+    local baseFont, fontFace, enumFont = Library:GetActiveFont()
     for Idx, Object in next, Library.Registry do
         for Property, ColorIdx in next, Object.Properties do
-            if type(ColorIdx) == 'string' then
+            if Property == 'TextSize' and ColorIdx == 'FontSize' then
+                Object.Instance[Property] = Library.FontSize
+            elseif type(ColorIdx) == 'string' then
                 Object.Instance[Property] = Library[ColorIdx];
             elseif type(ColorIdx) == 'function' then
                 Object.Instance[Property] = ColorIdx()
             end
         end;
+        if Object.Instance:IsA('TextLabel') or Object.Instance:IsA('TextBox') then
+            Object.Instance.Font = enumFont
+            if fontFace then
+                Object.Instance.FontFace = fontFace
+            end
+        end
     end;
 end;
+
+function Library:SetFont(Mode)
+    Library.FontMode = Mode
+    Library:UpdateColorsUsingRegistry()
+end
+
+function Library:SetFontSize(Size)
+    Library.FontSize = Size
+    Library:UpdateColorsUsingRegistry()
+end
 
 function Library:GiveSignal(Signal)
     table.insert(Library.Signals, Signal)
@@ -2753,6 +2791,24 @@ do
         Parent = Library.NotificationArea;
     });
 
+    function Library:UpdateNotificationPosition()
+        local pos = Library.NotifyPosition
+        local area = Library.NotificationArea
+        if pos == 'Left' then
+            area.Position = UDim2.new(0, 0, 0, 40)
+            area.AnchorPoint = Vector2.new(0, 0)
+        elseif pos == 'Right' then
+            area.Position = UDim2.new(1, -300, 0, 40)
+            area.AnchorPoint = Vector2.new(0, 0)
+        elseif pos == 'Center' then
+            area.Position = UDim2.new(0.5, -150, 0, 40)
+            area.AnchorPoint = Vector2.new(0, 0)
+        elseif type(pos) == 'table' then
+            area.Position = UDim2.fromOffset(pos[1], pos[2])
+            area.AnchorPoint = Vector2.new(0, 0)
+        end
+    end
+
     local WatermarkOuter = Library:Create('Frame', {
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 100, 0, -25);
@@ -2839,23 +2895,30 @@ do
         BorderColor3 = 'OutlineColor';
     }, true);
 
-    local ColorFrame = Library:Create('Frame', {
+    local KeybindStripe = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
-        Size = UDim2.new(1, 0, 0, 2);
+        Size = UDim2.new(1, 0, 0, 1);
         ZIndex = 102;
         Parent = KeybindInner;
     });
-
-    Library:AddToRegistry(ColorFrame, {
+    Library:Create('UIGradient', {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1);
+            NumberSequenceKeypoint.new(0.35, 0);
+            NumberSequenceKeypoint.new(0.65, 0);
+            NumberSequenceKeypoint.new(1, 1);
+        });
+        Parent = KeybindStripe;
+    });
+    Library:AddToRegistry(KeybindStripe, {
         BackgroundColor3 = 'AccentColor';
     }, true);
 
     local KeybindLabel = Library:CreateLabel({
         Size = UDim2.new(1, 0, 0, 20);
-        Position = UDim2.fromOffset(5, 2),
-        TextXAlignment = Enum.TextXAlignment.Left,
-
+        Position = UDim2.fromOffset(0, 2),
+        TextXAlignment = Enum.TextXAlignment.Center,
         Text = 'Keybinds';
         ZIndex = 104;
         Parent = KeybindInner;
@@ -2881,8 +2944,15 @@ do
     })
 
     Library.KeybindFrame = KeybindOuter;
+    Library.KeybindInner = KeybindInner;
     Library.KeybindContainer = KeybindContainer;
     Library:MakeDraggable(KeybindOuter);
+
+    function Library:SetKeybindTransparency(Alpha)
+        Library.KeybindTransparency = Alpha
+        KeybindInner.BackgroundTransparency = Alpha
+        KeybindOuter.BackgroundTransparency = Alpha
+    end
 end;
 
 function Library:SetWatermarkVisibility(Bool)
@@ -2898,13 +2968,16 @@ function Library:SetWatermark(Text)
 end;
 
 function Library:Notify(Text, Time)
-    local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14);
-
+    local XSize, YSize = Library:GetTextBounds(Text, Library.Font, Library.FontSize);
     YSize = YSize + 7
+    local duration = Time or Library.NotifyDuration or 5
+    local bgAlpha = Library.NotifyTransparency or 0
+    local stripePos = Library.NotifyStripePosition or 'Left'
+    local stripeStyle = Library.NotifyStripeStyle or 'Default'
 
     local NotifyOuter = Library:Create('Frame', {
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 100, 0, 10);
+        Position = UDim2.new(0, 0, 0, 0);
         Size = UDim2.new(0, 0, 0, YSize);
         ClipsDescendants = true;
         ZIndex = 100;
@@ -2913,6 +2986,7 @@ function Library:Notify(Text, Time)
 
     local NotifyInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
+        BackgroundTransparency = bgAlpha;
         BorderColor3 = Library.OutlineColor;
         BorderMode = Enum.BorderMode.Inset;
         Size = UDim2.new(1, 0, 1, 0);
@@ -2927,6 +3001,7 @@ function Library:Notify(Text, Time)
 
     local InnerFrame = Library:Create('Frame', {
         BackgroundColor3 = Color3.new(1, 1, 1);
+        BackgroundTransparency = bgAlpha;
         BorderSizePixel = 0;
         Position = UDim2.new(0, 1, 0, 1);
         Size = UDim2.new(1, -2, 1, -2);
@@ -2952,41 +3027,165 @@ function Library:Notify(Text, Time)
         end
     });
 
+    local textPadLeft = (stripePos == 'Left') and 8 or 4
     local NotifyLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 4, 0, 0);
-        Size = UDim2.new(1, -4, 1, 0);
+        Position = UDim2.new(0, textPadLeft, 0, 0);
+        Size = UDim2.new(1, -textPadLeft - 4, 1, 0);
         Text = Text;
         TextXAlignment = Enum.TextXAlignment.Left;
-        TextSize = 14;
+        TextSize = Library.FontSize;
         ZIndex = 103;
         Parent = InnerFrame;
     });
 
-    local LeftColor = Library:Create('Frame', {
+    local stripeSize, stripePosition
+    if stripePos == 'Left' then
+        stripeSize = UDim2.new(0, 3, 1, 2)
+        stripePosition = UDim2.new(0, -1, 0, -1)
+    elseif stripePos == 'Right' then
+        stripeSize = UDim2.new(0, 3, 1, 2)
+        stripePosition = UDim2.new(1, -2, 0, -1)
+    elseif stripePos == 'Top' then
+        stripeSize = UDim2.new(1, 2, 0, 3)
+        stripePosition = UDim2.new(0, -1, 0, -1)
+    elseif stripePos == 'Bottom' then
+        stripeSize = UDim2.new(1, 2, 0, 3)
+        stripePosition = UDim2.new(0, -1, 1, -2)
+    else
+        stripeSize = UDim2.new(0, 3, 1, 2)
+        stripePosition = UDim2.new(0, -1, 0, -1)
+    end
+
+    local StripeFrame = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, -1, 0, -1);
-        Size = UDim2.new(0, 3, 1, 2);
+        Position = stripePosition;
+        Size = stripeSize;
         ZIndex = 104;
         Parent = NotifyOuter;
     });
 
-    Library:AddToRegistry(LeftColor, {
+    if stripeStyle == 'Neon' then
+        Library:Create('UIGradient', {
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1);
+                NumberSequenceKeypoint.new(0.35, 0);
+                NumberSequenceKeypoint.new(0.65, 0);
+                NumberSequenceKeypoint.new(1, 1);
+            });
+            Rotation = (stripePos == 'Left' or stripePos == 'Right') and 90 or 0;
+            Parent = StripeFrame;
+        });
+    end
+
+    Library:AddToRegistry(StripeFrame, {
         BackgroundColor3 = 'AccentColor';
     }, true);
 
     pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
 
     task.spawn(function()
-        wait(Time or 5);
-
+        wait(duration);
         pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, 0, 0, YSize), 'Out', 'Quad', 0.4, true);
-
         wait(0.4);
-
         NotifyOuter:Destroy();
     end);
 end;
+
+function Library:CreateConfigSection(Groupbox)
+    Groupbox:AddDropdown('LibFontMode', {
+        Text = 'Font',
+        Values = {'Default', 'Monocraft'},
+        Default = Library.FontMode,
+        Callback = function(v)
+            Library:SetFont(v)
+        end
+    })
+
+    Groupbox:AddSlider('LibFontSize', {
+        Text = 'Font Size',
+        Default = Library.FontSize,
+        Min = 10,
+        Max = 24,
+        Rounding = 0,
+        Callback = function(v)
+            Library:SetFontSize(v)
+        end
+    })
+
+    Groupbox:AddDivider()
+
+    Groupbox:AddDropdown('LibNotifyPos', {
+        Text = 'Notification Position',
+        Values = {'Left', 'Center', 'Right'},
+        Default = Library.NotifyPosition,
+        Callback = function(v)
+            Library.NotifyPosition = v
+            Library:UpdateNotificationPosition()
+        end
+    })
+
+    Groupbox:AddDropdown('LibNotifyStripePos', {
+        Text = 'Notify Stripe Side',
+        Values = {'Left', 'Right', 'Top', 'Bottom'},
+        Default = Library.NotifyStripePosition,
+        Callback = function(v)
+            Library.NotifyStripePosition = v
+        end
+    })
+
+    Groupbox:AddDropdown('LibNotifyStripeStyle', {
+        Text = 'Notify Stripe Style',
+        Values = {'Default', 'Neon'},
+        Default = Library.NotifyStripeStyle,
+        Callback = function(v)
+            Library.NotifyStripeStyle = v
+        end
+    })
+
+    Groupbox:AddSlider('LibNotifyAlpha', {
+        Text = 'Notify Transparency',
+        Default = math.floor((Library.NotifyTransparency or 0) * 10),
+        Min = 0,
+        Max = 10,
+        Rounding = 0,
+        Suffix = '',
+        Callback = function(v)
+            Library.NotifyTransparency = v / 10
+        end
+    })
+
+    Groupbox:AddSlider('LibNotifyDuration', {
+        Text = 'Notify Duration (sec)',
+        Default = Library.NotifyDuration or 5,
+        Min = 1,
+        Max = 30,
+        Rounding = 0,
+        Callback = function(v)
+            Library.NotifyDuration = v
+        end
+    })
+
+    Groupbox:AddButton({
+        Text = 'Test Notification',
+        Func = function()
+            Library:Notify('This is a test notification!', Library.NotifyDuration)
+        end
+    })
+
+    Groupbox:AddDivider()
+
+    Groupbox:AddSlider('LibKeybindAlpha', {
+        Text = 'Keybind Transparency',
+        Default = math.floor((Library.KeybindTransparency or 0) * 10),
+        Min = 0,
+        Max = 10,
+        Rounding = 0,
+        Callback = function(v)
+            Library:SetKeybindTransparency(v / 10)
+        end
+    })
+end
 
 function Library:CreateWindow(...)
     Library_LoadCustomFont();
@@ -3064,8 +3263,8 @@ function Library:CreateWindow(...)
     Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1);
-            NumberSequenceKeypoint.new(0.2, 0);
-            NumberSequenceKeypoint.new(0.8, 0);
+            NumberSequenceKeypoint.new(0.35, 0);
+            NumberSequenceKeypoint.new(0.65, 0);
             NumberSequenceKeypoint.new(1, 1);
         });
         Parent = TitleStripe;
@@ -3316,8 +3515,8 @@ function Library:CreateWindow(...)
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.2, 0);
-                    NumberSequenceKeypoint.new(0.8, 0);
+                    NumberSequenceKeypoint.new(0.35, 0);
+                    NumberSequenceKeypoint.new(0.65, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
@@ -3423,8 +3622,8 @@ function Library:CreateWindow(...)
             Library:Create('UIGradient', {
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.2, 0);
-                    NumberSequenceKeypoint.new(0.8, 0);
+                    NumberSequenceKeypoint.new(0.35, 0);
+                    NumberSequenceKeypoint.new(0.65, 0);
                     NumberSequenceKeypoint.new(1, 1);
                 });
                 Parent = Highlight;
