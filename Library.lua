@@ -337,9 +337,10 @@ function Library:MapValue(Value, MinA, MaxA, MinB, MaxB)
 end;
 
 function Library:GetTextBounds(Text, Font, Size, Resolution)
-    local Bounds = TextService:GetTextSize(Text, Size, Font, Resolution or Vector2.new(1920, 1080))
+    local finalFont = typeof(Font) == "Font" and Font.Family or Font
+    local Bounds = TextService:GetTextSize(Text, Size, finalFont, Resolution or Vector2.new(1920, 1080))
     return Bounds.X, Bounds.Y
-end;
+end
 
 function Library:GetDarkerColor(Color)
     local H, S, V = Color3.toHSV(Color);
