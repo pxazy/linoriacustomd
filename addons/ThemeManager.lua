@@ -20,6 +20,10 @@ ThemeManager.BuiltInThemes = {
 	['Forest'] 			= { 14, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1e231f","AccentColor":"5c8a67","BackgroundColor":"151916","OutlineColor":"2d352f"}') },
 	['Monochrome'] 		= { 15, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"262626","AccentColor":"ffffff","BackgroundColor":"171717","OutlineColor":"404040"}') },
 	['Nebula'] 			= { 16, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1d182b","AccentColor":"9d4edd","BackgroundColor":"141120","OutlineColor":"3c315b"}') },
+	['Onetap'] 			= { 17, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1c1c1c","AccentColor":"e2dc46","BackgroundColor":"141414","OutlineColor":"2d2d2d"}') },
+	['Neverlose'] 		= { 18, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"0c111a","AccentColor":"00a2ff","BackgroundColor":"070a0f","OutlineColor":"162133"}') },
+	['Primordial'] 		= { 19, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"151515","AccentColor":"adebb3","BackgroundColor":"101010","OutlineColor":"222222"}') },
+	['Gamesense'] 		= { 20, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"111111","AccentColor":"aaee55","BackgroundColor":"0c0c0c","OutlineColor":"222222"}') },
 }
 
 function ThemeManager:ApplyTheme(theme)
@@ -32,7 +36,7 @@ function ThemeManager:ApplyTheme(theme)
 	for idx, col in next, customThemeData or scheme do
 		self.Library[idx] = Color3.fromHex(col)
 		
-		if Options[idx] then
+		if Options and Options[idx] then
 			Options[idx]:SetValueRGB(Color3.fromHex(col))
 		end
 	end
@@ -41,6 +45,7 @@ function ThemeManager:ApplyTheme(theme)
 end
 
 function ThemeManager:ThemeUpdate()
+	if not self.Library then return end
 	local options = { "FontColor", "MainColor", "AccentColor", "BackgroundColor", "OutlineColor" }
 	for i, field in next, options do
 		if Options and Options[field] then
@@ -48,8 +53,12 @@ function ThemeManager:ThemeUpdate()
 		end
 	end
 
-	self.Library.AccentColorDark = self.Library:GetDarkerColor(self.Library.AccentColor);
-	self.Library:UpdateColorsUsingRegistry()
+	if self.Library.GetDarkerColor then
+		self.Library.AccentColorDark = self.Library:GetDarkerColor(self.Library.AccentColor)
+	end
+	if self.Library.UpdateColorsUsingRegistry then
+		self.Library:UpdateColorsUsingRegistry()
+	end
 end
 
 function ThemeManager:LoadDefault()		
@@ -69,7 +78,11 @@ function ThemeManager:LoadDefault()
 	end
 
 	if isDefault then
-		Options.ThemeManager_ThemeList:SetValue(theme)
+		if Options and Options.ThemeManager_ThemeList then
+			Options.ThemeManager_ThemeList:SetValue(theme)
+		else
+			self:ApplyTheme(theme)
+		end
 	else
 		self:ApplyTheme(theme)
 	end
@@ -151,9 +164,11 @@ function ThemeManager:GetCustomTheme(file)
 	end
 
 	local data = readfile(path)
-	local success, decoded = pcall(httpService.JSONDecode, httpService, data)
+	local success, decoded = pcall(httpService:JSONDecode(data))
 	
 	if not success then
+		local success2, decoded2 = pcall(function() return httpService:JSONDecode(data) end)
+		if success2 then return decoded2 end
 		return nil
 	end
 
