@@ -83,15 +83,10 @@ local Library = {
     ScreenGui = ScreenGui;
 };
 
--- !! ИСПРАВЛЕНИЕ: GiveSignal определён сразу, до любых вызовов !!
-function Library:GiveSignal(Signal)
-    table.insert(Library.Signals, Signal)
-end
-
 local RainbowStep = 0
 local Hue = 0
 
-Library:GiveSignal(RenderStepped:Connect(function(Delta)
+table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
     RainbowStep = RainbowStep + Delta
 
     if RainbowStep >= (1 / 60) then
@@ -654,6 +649,10 @@ end
 function Library:SetFontSize(Size)
     Library.FontSize = Size
     Library:UpdateColorsUsingRegistry()
+end
+
+function Library:GiveSignal(Signal)
+    table.insert(Library.Signals, Signal)
 end
 
 function Library:Unload()
