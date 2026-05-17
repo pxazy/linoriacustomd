@@ -211,6 +211,9 @@ function Library:GetActiveFont()
     if Library.FontMode == 'Monocraft' and _customFontId then
         return nil, Font.new(_customFontId), Enum.Font.Unknown
     end
+    if Library.IsMobile then
+        return Enum.Font.GothamMedium, nil, Enum.Font.GothamMedium
+    end
     return Library.Font, nil, Library.Font
 end
 
@@ -456,133 +459,84 @@ end
 
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
 
-do
-    local CursorDrawings = {}
-    local CursorActive = false
-    local CursorThread = nil
+local _CursorDrawings = {}
+local _CursorActive = false
+local _CursorThread = nil
 
-    local function DestroyCursor()
-        for _, d in next, CursorDrawings do
-            pcall(function() d:Remove() end)
-        end
-        CursorDrawings = {}
-    end
-
-    local function SpawnCursor()
-        if CursorThread then
-            task.cancel(CursorThread)
-            CursorThread = nil
-        end
-        DestroyCursor()
-
-        local mode = Library.CursorMode
-        if mode == 'Default' then
-            InputService.MouseIconEnabled = true
-            return
-        end
-
-        InputService.MouseIconEnabled = false
-
-        CursorThread = task.spawn(function()
-            if mode == 'Linoria' then
-                local C = Drawing.new('Triangle')
-                C.Filled = true
-                C.Visible = true
-                local O = Drawing.new('Triangle')
-                O.Filled = false
-                O.Color = Color3.new(0,0,0)
-                O.Visible = true
-                CursorDrawings = {C, O}
-                while CursorActive and ScreenGui.Parent do
-                    InputService.MouseIconEnabled = false
-                    local sz = Library.CursorSize or 16
-                    local p = InputService:GetMouseLocation()
-                    C.Color = Library.AccentColor
-                    C.PointA = Vector2.new(p.X, p.Y)
-                    C.PointB = Vector2.new(p.X + sz, p.Y + sz * 0.375)
-                    C.PointC = Vector2.new(p.X + sz * 0.375, p.Y + sz)
-                    O.PointA = C.PointA; O.PointB = C.PointB; O.PointC = C.PointC
-                    RenderStepped:Wait()
-                end
-            elseif mode == 'Cross' then
-                local H = Drawing.new('Line')
-                H.Visible = true
-                local V = Drawing.new('Line')
-                V.Visible = true
-                local HO = Drawing.new('Line')
-                HO.Visible = true
-                local VO = Drawing.new('Line')
-                VO.Visible = true
-                CursorDrawings = {H, V, HO, VO}
-                while CursorActive and ScreenGui.Parent do
-                    InputService.MouseIconEnabled = false
-                    local sz = (Library.CursorSize or 16) / 2
-                    local p = InputService:GetMouseLocation()
-                    local col = Library.AccentColor
-                    H.From = Vector2.new(p.X - sz, p.Y); H.To = Vector2.new(p.X + sz, p.Y)
-                    H.Color = col; H.Thickness = 2
-                    V.From = Vector2.new(p.X, p.Y - sz); V.To = Vector2.new(p.X, p.Y + sz)
-                    V.Color = col; V.Thickness = 2
-                    HO.From = H.From; HO.To = H.To; HO.Color = Color3.new(0,0,0); HO.Thickness = 4
-                    VO.From = V.From; VO.To = V.To; VO.Color = Color3.new(0,0,0); VO.Thickness = 4
-                    HO.ZIndex = (H.ZIndex or 1) - 1
-                    VO.ZIndex = (V.ZIndex or 1) - 1
-                    RenderStepped:Wait()
-                end
-            elseif mode == 'Custom' and Library.CursorAssetId ~= '' then
-                local Img = Drawing.new('Image')
-                Img.Visible = true
-                local sz = Library.CursorSize or 32
-                Img.Size = Vector2.new(sz, sz)
-                pcall(function() Img.Data = game:HttpGet('rbxassetid://' .. Library.CursorAssetId) end)
-                CursorDrawings = {Img}
-                while CursorActive and ScreenGui.Parent do
-                    InputService.MouseIconEnabled = false
-                    local p = InputService:GetMouseLocation()
-                    Img.Position = Vector2.new(p.X, p.Y)
-                    RenderStepped:Wait()
-                end
-            end
-            InputService.MouseIconEnabled = true
-            DestroyCursor()
-        end)
-    end
-
-    function Library:StartCursor(menuOpen)
-        local shouldShow = menuOpen or Library.CursorAlwaysShow
-        if shouldShow and Library.CursorMode ~= 'Default' then
-            if not CursorActive then
-                CursorActive = true
-                SpawnCursor()
-            end
-        else
-            CursorActive = false
-            if CursorThread then task.cancel(CursorThread); CursorThread = nil end
-            DestroyCursor()
-            InputService.MouseIconEnabled = true
-        end
-    end
-
-    function Library:RefreshCursor(menuOpen)
-        CursorActive = false
-        if CursorThread then task.cancel(CursorThread); CursorThread = nil end
-        DestroyCursor()
-        InputService.MouseIconEnabled = true
-        task.wait()
-        Library:StartCursor(menuOpen)
-    end
-
-    Library._cursorMenuOpen = false
-
-    Library:GiveSignal(RenderStepped:Connect(function()
-        if Library.CursorAlwaysShow and not Library._cursorMenuOpen then
-            if not CursorActive and Library.CursorMode ~= 'Default' then
-                CursorActive = true
-                SpawnCursor()
-            end
-        end
-    end))
+local function _DestroyCursor()
+    for _, d in next, _CursorDrawings do pcall(function() d:Remove() end) end
+    _CursorDrawings = {}
 end
+
+local function _SpawnCursor()
+    if _CursorThread then task.cancel(_CursorThread); _CursorThread = nil end
+    _DestroyCursor()
+    local mode = Library.CursorMode
+    if mode == 'Default' then InputService.MouseIconEnabled = true; return end
+    InputService.MouseIconEnabled = false
+    _CursorThread = task.spawn(function()
+        if mode == 'Linoria' then
+            local C = Drawing.new('Triangle'); C.Filled = true; C.Visible = true
+            local O = Drawing.new('Triangle'); O.Filled = false; O.Color = Color3.new(0,0,0); O.Visible = true
+            _CursorDrawings = {C, O}
+            while _CursorActive and ScreenGui.Parent do
+                InputService.MouseIconEnabled = false
+                local sz = Library.CursorSize or 16
+                local p = InputService:GetMouseLocation()
+                C.Color = Library.AccentColor
+                C.PointA = Vector2.new(p.X, p.Y)
+                C.PointB = Vector2.new(p.X + sz, p.Y + sz * 0.375)
+                C.PointC = Vector2.new(p.X + sz * 0.375, p.Y + sz)
+                O.PointA = C.PointA; O.PointB = C.PointB; O.PointC = C.PointC
+                RenderStepped:Wait()
+            end
+        elseif mode == 'Cross' then
+            local H = Drawing.new('Line'); H.Visible = true; H.Thickness = 2
+            local V = Drawing.new('Line'); V.Visible = true; V.Thickness = 2
+            local HO = Drawing.new('Line'); HO.Visible = true; HO.Thickness = 4
+            local VO = Drawing.new('Line'); VO.Visible = true; VO.Thickness = 4
+            _CursorDrawings = {HO, VO, H, V}
+            while _CursorActive and ScreenGui.Parent do
+                InputService.MouseIconEnabled = false
+                local sz = (Library.CursorSize or 16) / 2
+                local p = InputService:GetMouseLocation()
+                local col = Library.AccentColor
+                HO.From = Vector2.new(p.X - sz, p.Y); HO.To = Vector2.new(p.X + sz, p.Y); HO.Color = Color3.new(0,0,0)
+                VO.From = Vector2.new(p.X, p.Y - sz); VO.To = Vector2.new(p.X, p.Y + sz); VO.Color = Color3.new(0,0,0)
+                H.From = Vector2.new(p.X - sz, p.Y); H.To = Vector2.new(p.X + sz, p.Y); H.Color = col
+                V.From = Vector2.new(p.X, p.Y - sz); V.To = Vector2.new(p.X, p.Y + sz); V.Color = col
+                RenderStepped:Wait()
+            end
+        end
+        InputService.MouseIconEnabled = true
+        _DestroyCursor()
+    end)
+end
+
+function Library:StartCursor(menuOpen)
+    local shouldShow = menuOpen or Library.CursorAlwaysShow
+    if shouldShow and Library.CursorMode ~= 'Default' then
+        if not _CursorActive then
+            _CursorActive = true
+            _SpawnCursor()
+        end
+    else
+        _CursorActive = false
+        if _CursorThread then task.cancel(_CursorThread); _CursorThread = nil end
+        _DestroyCursor()
+        InputService.MouseIconEnabled = true
+    end
+end
+
+function Library:RefreshCursor(menuOpen)
+    _CursorActive = false
+    if _CursorThread then task.cancel(_CursorThread); _CursorThread = nil end
+    _DestroyCursor()
+    InputService.MouseIconEnabled = true
+    task.defer(function() Library:StartCursor(menuOpen) end)
+end
+
+Library._cursorMenuOpen = false
 
 function Library:AddToRegistry(Instance, Properties, IsHud)
     local Idx = #Library.Registry + 1;
@@ -678,6 +632,15 @@ Library:GiveSignal(ScreenGui.DescendantRemoving:Connect(function(Instance)
     end;
 end))
 
+Library:GiveSignal(RenderStepped:Connect(function()
+    if Library.CursorAlwaysShow and not Library._cursorMenuOpen then
+        if not _CursorActive and Library.CursorMode ~= 'Default' then
+            _CursorActive = true
+            _SpawnCursor()
+        end
+    end
+end))
+
 local BaseAddons = {};
 
 do
@@ -710,7 +673,7 @@ do
             BackgroundColor3 = ColorPicker.Value;
             BorderColor3 = Library:GetDarkerColor(ColorPicker.Value);
             BorderMode = Enum.BorderMode.Inset;
-            Size = UDim2.new(0, 28, 0, 14);
+            Size = UDim2.new(0, 40, 0, 14);
             ZIndex = 6;
             Parent = ToggleLabel;
         });
@@ -731,7 +694,7 @@ do
 
         local CheckerFrame = Library:Create('ImageLabel', {
             BorderSizePixel = 0;
-            Size = UDim2.new(0, 27, 0, 13);
+            Size = UDim2.new(1, -1, 1, -1);
             ZIndex = 5;
             Image = 'http://www.roblox.com/asset/?id=12977615774';
             Visible = not not Info.Transparency;
@@ -3456,10 +3419,37 @@ function Library:CreateConfigSection(Tab)
     })
     MenuTab:AddButton({ Text = 'Reset Size', Func = function() Library:ResetMenuSize() end })
     MenuTab:AddDivider()
+    MenuTab:AddDropdown('LibKeybindStyle', {
+        Text = 'Keybind Style',
+        Values = {'Default', 'Minimal'},
+        Default = Library.KeybindStyle or 'Default',
+        Callback = function(v)
+            Library.KeybindStyle = v
+            if Library.KeybindInner then
+                Library.KeybindInner.BorderColor3 = v == 'Minimal' and Library.OutlineColor or Library.AccentColor
+                Library.RegistryMap[Library.KeybindInner].Properties.BorderColor3 = v == 'Minimal' and 'OutlineColor' or 'AccentColor'
+            end
+        end
+    })
     MenuTab:AddSlider('LibKeybindAlpha', {
         Text = 'Keybind Transparency',
         Default = 0, Min = 0, Max = 10, Rounding = 0,
         Callback = function(v) Library:SetKeybindTransparency(v / 10) end
+    })
+    MenuTab:AddDivider()
+    MenuTab:AddDropdown('LibWatermarkStyle', {
+        Text = 'Watermark Style',
+        Values = {'Default', 'Minimal'},
+        Default = Library.WatermarkStyle or 'Default',
+        Callback = function(v)
+            Library.WatermarkStyle = v
+            if Library.Watermark then
+                local wInner = Library.Watermark:FindFirstChildOfClass('Frame')
+                if wInner then
+                    wInner.BorderColor3 = v == 'Minimal' and Library.OutlineColor or Library.AccentColor
+                end
+            end
+        end
     })
     MenuTab:AddSlider('LibWatermarkAlpha', {
         Text = 'Watermark Transparency',
@@ -3474,7 +3464,7 @@ function Library:CreateConfigSection(Tab)
 
     CursorTab:AddDropdown('LibCursorMode', {
         Text = 'Cursor Style',
-        Values = {'Default', 'Linoria', 'Cross', 'Custom'},
+        Values = {'Default', 'Linoria', 'Cross'},
         Default = Library.CursorMode,
         Callback = function(v)
             Library.CursorMode = v
@@ -3495,18 +3485,6 @@ function Library:CreateConfigSection(Tab)
             Library:RefreshCursor(Library._cursorMenuOpen)
         end
     })
-    local CursorCustomDepbox = CursorTab:AddDependencyBox()
-    CursorCustomDepbox:AddInput('LibCursorAsset', {
-        Text = 'Asset ID',
-        Default = Library.CursorAssetId or '',
-        Placeholder = 'Enter asset ID',
-        Callback = function(v)
-            Library.CursorAssetId = v
-            Library:RefreshCursor(Library._cursorMenuOpen)
-        end
-    })
-    CursorCustomDepbox:SetupDependencies({ { Options.LibCursorMode, 'Custom' } })
-
     NotifyTab:AddDropdown('LibNotifyPos', {
         Text = 'Position',
         Values = {'LeftTop','LeftBottom','RightTop','RightBottom','CenterTop','CenterBottom','Center','Custom'},
@@ -3614,9 +3592,9 @@ function Library:CreateWindow(...)
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
     if typeof(Config.Size) ~= 'UDim2' then
         if Library.IsMobile then
-            Config.Size = UDim2.fromOffset(420, 460)
+            Config.Size = UDim2.fromOffset(380, 420)
         else
-            Config.Size = UDim2.fromOffset(600, 580)
+            Config.Size = UDim2.fromOffset(560, 520)
         end
     end
 
@@ -3641,6 +3619,36 @@ function Library:CreateWindow(...)
     });
 
     Library:MakeDraggable(Outer, 25);
+
+    local ResizeHandle = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        AnchorPoint = Vector2.new(1, 1);
+        Position = UDim2.new(1, 0, 1, 0);
+        Size = UDim2.fromOffset(10, 10);
+        ZIndex = 50;
+        Parent = Outer;
+    })
+    Library:AddToRegistry(ResizeHandle, { BackgroundColor3 = 'AccentColor' })
+
+    ResizeHandle.InputBegan:Connect(function(Input)
+        if not IsClick(Input) then return end
+        local startSize = Outer.AbsoluteSize
+        local startX, startY = GetInputPos(Input)
+        local Con = InputService.InputChanged:Connect(function(Changed)
+            if Changed.UserInputType == Enum.UserInputType.MouseMovement
+            or Changed.UserInputType == Enum.UserInputType.Touch then
+                local cx, cy = GetInputPos(Changed)
+                local newW = math.max(300, startSize.X + (cx - startX))
+                local newH = math.max(250, startSize.Y + (cy - startY))
+                Outer.Size = UDim2.fromOffset(newW, newH)
+            end
+        end)
+        local EndCon
+        EndCon = InputService.InputEnded:Connect(function(EndInput)
+            if IsClick(EndInput) then Con:Disconnect(); EndCon:Disconnect() end
+        end)
+    end)
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
