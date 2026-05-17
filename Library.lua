@@ -646,9 +646,9 @@ function Library:SetFont(Mode)
     Library:UpdateColorsUsingRegistry()
 end
 
-function Library:SetFontSize(Size)
-    Library.FontSize = Size
-    Library:UpdateColorsUsingRegistry()
+function Library:GiveSignal(Signal)
+    table.insert(Library.Signals, Signal)
+    return Signal
 end
 
 function Library:GiveSignal(Signal)
@@ -656,16 +656,16 @@ function Library:GiveSignal(Signal)
 end
 
 function Library:Unload()
-    for Idx = #Library.Signals, 1, -1 do
-        local Connection = table.remove(Library.Signals, Idx)
-        Connection:Disconnect()
+    for _, Signal in next, Library.Signals do
+        if Signal.Disconnect then
+            Signal:Disconnect()
+        elseif Signal.disconnect then
+            Signal:disconnect()
+        end
     end
-
-    if Library.OnUnload then
-        Library.OnUnload()
+    if Library.Holder then
+        Library.Holder:Destroy()
     end
-
-    ScreenGui:Destroy()
 end
 
 function Library:OnUnload(Callback)
