@@ -28,11 +28,9 @@ getgenv().Options = Options;
 local Library = {
     Registry = {};
     RegistryMap = {};
-
     HudRegistry = {};
 
     FontColor = Color3.fromRGB(255, 255, 255);
-
     CustomFontBase64 = CUSTOM_FONT_BASE64;
     MainColor = Color3.fromRGB(28, 28, 28);
     BackgroundColor = Color3.fromRGB(20, 20, 20);
@@ -41,34 +39,46 @@ local Library = {
     RiskColor = Color3.fromRGB(255, 50, 50),
 
     Black = Color3.new(0, 0, 0);
-    Font = Enum.Font.Code,
+    Font = Enum.Font.Code;
     FontSize = 14;
-
     FontMode = 'Default';
 
     NotifyDuration = 5;
     NotifyTransparency = 0;
-    NotifyPosition = 'Left';
+    NotifyPosition = 'LeftBottom';
     NotifyCustomX = 0;
     NotifyCustomY = 40;
     NotifyStripePosition = 'Left';
-    NotifyStripeStyle = 'Default';
+    NotifyStripeStyle = 'Neon';
+    NotifyStyle = 'Default';
+    NotifyEnterAnim = 'Slide';
+    NotifyExitAnim = 'Slide';
 
-    AnimationsEnabled = true;
+    MenuAnimType = 'Fade';
     MenuAnimDirection = 'Top';
-    NotifyAnimDirection = 'Left';
 
     KeybindTransparency = 0;
+    KeybindStyle = 'Default';
+
+    WatermarkStyle = 'Default';
+    WatermarkTransparency = 0;
 
     LineStyle = 'Neon';
+
     CursorMode = 'Linoria';
+    CursorSize = 16;
+    CursorAlwaysShow = false;
+    CursorAssetId = '';
+
+    MenuLocked = true;
+
+    StripeGradients = {};
 
     IsMobile = (not pcall(function() return InputService.TouchEnabled end)) or
                (InputService.TouchEnabled and not InputService.KeyboardEnabled);
 
     OpenedFrames = {};
     DependencyBoxes = {};
-
     Signals = {};
     ScreenGui = ScreenGui;
 };
@@ -445,6 +455,134 @@ function Library:SetLineStyle(Style)
 end
 
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
+
+do
+    local CursorDrawings = {}
+    local CursorActive = false
+    local CursorThread = nil
+
+    local function DestroyCursor()
+        for _, d in next, CursorDrawings do
+            pcall(function() d:Remove() end)
+        end
+        CursorDrawings = {}
+    end
+
+    local function SpawnCursor()
+        if CursorThread then
+            task.cancel(CursorThread)
+            CursorThread = nil
+        end
+        DestroyCursor()
+
+        local mode = Library.CursorMode
+        if mode == 'Default' then
+            InputService.MouseIconEnabled = true
+            return
+        end
+
+        InputService.MouseIconEnabled = false
+
+        CursorThread = task.spawn(function()
+            if mode == 'Linoria' then
+                local C = Drawing.new('Triangle')
+                C.Filled = true
+                C.Visible = true
+                local O = Drawing.new('Triangle')
+                O.Filled = false
+                O.Color = Color3.new(0,0,0)
+                O.Visible = true
+                CursorDrawings = {C, O}
+                while CursorActive and ScreenGui.Parent do
+                    InputService.MouseIconEnabled = false
+                    local sz = Library.CursorSize or 16
+                    local p = InputService:GetMouseLocation()
+                    C.Color = Library.AccentColor
+                    C.PointA = Vector2.new(p.X, p.Y)
+                    C.PointB = Vector2.new(p.X + sz, p.Y + sz * 0.375)
+                    C.PointC = Vector2.new(p.X + sz * 0.375, p.Y + sz)
+                    O.PointA = C.PointA; O.PointB = C.PointB; O.PointC = C.PointC
+                    RenderStepped:Wait()
+                end
+            elseif mode == 'Cross' then
+                local H = Drawing.new('Line')
+                H.Visible = true
+                local V = Drawing.new('Line')
+                V.Visible = true
+                local HO = Drawing.new('Line')
+                HO.Visible = true
+                local VO = Drawing.new('Line')
+                VO.Visible = true
+                CursorDrawings = {H, V, HO, VO}
+                while CursorActive and ScreenGui.Parent do
+                    InputService.MouseIconEnabled = false
+                    local sz = (Library.CursorSize or 16) / 2
+                    local p = InputService:GetMouseLocation()
+                    local col = Library.AccentColor
+                    H.From = Vector2.new(p.X - sz, p.Y); H.To = Vector2.new(p.X + sz, p.Y)
+                    H.Color = col; H.Thickness = 2
+                    V.From = Vector2.new(p.X, p.Y - sz); V.To = Vector2.new(p.X, p.Y + sz)
+                    V.Color = col; V.Thickness = 2
+                    HO.From = H.From; HO.To = H.To; HO.Color = Color3.new(0,0,0); HO.Thickness = 4
+                    VO.From = V.From; VO.To = V.To; VO.Color = Color3.new(0,0,0); VO.Thickness = 4
+                    HO.ZIndex = (H.ZIndex or 1) - 1
+                    VO.ZIndex = (V.ZIndex or 1) - 1
+                    RenderStepped:Wait()
+                end
+            elseif mode == 'Custom' and Library.CursorAssetId ~= '' then
+                local Img = Drawing.new('Image')
+                Img.Visible = true
+                local sz = Library.CursorSize or 32
+                Img.Size = Vector2.new(sz, sz)
+                pcall(function() Img.Data = game:HttpGet('rbxassetid://' .. Library.CursorAssetId) end)
+                CursorDrawings = {Img}
+                while CursorActive and ScreenGui.Parent do
+                    InputService.MouseIconEnabled = false
+                    local p = InputService:GetMouseLocation()
+                    Img.Position = Vector2.new(p.X, p.Y)
+                    RenderStepped:Wait()
+                end
+            end
+            InputService.MouseIconEnabled = true
+            DestroyCursor()
+        end)
+    end
+
+    function Library:StartCursor(menuOpen)
+        local shouldShow = menuOpen or Library.CursorAlwaysShow
+        if shouldShow and Library.CursorMode ~= 'Default' then
+            if not CursorActive then
+                CursorActive = true
+                SpawnCursor()
+            end
+        else
+            CursorActive = false
+            if CursorThread then task.cancel(CursorThread); CursorThread = nil end
+            DestroyCursor()
+            InputService.MouseIconEnabled = true
+        end
+    end
+
+    function Library:RefreshCursor(menuOpen)
+        CursorActive = false
+        if CursorThread then task.cancel(CursorThread); CursorThread = nil end
+        DestroyCursor()
+        InputService.MouseIconEnabled = true
+        task.wait()
+        Library:StartCursor(menuOpen)
+    end
+
+    Library._cursorMenuOpen = false
+
+    Library:GiveSignal(RenderStepped:Connect(function()
+        if Library.CursorAlwaysShow and not Library._cursorMenuOpen then
+            if not CursorActive and Library.CursorMode ~= 'Default' then
+                CursorActive = true
+                SpawnCursor()
+            end
+        end
+    end))
+end
 
 function Library:AddToRegistry(Instance, Properties, IsHud)
     local Idx = #Library.Registry + 1;
@@ -2875,17 +3013,35 @@ do
     function Library:UpdateNotificationPosition()
         local pos = Library.NotifyPosition
         local area = Library.NotificationArea
-        if pos == 'Left' then
-            area.Position = UDim2.fromOffset(0, 40)
+        local sw = area.Parent and area.Parent.AbsoluteSize.X or 1920
+        local sh = area.Parent and area.Parent.AbsoluteSize.Y or 1080
+        local aw = 320
+
+        if pos == 'LeftTop' then
+            area.Position = UDim2.fromOffset(8, 8)
+        elseif pos == 'LeftBottom' then
+            area.Position = UDim2.new(0, 8, 1, -8)
+            area.AnchorPoint = Vector2.new(0, 1)
+        elseif pos == 'RightTop' then
+            area.Position = UDim2.new(1, -8, 0, 8)
+            area.AnchorPoint = Vector2.new(1, 0)
+        elseif pos == 'RightBottom' then
+            area.Position = UDim2.new(1, -8, 1, -8)
+            area.AnchorPoint = Vector2.new(1, 1)
+        elseif pos == 'CenterTop' then
+            area.Position = UDim2.new(0.5, -aw/2, 0, 8)
             area.AnchorPoint = Vector2.new(0, 0)
-        elseif pos == 'Right' then
-            area.Position = UDim2.fromOffset(area.Parent.AbsoluteSize.X - 300, 40)
-            area.AnchorPoint = Vector2.new(0, 0)
+        elseif pos == 'CenterBottom' then
+            area.Position = UDim2.new(0.5, -aw/2, 1, -8)
+            area.AnchorPoint = Vector2.new(0, 1)
         elseif pos == 'Center' then
-            area.Position = UDim2.new(0.5, -150, 0, 40)
-            area.AnchorPoint = Vector2.new(0, 0)
+            area.Position = UDim2.new(0.5, -aw/2, 0.5, 0)
+            area.AnchorPoint = Vector2.new(0, 0.5)
         elseif pos == 'Custom' then
             area.Position = UDim2.fromOffset(Library.NotifyCustomX, Library.NotifyCustomY)
+            area.AnchorPoint = Vector2.new(0, 0)
+        else
+            area.Position = UDim2.fromOffset(8, 8)
             area.AnchorPoint = Vector2.new(0, 0)
         end
     end
@@ -3104,12 +3260,11 @@ function Library:Notify(Text, Time)
     local duration = Time or Library.NotifyDuration or 5
     local bgAlpha = Library.NotifyTransparency or 0
     local stripePos = Library.NotifyStripePosition or 'Left'
-    local stripeStyle = Library.NotifyStripeStyle or 'Default'
-    local animDir = Library.NotifyAnimDirection or 'Left'
-    local animEnabled = Library.AnimationsEnabled ~= false
+    local stripeStyle = Library.NotifyStripeStyle or 'Neon'
+    local enterAnim = Library.NotifyEnterAnim or 'Slide'
+    local exitAnim = Library.NotifyExitAnim or 'Slide'
     local finalWidth = XSize + 16
 
-    -- Wrapper sits in notification area for layout
     local Wrapper = Library:Create('Frame', {
         BackgroundTransparency = 1;
         BorderSizePixel = 0;
@@ -3121,6 +3276,7 @@ function Library:Notify(Text, Time)
 
     local NotifyOuter = Library:Create('Frame', {
         BorderColor3 = Library.OutlineColor;
+        BackgroundTransparency = 1;
         Size = UDim2.fromOffset(finalWidth, YSize);
         ZIndex = 100;
         Parent = Wrapper;
@@ -3136,10 +3292,7 @@ function Library:Notify(Text, Time)
         Parent = NotifyOuter;
     })
 
-    Library:AddToRegistry(NotifyInner, {
-        BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'OutlineColor';
-    }, true)
+    Library:AddToRegistry(NotifyInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' }, true)
 
     local InnerFrame = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -3192,7 +3345,6 @@ function Library:Notify(Text, Time)
         ZIndex = 104;
         Parent = NotifyOuter;
     })
-
     if stripeStyle == 'Neon' then
         Library:Create('UIGradient', {
             Transparency = NumberSequence.new({
@@ -3205,44 +3357,43 @@ function Library:Notify(Text, Time)
             Parent = StripeFrame;
         })
     end
-
     Library:AddToRegistry(StripeFrame, { BackgroundColor3 = 'AccentColor' }, true)
 
-    if animEnabled then
-        local dirMap = {
-            Left        = UDim2.fromOffset(-finalWidth - 20, 0);
-            Right       = UDim2.fromOffset(finalWidth + 20, 0);
-            Top         = UDim2.fromOffset(0, -(YSize + 20));
-            Bottom      = UDim2.fromOffset(0, YSize + 20);
-            TopLeft     = UDim2.fromOffset(-finalWidth - 20, -(YSize + 20));
-            TopRight    = UDim2.fromOffset(finalWidth + 20, -(YSize + 20));
-            BottomLeft  = UDim2.fromOffset(-finalWidth - 20, YSize + 20);
-            BottomRight = UDim2.fromOffset(finalWidth + 20, YSize + 20);
-        }
-        local startOff = dirMap[animDir] or dirMap['Left']
+    local dirMap = {
+        Left        = UDim2.fromOffset(-finalWidth - 20, 0);
+        Right       = UDim2.fromOffset(finalWidth + 20, 0);
+        Top         = UDim2.fromOffset(0, -(YSize + 20));
+        Bottom      = UDim2.fromOffset(0, YSize + 20);
+        TopLeft     = UDim2.fromOffset(-finalWidth - 20, -(YSize + 20));
+        TopRight    = UDim2.fromOffset(finalWidth + 20, -(YSize + 20));
+        BottomLeft  = UDim2.fromOffset(-finalWidth - 20, YSize + 20);
+        BottomRight = UDim2.fromOffset(finalWidth + 20, YSize + 20);
+    }
+
+    if enterAnim == 'Slide' then
+        local startOff = dirMap[enterAnim == 'Slide' and (Library.NotifyEnterDirection or 'Left')] or dirMap['Left']
         NotifyOuter.Position = startOff
         TweenService:Create(NotifyOuter, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Position = UDim2.fromOffset(0, 0)
         }):Play()
+    elseif enterAnim == 'Fade' then
+        NotifyInner.BackgroundTransparency = 1
+        InnerFrame.BackgroundTransparency = 1
+        TweenService:Create(NotifyInner, TweenInfo.new(0.25, Enum.EasingStyle.Linear), { BackgroundTransparency = bgAlpha }):Play()
+        TweenService:Create(InnerFrame, TweenInfo.new(0.25, Enum.EasingStyle.Linear), { BackgroundTransparency = bgAlpha }):Play()
     end
 
     task.spawn(function()
         wait(duration)
-        if animEnabled then
-            local dirMap = {
-                Left        = UDim2.fromOffset(-finalWidth - 20, 0);
-                Right       = UDim2.fromOffset(finalWidth + 20, 0);
-                Top         = UDim2.fromOffset(0, -(YSize + 20));
-                Bottom      = UDim2.fromOffset(0, YSize + 20);
-                TopLeft     = UDim2.fromOffset(-finalWidth - 20, -(YSize + 20));
-                TopRight    = UDim2.fromOffset(finalWidth + 20, -(YSize + 20));
-                BottomLeft  = UDim2.fromOffset(-finalWidth - 20, YSize + 20);
-                BottomRight = UDim2.fromOffset(finalWidth + 20, YSize + 20);
-            }
-            local exitOff = dirMap[animDir] or dirMap['Left']
+        if exitAnim == 'Slide' then
+            local exitOff = dirMap[Library.NotifyExitDirection or 'Left'] or dirMap['Left']
             TweenService:Create(NotifyOuter, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
                 Position = exitOff
             }):Play()
+            wait(0.2)
+        elseif exitAnim == 'Fade' then
+            TweenService:Create(NotifyInner, TweenInfo.new(0.2, Enum.EasingStyle.Linear), { BackgroundTransparency = 1 }):Play()
+            TweenService:Create(InnerFrame, TweenInfo.new(0.2, Enum.EasingStyle.Linear), { BackgroundTransparency = 1 }):Play()
             wait(0.2)
         end
         Wrapper:Destroy()
@@ -3254,11 +3405,10 @@ function Library:CreateConfigSection(Tab)
     local RightTabbox = Tab:AddRightTabbox('LibConfig2')
 
     local MenuTab = LeftTabbox:AddTab('Menu')
-    local KeybindsTab = LeftTabbox:AddTab('Keybinds')
+    local CursorTab = LeftTabbox:AddTab('Cursor')
     local NotifyTab = RightTabbox:AddTab('Notify')
-    local AnimTab = RightTabbox:AddTab('Animations')
+    local AnimTab = RightTabbox:AddTab('Anim')
 
-    -- Menu tab
     MenuTab:AddDropdown('LibFontMode', {
         Text = 'Font',
         Values = {'Default', 'Monocraft'},
@@ -3278,25 +3428,88 @@ function Library:CreateConfigSection(Tab)
         Default = Library.LineStyle,
         Callback = function(v) Library:SetLineStyle(v) end
     })
-    MenuTab:AddDropdown('LibCursorMode', {
-        Text = 'Cursor',
-        Values = {'Default', 'Linoria'},
-        Default = Library.CursorMode,
-        Callback = function(v) Library.CursorMode = v end
+    MenuTab:AddDivider()
+    MenuTab:AddSlider('LibMenuW', {
+        Text = 'Menu Width',
+        Default = 600, Min = 300, Max = 900, Rounding = 0,
+        Compact = true,
+        Callback = function(v)
+            if not Library.MenuLocked then
+                Library:ResizeMenu(v, Options.LibMenuH and Options.LibMenuH.Value or 580)
+            end
+        end
     })
-
-    -- Keybinds tab
-    KeybindsTab:AddSlider('LibKeybindAlpha', {
-        Text = 'Transparency',
-        Default = math.floor((Library.KeybindTransparency or 0) * 10),
-        Min = 0, Max = 10, Rounding = 0,
+    MenuTab:AddSlider('LibMenuH', {
+        Text = 'Menu Height',
+        Default = 580, Min = 300, Max = 900, Rounding = 0,
+        Compact = true,
+        Callback = function(v)
+            if not Library.MenuLocked then
+                Library:ResizeMenu(Options.LibMenuW and Options.LibMenuW.Value or 600, v)
+            end
+        end
+    })
+    MenuTab:AddToggle('LibMenuLock', {
+        Text = 'Lock Size',
+        Default = true,
+        Callback = function(v) Library.MenuLocked = v end
+    })
+    MenuTab:AddButton({ Text = 'Reset Size', Func = function() Library:ResetMenuSize() end })
+    MenuTab:AddDivider()
+    MenuTab:AddSlider('LibKeybindAlpha', {
+        Text = 'Keybind Transparency',
+        Default = 0, Min = 0, Max = 10, Rounding = 0,
         Callback = function(v) Library:SetKeybindTransparency(v / 10) end
     })
+    MenuTab:AddSlider('LibWatermarkAlpha', {
+        Text = 'Watermark Transparency',
+        Default = 0, Min = 0, Max = 10, Rounding = 0,
+        Callback = function(v)
+            Library.WatermarkTransparency = v / 10
+            if Library.Watermark then
+                Library.Watermark.BackgroundTransparency = v / 10
+            end
+        end
+    })
 
-    -- Notification tab
+    CursorTab:AddDropdown('LibCursorMode', {
+        Text = 'Cursor Style',
+        Values = {'Default', 'Linoria', 'Cross', 'Custom'},
+        Default = Library.CursorMode,
+        Callback = function(v)
+            Library.CursorMode = v
+            Library:RefreshCursor(Library._cursorMenuOpen)
+        end
+    })
+    CursorTab:AddSlider('LibCursorSize', {
+        Text = 'Cursor Size',
+        Default = Library.CursorSize or 16,
+        Min = 8, Max = 64, Rounding = 0,
+        Callback = function(v) Library.CursorSize = v end
+    })
+    CursorTab:AddToggle('LibCursorAlways', {
+        Text = 'Always Show',
+        Default = Library.CursorAlwaysShow,
+        Callback = function(v)
+            Library.CursorAlwaysShow = v
+            Library:RefreshCursor(Library._cursorMenuOpen)
+        end
+    })
+    local CursorCustomDepbox = CursorTab:AddDependencyBox()
+    CursorCustomDepbox:AddInput('LibCursorAsset', {
+        Text = 'Asset ID',
+        Default = Library.CursorAssetId or '',
+        Placeholder = 'Enter asset ID',
+        Callback = function(v)
+            Library.CursorAssetId = v
+            Library:RefreshCursor(Library._cursorMenuOpen)
+        end
+    })
+    CursorCustomDepbox:SetupDependencies({ { Options.LibCursorMode, 'Custom' } })
+
     NotifyTab:AddDropdown('LibNotifyPos', {
         Text = 'Position',
-        Values = {'Left', 'Center', 'Right', 'Custom'},
+        Values = {'LeftTop','LeftBottom','RightTop','RightBottom','CenterTop','CenterBottom','Center','Custom'},
         Default = Library.NotifyPosition,
         Callback = function(v)
             Library.NotifyPosition = v
@@ -3305,26 +3518,14 @@ function Library:CreateConfigSection(Tab)
     })
     local NotifyCustomDepbox = NotifyTab:AddDependencyBox()
     NotifyCustomDepbox:AddSlider('LibNotifyCustomX', {
-        Text = 'Custom X',
-        Default = Library.NotifyCustomX,
-        Min = 0, Max = 2000, Rounding = 0,
-        Callback = function(v)
-            Library.NotifyCustomX = v
-            if Library.NotifyPosition == 'Custom' then
-                Library:UpdateNotificationPosition()
-            end
-        end
+        Text = 'X', Default = 0, Min = 0, Max = 2000, Rounding = 0,
+        Compact = true,
+        Callback = function(v) Library.NotifyCustomX = v; Library:UpdateNotificationPosition() end
     })
     NotifyCustomDepbox:AddSlider('LibNotifyCustomY', {
-        Text = 'Custom Y',
-        Default = Library.NotifyCustomY,
-        Min = 0, Max = 1000, Rounding = 0,
-        Callback = function(v)
-            Library.NotifyCustomY = v
-            if Library.NotifyPosition == 'Custom' then
-                Library:UpdateNotificationPosition()
-            end
-        end
+        Text = 'Y', Default = 40, Min = 0, Max = 1000, Rounding = 0,
+        Compact = true,
+        Callback = function(v) Library.NotifyCustomY = v; Library:UpdateNotificationPosition() end
     })
     NotifyCustomDepbox:SetupDependencies({ { Options.LibNotifyPos, 'Custom' } })
 
@@ -3342,8 +3543,7 @@ function Library:CreateConfigSection(Tab)
     })
     NotifyTab:AddSlider('LibNotifyAlpha', {
         Text = 'Transparency',
-        Default = math.floor((Library.NotifyTransparency or 0) * 10),
-        Min = 0, Max = 10, Rounding = 0,
+        Default = 0, Min = 0, Max = 10, Rounding = 0,
         Callback = function(v) Library.NotifyTransparency = v / 10 end
     })
     NotifyTab:AddSlider('LibNotifyDuration', {
@@ -3352,30 +3552,46 @@ function Library:CreateConfigSection(Tab)
         Min = 1, Max = 30, Rounding = 0,
         Callback = function(v) Library.NotifyDuration = v end
     })
-    NotifyTab:AddButton({
-        Text = 'Test Notification',
-        Func = function()
-            Library:Notify('This is a test notification!', Library.NotifyDuration)
-        end
-    })
+    NotifyTab:AddButton({ Text = 'Test Notification', Func = function()
+        Library:Notify('Test notification!', Library.NotifyDuration)
+    end })
 
-    -- Animations tab
-    AnimTab:AddToggle('LibAnimEnabled', {
-        Text = 'Animations',
-        Default = Library.AnimationsEnabled ~= false,
-        Callback = function(v) Library.AnimationsEnabled = v end
+    AnimTab:AddDropdown('LibMenuAnimType', {
+        Text = 'Menu Anim',
+        Values = {'None', 'Fade', 'Slide', 'FadeSlide'},
+        Default = Library.MenuAnimType or 'Fade',
+        Callback = function(v) Library.MenuAnimType = v end
     })
     AnimTab:AddDropdown('LibMenuAnimDir', {
         Text = 'Menu Direction',
-        Values = {'Top', 'Bottom', 'Left', 'Right', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'},
-        Default = Library.MenuAnimDirection,
+        Values = {'Top','Bottom','Left','Right','TopLeft','TopRight','BottomLeft','BottomRight'},
+        Default = Library.MenuAnimDirection or 'Top',
         Callback = function(v) Library.MenuAnimDirection = v end
     })
-    AnimTab:AddDropdown('LibNotifyAnimDir', {
-        Text = 'Notify Direction',
-        Values = {'Left', 'Right', 'Top', 'Bottom', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'},
-        Default = Library.NotifyAnimDirection,
-        Callback = function(v) Library.NotifyAnimDirection = v end
+    AnimTab:AddDivider()
+    AnimTab:AddDropdown('LibNotifyEnterAnim', {
+        Text = 'Notify Enter',
+        Values = {'None', 'Fade', 'Slide'},
+        Default = Library.NotifyEnterAnim or 'Slide',
+        Callback = function(v) Library.NotifyEnterAnim = v end
+    })
+    AnimTab:AddDropdown('LibNotifyEnterDir', {
+        Text = 'Enter Direction',
+        Values = {'Left','Right','Top','Bottom','TopLeft','TopRight','BottomLeft','BottomRight'},
+        Default = Library.NotifyEnterDirection or 'Left',
+        Callback = function(v) Library.NotifyEnterDirection = v end
+    })
+    AnimTab:AddDropdown('LibNotifyExitAnim', {
+        Text = 'Notify Exit',
+        Values = {'None', 'Fade', 'Slide'},
+        Default = Library.NotifyExitAnim or 'Slide',
+        Callback = function(v) Library.NotifyExitAnim = v end
+    })
+    AnimTab:AddDropdown('LibNotifyExitDir', {
+        Text = 'Exit Direction',
+        Values = {'Left','Right','Top','Bottom','TopLeft','TopRight','BottomLeft','BottomRight'},
+        Default = Library.NotifyExitDirection or 'Left',
+        Callback = function(v) Library.NotifyExitDirection = v end
     })
 end
 
@@ -3966,55 +4182,41 @@ function Library:CreateWindow(...)
     local Toggled = false;
     local Fading = false;
     local OriginalMenuPos = Config.Position;
+    local OriginalMenuSize = Config.Size;
+
+    function Library:ResizeMenu(W, H)
+        Outer.Size = UDim2.fromOffset(W, H)
+    end
+
+    function Library:ResetMenuSize()
+        Outer.Size = OriginalMenuSize
+    end
+
+    function Library:SetMenuLocked(locked)
+        Library.MenuLocked = locked
+    end
 
     function Library:Toggle()
         if Fading then return end
 
-        local FadeTime = (Library.AnimationsEnabled ~= false) and Config.MenuFadeTime or 0
+        local animType = Library.MenuAnimType or 'Fade'
+        local FadeTime = (animType ~= 'None') and (Config.MenuFadeTime or 0.2) or 0
         Fading = true
         Toggled = not Toggled
+        Library._cursorMenuOpen = Toggled
+
         if not Library.IsMobile then
             ModalElement.Modal = Toggled
         end
 
         if Toggled then
             Outer.Visible = true
-
-            task.spawn(function()
-                if Library.CursorMode ~= 'Linoria' then return end
-                local State = InputService.MouseIconEnabled
-
-                local Cursor = Drawing.new('Triangle')
-                Cursor.Thickness = 1
-                Cursor.Filled = true
-                Cursor.Visible = true
-
-                local CursorOutline = Drawing.new('Triangle')
-                CursorOutline.Thickness = 1
-                CursorOutline.Filled = false
-                CursorOutline.Color = Color3.new(0, 0, 0)
-                CursorOutline.Visible = true
-
-                while Toggled and ScreenGui.Parent do
-                    InputService.MouseIconEnabled = false
-                    local mPos = InputService:GetMouseLocation()
-                    Cursor.Color = Library.AccentColor
-                    Cursor.PointA = Vector2.new(mPos.X, mPos.Y)
-                    Cursor.PointB = Vector2.new(mPos.X + 16, mPos.Y + 6)
-                    Cursor.PointC = Vector2.new(mPos.X + 6, mPos.Y + 16)
-                    CursorOutline.PointA = Cursor.PointA
-                    CursorOutline.PointB = Cursor.PointB
-                    CursorOutline.PointC = Cursor.PointC
-                    RenderStepped:Wait()
-                end
-
-                InputService.MouseIconEnabled = State
-                Cursor:Remove()
-                CursorOutline:Remove()
-            end)
+            Library:StartCursor(true)
+        else
+            Library:StartCursor(false)
         end
 
-        if Library.AnimationsEnabled ~= false then
+        if animType == 'Slide' or animType == 'FadeSlide' then
             local W = Outer.AbsoluteSize.X
             local H = Outer.AbsoluteSize.Y
             local slideOffsets = {
@@ -4030,7 +4232,6 @@ function Library:CreateWindow(...)
             local dir = Library.MenuAnimDirection or 'Top'
             local slideOff = slideOffsets[dir] or slideOffsets['Top']
             local basePos = OriginalMenuPos
-
             if Toggled then
                 local hiddenPos = UDim2.new(
                     basePos.X.Scale, basePos.X.Offset + slideOff.X.Offset,
@@ -4051,39 +4252,34 @@ function Library:CreateWindow(...)
             end
         end
 
-        for _, Desc in next, Outer:GetDescendants() do
-            local Properties = {}
-            if Desc:IsA('ImageLabel') then
-                table.insert(Properties, 'ImageTransparency')
-                table.insert(Properties, 'BackgroundTransparency')
-            elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
-                table.insert(Properties, 'TextTransparency')
-            elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
-                table.insert(Properties, 'BackgroundTransparency')
-            elseif Desc:IsA('UIStroke') then
-                table.insert(Properties, 'Transparency')
-            end
-
-            local Cache = TransparencyCache[Desc]
-            if not Cache then
-                Cache = {}
-                TransparencyCache[Desc] = Cache
-            end
-
-            for _, Prop in next, Properties do
-                if not Cache[Prop] then Cache[Prop] = Desc[Prop] end
-                if Cache[Prop] == 1 then continue end
-                TweenService:Create(Desc, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), {
-                    [Prop] = Toggled and Cache[Prop] or 1
-                }):Play()
+        if animType == 'Fade' or animType == 'FadeSlide' then
+            for _, Desc in next, Outer:GetDescendants() do
+                local Properties = {}
+                if Desc:IsA('ImageLabel') then
+                    table.insert(Properties, 'ImageTransparency')
+                    table.insert(Properties, 'BackgroundTransparency')
+                elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
+                    table.insert(Properties, 'TextTransparency')
+                elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
+                    table.insert(Properties, 'BackgroundTransparency')
+                elseif Desc:IsA('UIStroke') then
+                    table.insert(Properties, 'Transparency')
+                end
+                local Cache = TransparencyCache[Desc]
+                if not Cache then Cache = {}; TransparencyCache[Desc] = Cache end
+                for _, Prop in next, Properties do
+                    if not Cache[Prop] then Cache[Prop] = Desc[Prop] end
+                    if Cache[Prop] == 1 then continue end
+                    TweenService:Create(Desc, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), {
+                        [Prop] = Toggled and Cache[Prop] or 1
+                    }):Play()
+                end
             end
         end
 
         task.wait(FadeTime)
         Outer.Visible = Toggled
-        if Toggled then
-            Outer.Position = OriginalMenuPos
-        end
+        if Toggled then Outer.Position = OriginalMenuPos end
         Fading = false
     end
 
