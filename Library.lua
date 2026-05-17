@@ -60,6 +60,12 @@ local Library = {
 
     KeybindTransparency = 0;
 
+    LineStyle = 'Neon';
+    CursorMode = 'Linoria';
+
+    IsMobile = (not pcall(function() return InputService.TouchEnabled end)) or
+               (InputService.TouchEnabled and not InputService.KeyboardEnabled);
+
     OpenedFrames = {};
     DependencyBoxes = {};
 
@@ -372,6 +378,34 @@ function Library:GetDarkerColor(Color)
     local H, S, V = Color3.toHSV(Color);
     return Color3.fromHSV(H, S, V / 1.5);
 end;
+function Library:MakeStripe(Parent, ZIndex, Horizontal)
+    local Stripe = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        Size = Horizontal and UDim2.new(1, 0, 0, 1) or UDim2.new(0, 1, 1, 0);
+        ZIndex = ZIndex or 5;
+        Parent = Parent;
+    })
+    Library:AddToRegistry(Stripe, { BackgroundColor3 = 'AccentColor' })
+    if Library.LineStyle ~= 'Solid' then
+        Library:Create('UIGradient', {
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1);
+                NumberSequenceKeypoint.new(0.35, 0);
+                NumberSequenceKeypoint.new(0.65, 0);
+                NumberSequenceKeypoint.new(1, 1);
+            });
+            Parent = Stripe;
+        })
+    end
+    return Stripe
+end
+
+function Library:SetLineStyle(Style)
+    Library.LineStyle = Style
+    Library:UpdateColorsUsingRegistry()
+end
+
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
 
 function Library:AddToRegistry(Instance, Properties, IsHud)
@@ -2988,6 +3022,57 @@ do
         KeybindInnerBg.BackgroundTransparency = Alpha
         KeybindOuter.BackgroundTransparency = Alpha
     end
+
+    if Library.IsMobile then
+        local MobileBtn = Library:Create('TextButton', {
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.AccentColor;
+            BorderMode = Enum.BorderMode.Inset;
+            Size = UDim2.fromOffset(44, 44);
+            Position = UDim2.fromOffset(10, 10);
+            Text = '';
+            ZIndex = 200;
+            Active = true;
+            Parent = ScreenGui;
+        })
+
+        local MobileBtnInner = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderSizePixel = 0;
+            Position = UDim2.fromOffset(1, 1);
+            Size = UDim2.new(1, -2, 1, -2);
+            ZIndex = 201;
+            Parent = MobileBtn;
+        })
+
+        Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor));
+                ColorSequenceKeypoint.new(1, Library.MainColor);
+            });
+            Rotation = -90;
+            Parent = MobileBtnInner;
+        })
+
+        local MobileBtnLabel = Library:CreateLabel({
+            Size = UDim2.fromScale(1, 1);
+            Text = 'UI';
+            TextSize = 14;
+            ZIndex = 202;
+            Parent = MobileBtnInner;
+        })
+
+        Library:AddToRegistry(MobileBtn, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'AccentColor' })
+        Library:AddToRegistry(MobileBtnInner, { BackgroundColor3 = 'MainColor' })
+
+        Library:MakeDraggable(MobileBtn, 44)
+
+        MobileBtn.MouseButton1Click:Connect(function()
+            task.spawn(Library.Toggle)
+        end)
+
+        Library.MobileButton = MobileBtn
+    end
 end;
 
 function Library:SetWatermarkVisibility(Bool)
@@ -3013,13 +3098,21 @@ function Library:Notify(Text, Time)
     local animEnabled = Library.AnimationsEnabled ~= false
     local finalWidth = XSize + 16
 
-    local NotifyOuter = Library:Create('Frame', {
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.fromOffset(0, 0);
+    -- Wrapper sits in notification area for layout
+    local Wrapper = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        BorderSizePixel = 0;
         Size = UDim2.fromOffset(finalWidth, YSize);
-        ClipsDescendants = true;
+        ClipsDescendants = false;
         ZIndex = 100;
         Parent = Library.NotificationArea;
+    })
+
+    local NotifyOuter = Library:Create('Frame', {
+        BorderColor3 = Library.OutlineColor;
+        Size = UDim2.fromOffset(finalWidth, YSize);
+        ZIndex = 100;
+        Parent = Wrapper;
     })
 
     local NotifyInner = Library:Create('Frame', {
@@ -3056,10 +3149,6 @@ function Library:Notify(Text, Time)
         Parent = InnerFrame;
     })
 
-    Library:AddToRegistry(Library:Create('Frame', { -- dummy for registry
-        BackgroundTransparency = 1; Size = UDim2.new(0,0,0,0); Parent = InnerFrame;
-    }), {})
-
     local textPadLeft = (stripePos == 'Left') and 8 or 4
     Library:CreateLabel({
         Position = UDim2.fromOffset(textPadLeft, 0);
@@ -3071,24 +3160,24 @@ function Library:Notify(Text, Time)
         Parent = InnerFrame;
     })
 
-    local stripeSize, stripePos2
+    local stripeSize2, stripePos2
     if stripePos == 'Left' then
-        stripeSize = UDim2.new(0, 3, 1, 2); stripePos2 = UDim2.new(0, -1, 0, -1)
+        stripeSize2 = UDim2.new(0, 3, 1, 2); stripePos2 = UDim2.new(0, -1, 0, -1)
     elseif stripePos == 'Right' then
-        stripeSize = UDim2.new(0, 3, 1, 2); stripePos2 = UDim2.new(1, -2, 0, -1)
+        stripeSize2 = UDim2.new(0, 3, 1, 2); stripePos2 = UDim2.new(1, -2, 0, -1)
     elseif stripePos == 'Top' then
-        stripeSize = UDim2.new(1, 2, 0, 3); stripePos2 = UDim2.new(0, -1, 0, -1)
+        stripeSize2 = UDim2.new(1, 2, 0, 3); stripePos2 = UDim2.new(0, -1, 0, -1)
     elseif stripePos == 'Bottom' then
-        stripeSize = UDim2.new(1, 2, 0, 3); stripePos2 = UDim2.new(0, -1, 1, -2)
+        stripeSize2 = UDim2.new(1, 2, 0, 3); stripePos2 = UDim2.new(0, -1, 1, -2)
     else
-        stripeSize = UDim2.new(0, 3, 1, 2); stripePos2 = UDim2.new(0, -1, 0, -1)
+        stripeSize2 = UDim2.new(0, 3, 1, 2); stripePos2 = UDim2.new(0, -1, 0, -1)
     end
 
     local StripeFrame = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
         Position = stripePos2;
-        Size = stripeSize;
+        Size = stripeSize2;
         ZIndex = 104;
         Parent = NotifyOuter;
     })
@@ -3109,151 +3198,173 @@ function Library:Notify(Text, Time)
     Library:AddToRegistry(StripeFrame, { BackgroundColor3 = 'AccentColor' }, true)
 
     if animEnabled then
-        local dirOffsets = {
-            Left        = Vector2.new(-finalWidth - 10, 0);
-            Right       = Vector2.new(finalWidth + 10, 0);
-            Top         = Vector2.new(0, -(YSize + 10));
-            Bottom      = Vector2.new(0, YSize + 10);
-            TopLeft     = Vector2.new(-finalWidth - 10, -(YSize + 10));
-            TopRight    = Vector2.new(finalWidth + 10, -(YSize + 10));
-            BottomLeft  = Vector2.new(-finalWidth - 10, YSize + 10);
-            BottomRight = Vector2.new(finalWidth + 10, YSize + 10);
+        local dirMap = {
+            Left        = UDim2.fromOffset(-finalWidth - 20, 0);
+            Right       = UDim2.fromOffset(finalWidth + 20, 0);
+            Top         = UDim2.fromOffset(0, -(YSize + 20));
+            Bottom      = UDim2.fromOffset(0, YSize + 20);
+            TopLeft     = UDim2.fromOffset(-finalWidth - 20, -(YSize + 20));
+            TopRight    = UDim2.fromOffset(finalWidth + 20, -(YSize + 20));
+            BottomLeft  = UDim2.fromOffset(-finalWidth - 20, YSize + 20);
+            BottomRight = UDim2.fromOffset(finalWidth + 20, YSize + 20);
         }
-        local offset = dirOffsets[animDir] or dirOffsets['Left']
-        local startPos = UDim2.new(
-            NotifyOuter.Position.X.Scale,
-            NotifyOuter.Position.X.Offset + offset.X,
-            NotifyOuter.Position.Y.Scale,
-            NotifyOuter.Position.Y.Offset + offset.Y
-        )
-        local endPos = NotifyOuter.Position
-        NotifyOuter.Position = startPos
+        local startOff = dirMap[animDir] or dirMap['Left']
+        NotifyOuter.Position = startOff
         TweenService:Create(NotifyOuter, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Position = endPos
+            Position = UDim2.fromOffset(0, 0)
         }):Play()
     end
 
     task.spawn(function()
         wait(duration)
         if animEnabled then
-            local dirOffsets = {
-                Left        = Vector2.new(-finalWidth - 10, 0);
-                Right       = Vector2.new(finalWidth + 10, 0);
-                Top         = Vector2.new(0, -(YSize + 10));
-                Bottom      = Vector2.new(0, YSize + 10);
-                TopLeft     = Vector2.new(-finalWidth - 10, -(YSize + 10));
-                TopRight    = Vector2.new(finalWidth + 10, -(YSize + 10));
-                BottomLeft  = Vector2.new(-finalWidth - 10, YSize + 10);
-                BottomRight = Vector2.new(finalWidth + 10, YSize + 10);
+            local dirMap = {
+                Left        = UDim2.fromOffset(-finalWidth - 20, 0);
+                Right       = UDim2.fromOffset(finalWidth + 20, 0);
+                Top         = UDim2.fromOffset(0, -(YSize + 20));
+                Bottom      = UDim2.fromOffset(0, YSize + 20);
+                TopLeft     = UDim2.fromOffset(-finalWidth - 20, -(YSize + 20));
+                TopRight    = UDim2.fromOffset(finalWidth + 20, -(YSize + 20));
+                BottomLeft  = UDim2.fromOffset(-finalWidth - 20, YSize + 20);
+                BottomRight = UDim2.fromOffset(finalWidth + 20, YSize + 20);
             }
-            local offset = dirOffsets[animDir] or dirOffsets['Left']
-            local exitPos = UDim2.new(
-                NotifyOuter.Position.X.Scale,
-                NotifyOuter.Position.X.Offset + offset.X,
-                NotifyOuter.Position.Y.Scale,
-                NotifyOuter.Position.Y.Offset + offset.Y
-            )
+            local exitOff = dirMap[animDir] or dirMap['Left']
             TweenService:Create(NotifyOuter, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                Position = exitPos
+                Position = exitOff
             }):Play()
             wait(0.2)
         end
-        NotifyOuter:Destroy()
+        Wrapper:Destroy()
     end)
 end;
 
-function Library:CreateConfigSection(Groupbox)
-    Groupbox:AddDropdown('LibFontMode', {
+function Library:CreateConfigSection(Tab)
+    local LeftTabbox = Tab:AddLeftTabbox('LibConfig')
+    local RightTabbox = Tab:AddRightTabbox('LibConfig2')
+
+    local MenuTab = LeftTabbox:AddTab('Menu')
+    local KeybindsTab = LeftTabbox:AddTab('Keybinds')
+    local NotifyTab = RightTabbox:AddTab('Notify')
+    local AnimTab = RightTabbox:AddTab('Animations')
+
+    -- Menu tab
+    MenuTab:AddDropdown('LibFontMode', {
         Text = 'Font',
         Values = {'Default', 'Monocraft'},
         Default = Library.FontMode,
-        Callback = function(v)
-            Library:SetFont(v)
-        end
+        Callback = function(v) Library:SetFont(v) end
     })
-
-    Groupbox:AddSlider('LibFontSize', {
+    MenuTab:AddSlider('LibFontSize', {
         Text = 'Font Size',
         Default = Library.FontSize,
-        Min = 10,
-        Max = 24,
-        Rounding = 0,
-        Callback = function(v)
-            Library:SetFontSize(v)
-        end
+        Min = 10, Max = 24, Rounding = 0,
+        Callback = function(v) Library:SetFontSize(v) end
+    })
+    MenuTab:AddDivider()
+    MenuTab:AddDropdown('LibLineStyle', {
+        Text = 'Line Style',
+        Values = {'Neon', 'Solid'},
+        Default = Library.LineStyle,
+        Callback = function(v) Library:SetLineStyle(v) end
+    })
+    MenuTab:AddDropdown('LibCursorMode', {
+        Text = 'Cursor',
+        Values = {'Default', 'Linoria'},
+        Default = Library.CursorMode,
+        Callback = function(v) Library.CursorMode = v end
     })
 
-    Groupbox:AddDivider()
+    -- Keybinds tab
+    KeybindsTab:AddSlider('LibKeybindAlpha', {
+        Text = 'Transparency',
+        Default = math.floor((Library.KeybindTransparency or 0) * 10),
+        Min = 0, Max = 10, Rounding = 0,
+        Callback = function(v) Library:SetKeybindTransparency(v / 10) end
+    })
 
-    Groupbox:AddDropdown('LibNotifyPos', {
-        Text = 'Notification Position',
-        Values = {'Left', 'Center', 'Right'},
+    -- Notification tab
+    NotifyTab:AddDropdown('LibNotifyPos', {
+        Text = 'Position',
+        Values = {'Left', 'Center', 'Right', 'Custom'},
         Default = Library.NotifyPosition,
         Callback = function(v)
             Library.NotifyPosition = v
             Library:UpdateNotificationPosition()
         end
     })
+    local NotifyCustomDepbox = NotifyTab:AddDependencyBox()
+    NotifyCustomDepbox:AddSlider('LibNotifyCustomX', {
+        Text = 'Custom X',
+        Default = Library.NotifyCustomX,
+        Min = 0, Max = 2000, Rounding = 0,
+        Callback = function(v)
+            Library.NotifyCustomX = v
+            if Library.NotifyPosition == 'Custom' then
+                Library:UpdateNotificationPosition()
+            end
+        end
+    })
+    NotifyCustomDepbox:AddSlider('LibNotifyCustomY', {
+        Text = 'Custom Y',
+        Default = Library.NotifyCustomY,
+        Min = 0, Max = 1000, Rounding = 0,
+        Callback = function(v)
+            Library.NotifyCustomY = v
+            if Library.NotifyPosition == 'Custom' then
+                Library:UpdateNotificationPosition()
+            end
+        end
+    })
+    NotifyCustomDepbox:SetupDependencies({ { Options.LibNotifyPos, 'Custom' } })
 
-    Groupbox:AddDropdown('LibNotifyStripePos', {
-        Text = 'Notify Stripe Side',
+    NotifyTab:AddDropdown('LibNotifyStripePos', {
+        Text = 'Stripe Side',
         Values = {'Left', 'Right', 'Top', 'Bottom'},
         Default = Library.NotifyStripePosition,
-        Callback = function(v)
-            Library.NotifyStripePosition = v
-        end
+        Callback = function(v) Library.NotifyStripePosition = v end
     })
-
-    Groupbox:AddDropdown('LibNotifyStripeStyle', {
-        Text = 'Notify Stripe Style',
-        Values = {'Default', 'Neon'},
+    NotifyTab:AddDropdown('LibNotifyStripeStyle', {
+        Text = 'Stripe Style',
+        Values = {'Neon', 'Solid'},
         Default = Library.NotifyStripeStyle,
-        Callback = function(v)
-            Library.NotifyStripeStyle = v
-        end
+        Callback = function(v) Library.NotifyStripeStyle = v end
     })
-
-    Groupbox:AddSlider('LibNotifyAlpha', {
-        Text = 'Notify Transparency',
+    NotifyTab:AddSlider('LibNotifyAlpha', {
+        Text = 'Transparency',
         Default = math.floor((Library.NotifyTransparency or 0) * 10),
-        Min = 0,
-        Max = 10,
-        Rounding = 0,
-        Suffix = '',
-        Callback = function(v)
-            Library.NotifyTransparency = v / 10
-        end
+        Min = 0, Max = 10, Rounding = 0,
+        Callback = function(v) Library.NotifyTransparency = v / 10 end
     })
-
-    Groupbox:AddSlider('LibNotifyDuration', {
-        Text = 'Notify Duration (sec)',
+    NotifyTab:AddSlider('LibNotifyDuration', {
+        Text = 'Duration (sec)',
         Default = Library.NotifyDuration or 5,
-        Min = 1,
-        Max = 30,
-        Rounding = 0,
-        Callback = function(v)
-            Library.NotifyDuration = v
-        end
+        Min = 1, Max = 30, Rounding = 0,
+        Callback = function(v) Library.NotifyDuration = v end
     })
-
-    Groupbox:AddButton({
+    NotifyTab:AddButton({
         Text = 'Test Notification',
         Func = function()
             Library:Notify('This is a test notification!', Library.NotifyDuration)
         end
     })
 
-    Groupbox:AddDivider()
-
-    Groupbox:AddSlider('LibKeybindAlpha', {
-        Text = 'Keybind Transparency',
-        Default = math.floor((Library.KeybindTransparency or 0) * 10),
-        Min = 0,
-        Max = 10,
-        Rounding = 0,
-        Callback = function(v)
-            Library:SetKeybindTransparency(v / 10)
-        end
+    -- Animations tab
+    AnimTab:AddToggle('LibAnimEnabled', {
+        Text = 'Animations',
+        Default = Library.AnimationsEnabled ~= false,
+        Callback = function(v) Library.AnimationsEnabled = v end
+    })
+    AnimTab:AddDropdown('LibMenuAnimDir', {
+        Text = 'Menu Direction',
+        Values = {'Top', 'Bottom', 'Left', 'Right', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'},
+        Default = Library.MenuAnimDirection,
+        Callback = function(v) Library.MenuAnimDirection = v end
+    })
+    AnimTab:AddDropdown('LibNotifyAnimDir', {
+        Text = 'Notify Direction',
+        Values = {'Left', 'Right', 'Top', 'Bottom', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'},
+        Default = Library.NotifyAnimDirection,
+        Callback = function(v) Library.NotifyAnimDirection = v end
     })
 end
 
@@ -3523,6 +3634,26 @@ function Library:CreateWindow(...)
             end);
         end;
 
+        local TabActiveLine = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 0, 1, -1);
+            Size = UDim2.new(1, 0, 0, 2);
+            Visible = false;
+            ZIndex = 4;
+            Parent = TabButton;
+        });
+        Library:Create('UIGradient', {
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1);
+                NumberSequenceKeypoint.new(0.35, 0);
+                NumberSequenceKeypoint.new(0.65, 0);
+                NumberSequenceKeypoint.new(1, 1);
+            });
+            Parent = TabActiveLine;
+        });
+        Library:AddToRegistry(TabActiveLine, { BackgroundColor3 = 'AccentColor' });
+
         function Tab:ShowTab()
             for _, Tab in next, Window.Tabs do
                 Tab:HideTab();
@@ -3530,6 +3661,7 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 0;
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
+            TabActiveLine.Visible = true;
             TabFrame.Visible = true;
         end;
 
@@ -3537,6 +3669,7 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 1;
             TabButton.BackgroundColor3 = Library.BackgroundColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'BackgroundColor';
+            TabActiveLine.Visible = false;
             TabFrame.Visible = false;
         end;
 
@@ -3895,6 +4028,7 @@ function Library:CreateWindow(...)
             Outer.Visible = true
 
             task.spawn(function()
+                if Library.CursorMode ~= 'Linoria' then return end
                 local State = InputService.MouseIconEnabled
 
                 local Cursor = Drawing.new('Triangle')
