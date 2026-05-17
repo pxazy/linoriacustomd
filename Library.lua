@@ -378,6 +378,8 @@ function Library:GetDarkerColor(Color)
     local H, S, V = Color3.toHSV(Color);
     return Color3.fromHSV(H, S, V / 1.5);
 end;
+Library.StripeGradients = {}
+
 function Library:MakeStripe(Parent, ZIndex, Horizontal)
     local Stripe = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
@@ -387,23 +389,29 @@ function Library:MakeStripe(Parent, ZIndex, Horizontal)
         Parent = Parent;
     })
     Library:AddToRegistry(Stripe, { BackgroundColor3 = 'AccentColor' })
-    if Library.LineStyle ~= 'Solid' then
-        Library:Create('UIGradient', {
-            Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 1);
-                NumberSequenceKeypoint.new(0.35, 0);
-                NumberSequenceKeypoint.new(0.65, 0);
-                NumberSequenceKeypoint.new(1, 1);
-            });
-            Parent = Stripe;
-        })
-    end
+
+    local grad = Library:Create('UIGradient', {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1);
+            NumberSequenceKeypoint.new(0.35, 0);
+            NumberSequenceKeypoint.new(0.65, 0);
+            NumberSequenceKeypoint.new(1, 1);
+        });
+        Parent = Stripe;
+    })
+    grad.Enabled = (Library.LineStyle ~= 'Solid')
+    table.insert(Library.StripeGradients, grad)
     return Stripe
 end
 
 function Library:SetLineStyle(Style)
     Library.LineStyle = Style
-    Library:UpdateColorsUsingRegistry()
+    local enabled = (Style ~= 'Solid')
+    for _, grad in next, Library.StripeGradients do
+        if grad and grad.Parent then
+            grad.Enabled = enabled
+        end
+    end
 end
 
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
@@ -2962,25 +2970,7 @@ do
         BackgroundColor3 = 'MainColor';
     }, true);
 
-    local KeybindStripe = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Size = UDim2.new(1, 0, 0, 1);
-        ZIndex = 102;
-        Parent = KeybindInnerBg;
-    });
-    Library:Create('UIGradient', {
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1);
-            NumberSequenceKeypoint.new(0.35, 0);
-            NumberSequenceKeypoint.new(0.65, 0);
-            NumberSequenceKeypoint.new(1, 1);
-        });
-        Parent = KeybindStripe;
-    });
-    Library:AddToRegistry(KeybindStripe, {
-        BackgroundColor3 = 'AccentColor';
-    }, true);
+    local KeybindStripe = Library:MakeStripe(KeybindInnerBg, 102, true);
 
     local KeybindLabel = Library:CreateLabel({
         Size = UDim2.new(1, 0, 0, 20);
@@ -3433,24 +3423,9 @@ function Library:CreateWindow(...)
         Parent = Inner;
     });
 
-    local TitleStripe = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(0, 0, 0, 24);
-        Size = UDim2.new(1, 0, 0, 1);
-        ZIndex = 2;
-        Parent = Inner;
-    });
-    Library:Create('UIGradient', {
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1);
-            NumberSequenceKeypoint.new(0.35, 0);
-            NumberSequenceKeypoint.new(0.65, 0);
-            NumberSequenceKeypoint.new(1, 1);
-        });
-        Parent = TitleStripe;
-    });
-    Library:AddToRegistry(TitleStripe, { BackgroundColor3 = 'AccentColor' });
+    local TitleStripe = Library:MakeStripe(Inner, 2, true)
+    TitleStripe.Position = UDim2.new(0, 0, 0, 24);
+    TitleStripe.Size = UDim2.new(1, 0, 0, 1);
 
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
@@ -3634,25 +3609,10 @@ function Library:CreateWindow(...)
             end);
         end;
 
-        local TabActiveLine = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0, 0, 1, -1);
-            Size = UDim2.new(1, 0, 0, 2);
-            Visible = false;
-            ZIndex = 4;
-            Parent = TabButton;
-        });
-        Library:Create('UIGradient', {
-            Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 1);
-                NumberSequenceKeypoint.new(0.35, 0);
-                NumberSequenceKeypoint.new(0.65, 0);
-                NumberSequenceKeypoint.new(1, 1);
-            });
-            Parent = TabActiveLine;
-        });
-        Library:AddToRegistry(TabActiveLine, { BackgroundColor3 = 'AccentColor' });
+        local TabActiveLine = Library:MakeStripe(TabButton, 4, true)
+        TabActiveLine.Position = UDim2.new(0, 0, 1, -1);
+        TabActiveLine.Size = UDim2.new(1, 0, 0, 2);
+        TabActiveLine.Visible = false;
 
         function Tab:ShowTab()
             for _, Tab in next, Window.Tabs do
@@ -3708,25 +3668,7 @@ function Library:CreateWindow(...)
                 BackgroundColor3 = 'BackgroundColor';
             });
 
-            local Highlight = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
-                BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 1);
-                ZIndex = 5;
-                Parent = BoxInner;
-            });
-            Library:Create('UIGradient', {
-                Transparency = NumberSequence.new({
-                    NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.35, 0);
-                    NumberSequenceKeypoint.new(0.65, 0);
-                    NumberSequenceKeypoint.new(1, 1);
-                });
-                Parent = Highlight;
-            });
-            Library:AddToRegistry(Highlight, {
-                BackgroundColor3 = 'AccentColor';
-            });
+            local Highlight = Library:MakeStripe(BoxInner, 5, true);
 
             local GroupboxLabel = Library:CreateLabel({
                 Size = UDim2.new(1, 0, 0, 18);
@@ -3815,25 +3757,7 @@ function Library:CreateWindow(...)
                 BackgroundColor3 = 'BackgroundColor';
             });
 
-            local Highlight = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
-                BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 1);
-                ZIndex = 10;
-                Parent = BoxInner;
-            });
-            Library:Create('UIGradient', {
-                Transparency = NumberSequence.new({
-                    NumberSequenceKeypoint.new(0, 1);
-                    NumberSequenceKeypoint.new(0.35, 0);
-                    NumberSequenceKeypoint.new(0.65, 0);
-                    NumberSequenceKeypoint.new(1, 1);
-                });
-                Parent = Highlight;
-            });
-            Library:AddToRegistry(Highlight, {
-                BackgroundColor3 = 'AccentColor';
-            });
+            local Highlight = Library:MakeStripe(BoxInner, 10, true);
 
             local TabboxButtons = Library:Create('Frame', {
                 BackgroundTransparency = 1;
