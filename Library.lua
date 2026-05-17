@@ -43,6 +43,8 @@ local Library = {
     FontSize = 14;
     FontMode = 'Default';
 
+    CursorColor = nil;
+
     NotifyDuration = 5;
     NotifyTransparency = 0;
     NotifyPosition = 'LeftBottom';
@@ -181,35 +183,62 @@ function Library:ApplyTextStroke(Inst)
 end;
 
 local _customFontId = nil
+local _proggyFontId = nil
+
 local function Library_LoadCustomFont()
-    if not Library.CustomFontBase64 or #Library.CustomFontBase64 < 100 then return end
+    if not (getcustomasset and writefile and isfile) then return end
     local b64decode = (crypt and crypt.base64 and crypt.base64.decode)
         or (crypt and crypt.base64decode)
         or (type(base64_decode) == 'function' and base64_decode)
     if not b64decode then return end
-    if not (getcustomasset and writefile and isfile) then return end
-    local fontData = Library.CustomFontBase64:gsub("[^%w%+/=]", "")
-    local folder = "LinoriaCustomFont"
-    if isfolder and not isfolder(folder) then makefolder(folder) end
-    local ttfPath = folder .. "/font.ttf"
-    local jsonPath = folder .. "/font.font"
-    if not isfile(ttfPath) then
-        local ok, decoded = pcall(b64decode, fontData)
-        if ok and decoded then writefile(ttfPath, decoded) end
+
+    if Library.CustomFontBase64 and #Library.CustomFontBase64 >= 100 then
+        local fontData = Library.CustomFontBase64:gsub("[^%w%+/=]", "")
+        local folder = "LinoriaCustomFont"
+        if isfolder and not isfolder(folder) then makefolder(folder) end
+        local ttfPath = folder .. "/font.ttf"
+        local jsonPath = folder .. "/font.font"
+        if not isfile(ttfPath) then
+            local ok, decoded = pcall(b64decode, fontData)
+            if ok and decoded then writefile(ttfPath, decoded) end
+        end
+        if isfile(ttfPath) and not isfile(jsonPath) then
+            local assetPath = getcustomasset(ttfPath)
+            local json = '{"name":"CustomFont","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"' .. assetPath .. '"}]}'
+            writefile(jsonPath, json)
+        end
+        if isfile(jsonPath) then
+            _customFontId = getcustomasset(jsonPath)
+        end
     end
-    if isfile(ttfPath) and not isfile(jsonPath) then
-        local assetPath = getcustomasset(ttfPath)
-        local json = '{"name":"CustomFont","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"' .. assetPath .. '"}]}'
-        writefile(jsonPath, json)
-    end
-    if isfile(jsonPath) then
-        _customFontId = getcustomasset(jsonPath)
+
+    if Library.ProggyFontBase64 and #Library.ProggyFontBase64 >= 100 then
+        local fontData = Library.ProggyFontBase64:gsub("[^%w%+/=]", "")
+        local folder = "LinoriaProggyFont"
+        if isfolder and not isfolder(folder) then makefolder(folder) end
+        local ttfPath = folder .. "/font1.ttf"
+        local jsonPath = folder .. "/proggy.font"
+        if not isfile(ttfPath) then
+            local ok, decoded = pcall(b64decode, fontData)
+            if ok and decoded then writefile(ttfPath, decoded) end
+        end
+        if isfile(ttfPath) and not isfile(jsonPath) then
+            local assetPath = getcustomasset(ttfPath)
+            local json = '{"name":"ProggyClean","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"' .. assetPath .. '"}]}'
+            writefile(jsonPath, json)
+        end
+        if isfile(jsonPath) then
+            _proggyFontId = getcustomasset(jsonPath)
+        end
     end
 end
 
 function Library:GetActiveFont()
     if Library.FontMode == 'Monocraft' and _customFontId then
         return nil, Font.new(_customFontId), Enum.Font.Unknown
+    end
+    if Library.FontMode == 'ProggyClean' and _proggyFontId then
+        return nil, Font.new(_proggyFontId), Enum.Font.Unknown
     end
     if Library.IsMobile then
         return Enum.Font.GothamMedium, nil, Enum.Font.GothamMedium
@@ -482,8 +511,9 @@ local function _SpawnCursor()
             while _CursorActive and ScreenGui.Parent do
                 InputService.MouseIconEnabled = false
                 local sz = Library.CursorSize or 16
+                local col = Library.CursorColor or Library.AccentColor
                 local p = InputService:GetMouseLocation()
-                C.Color = Library.AccentColor
+                C.Color = col
                 C.PointA = Vector2.new(p.X, p.Y)
                 C.PointB = Vector2.new(p.X + sz, p.Y + sz * 0.375)
                 C.PointC = Vector2.new(p.X + sz * 0.375, p.Y + sz)
@@ -499,8 +529,8 @@ local function _SpawnCursor()
             while _CursorActive and ScreenGui.Parent do
                 InputService.MouseIconEnabled = false
                 local sz = (Library.CursorSize or 16) / 2
+                local col = Library.CursorColor or Library.AccentColor
                 local p = InputService:GetMouseLocation()
-                local col = Library.AccentColor
                 HO.From = Vector2.new(p.X - sz, p.Y); HO.To = Vector2.new(p.X + sz, p.Y); HO.Color = Color3.new(0,0,0)
                 VO.From = Vector2.new(p.X, p.Y - sz); VO.To = Vector2.new(p.X, p.Y + sz); VO.Color = Color3.new(0,0,0)
                 H.From = Vector2.new(p.X - sz, p.Y); H.To = Vector2.new(p.X + sz, p.Y); H.Color = col
@@ -3067,8 +3097,11 @@ do
         Parent = InnerFrame;
     });
 
+    local WatermarkStripe = Library:MakeStripe(InnerFrame, 204, true);
+
     Library.Watermark = WatermarkOuter;
     Library.WatermarkText = WatermarkLabel;
+    Library.WatermarkStripe = WatermarkStripe;
     Library:MakeDraggable(Library.Watermark);
 
     local KeybindOuter = Library:Create('Frame', {
@@ -3278,14 +3311,16 @@ function Library:Notify(Text, Time)
 
     local textPadLeft = (stripePos == 'Left') and 8 or 4
     Library:CreateLabel({
-        Position = UDim2.fromOffset(textPadLeft, 0);
-        Size = UDim2.new(1, -(textPadLeft + 4), 1, 0);
+        Position = UDim2.fromOffset(textPadLeft, 2);
+        Size = UDim2.new(1, -(textPadLeft + 4), 1, -2);
         Text = Text;
         TextXAlignment = Enum.TextXAlignment.Left;
         TextSize = Library.FontSize;
         ZIndex = 103;
         Parent = InnerFrame;
     })
+
+    local TopStripe = Library:MakeStripe(InnerFrame, 105, true);
 
     local stripeSize2, stripePos2
     if stripePos == 'Left' then
@@ -3620,16 +3655,19 @@ function Library:CreateWindow(...)
 
     Library:MakeDraggable(Outer, 25);
 
-    local ResizeHandle = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
+    local ResizeHandle = Library:Create('ImageLabel', {
+        BackgroundTransparency = 1;
         AnchorPoint = Vector2.new(1, 1);
         Position = UDim2.new(1, 0, 1, 0);
-        Size = UDim2.fromOffset(10, 10);
+        Size = UDim2.fromOffset(14, 14);
+        Image = 'rbxassetid://6034818370';
+        ImageColor3 = Library.AccentColor;
+        Rotation = 0;
         ZIndex = 50;
+        Visible = not Library.MenuLocked;
         Parent = Outer;
     })
-    Library:AddToRegistry(ResizeHandle, { BackgroundColor3 = 'AccentColor' })
+    Library:AddToRegistry(ResizeHandle, { ImageColor3 = 'AccentColor' })
 
     ResizeHandle.InputBegan:Connect(function(Input)
         if not IsClick(Input) then return end
@@ -3649,6 +3687,8 @@ function Library:CreateWindow(...)
             if IsClick(EndInput) then Con:Disconnect(); EndCon:Disconnect() end
         end)
     end)
+
+    Library.ResizeHandle = ResizeHandle
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -4202,6 +4242,9 @@ function Library:CreateWindow(...)
 
     function Library:SetMenuLocked(locked)
         Library.MenuLocked = locked
+        if Library.ResizeHandle then
+            Library.ResizeHandle.Visible = not locked
+        end
     end
 
     function Library:Toggle()
