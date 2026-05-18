@@ -1,4 +1,5 @@
 local CUSTOM_FONT_BASE64 = nil
+local PROGGY_FONT_BASE64 = nil
 
 local InputService = game:GetService('UserInputService');
 local TextService = game:GetService('TextService');
@@ -32,6 +33,7 @@ local Library = {
 
     FontColor = Color3.fromRGB(255, 255, 255);
     CustomFontBase64 = CUSTOM_FONT_BASE64;
+    ProggyFontBase64 = PROGGY_FONT_BASE64;
     MainColor = Color3.fromRGB(28, 28, 28);
     BackgroundColor = Color3.fromRGB(20, 20, 20);
     AccentColor = Color3.fromRGB(0, 85, 255);
@@ -41,7 +43,6 @@ local Library = {
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code;
     FontSize = 14;
-    FontMode = 'Default';
 
     CursorColor = nil;
 
@@ -87,6 +88,13 @@ local Library = {
 
 local RainbowStep = 0
 local Hue = 0
+
+local _mobile = Library.IsMobile
+local function E(desktop, mobile) return _mobile and mobile or desktop end
+
+if _mobile then
+    Library.FontSize = 12
+end
 
 table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
     RainbowStep = RainbowStep + Delta
@@ -742,10 +750,6 @@ do
             Parent = ScreenGui,
         });
 
-        DisplayFrame:GetPropertyChangedSignal('AbsolutePosition'):Connect(function()
-            PickerFrameOuter.Position = UDim2.fromOffset(DisplayFrame.AbsolutePosition.X, DisplayFrame.AbsolutePosition.Y + 18);
-        end)
-
         local PickerFrameInner = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
             BorderColor3 = Library.OutlineColor;
@@ -1144,6 +1148,16 @@ do
                     Library.OpenedFrames[Frame] = nil;
                 end;
             end;
+
+            local absPos = DisplayFrame.AbsolutePosition
+            local screenSize = ScreenGui.AbsoluteSize
+            local pickerW = PickerFrameOuter.Size.X.Offset
+            local pickerH = PickerFrameOuter.Size.Y.Offset
+            local posX = absPos.X
+            local posY = absPos.Y + DisplayFrame.AbsoluteSize.Y + 2
+            if posX + pickerW > screenSize.X then posX = screenSize.X - pickerW - 4 end
+            if posY + pickerH > screenSize.Y then posY = absPos.Y - pickerH - 2 end
+            PickerFrameOuter.Position = UDim2.fromOffset(posX, posY)
 
             PickerFrameOuter.Visible = true;
             Library.OpenedFrames[PickerFrameOuter] = true;
@@ -1703,7 +1717,7 @@ do
             local Outer = Library:Create('Frame', {
                 BackgroundColor3 = Library.MainColor;
                 BorderColor3 = Library.OutlineColor;
-                Size = UDim2.new(1, -4, 0, 20);
+                Size = UDim2.new(1, -4, 0, E(20,17));
                 ZIndex = 5;
             });
 
@@ -1929,7 +1943,7 @@ do
         local TextBoxOuter = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(1, -4, 0, 20);
+            Size = UDim2.new(1, -4, 0, E(20,17));
             ZIndex = 5;
             Parent = Container;
         });
@@ -2096,7 +2110,7 @@ do
         local ToggleOuter = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(0, 13, 0, 13);
+            Size = UDim2.new(0, E(13,11), 0, E(13,11));
             ZIndex = 5;
             Parent = Container;
         });
@@ -2266,7 +2280,7 @@ do
         local SliderOuter = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(1, -4, 0, 13);
+            Size = UDim2.new(1, -4, 0, E(13,11));
             ZIndex = 5;
             Parent = Container;
         });
@@ -2510,7 +2524,7 @@ do
         local DropdownOuter = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(1, -4, 0, 20);
+            Size = UDim2.new(1, -4, 0, E(20,17));
             ZIndex = 5;
             Parent = Container;
         });
@@ -3097,11 +3111,9 @@ do
         Parent = InnerFrame;
     });
 
-    local WatermarkStripe = Library:MakeStripe(InnerFrame, 204, true);
-
     Library.Watermark = WatermarkOuter;
     Library.WatermarkText = WatermarkLabel;
-    Library.WatermarkStripe = WatermarkStripe;
+    Library.WatermarkInner = WatermarkInner;
     Library:MakeDraggable(Library.Watermark);
 
     local KeybindOuter = Library:Create('Frame', {
@@ -3320,7 +3332,7 @@ function Library:Notify(Text, Time)
         Parent = InnerFrame;
     })
 
-    local TopStripe = Library:MakeStripe(InnerFrame, 105, true);
+    local _ = nil
 
     local stripeSize2, stripePos2
     if stripePos == 'Left' then
@@ -3399,17 +3411,17 @@ function Library:Notify(Text, Time)
 end;
 
 function Library:CreateConfigSection(Tab)
-    local LeftTabbox = Tab:AddLeftTabbox('LibConfig')
-    local RightTabbox = Tab:AddRightTabbox('LibConfig2')
+    local LeftTabbox = Tab:AddLeftTabbox('LibConfigL')
+    local RightTabbox = Tab:AddRightTabbox('LibConfigR')
 
-    local MenuTab = LeftTabbox:AddTab('Menu')
+    local MenuTab   = LeftTabbox:AddTab('Menu')
     local CursorTab = LeftTabbox:AddTab('Cursor')
     local NotifyTab = RightTabbox:AddTab('Notify')
-    local AnimTab = RightTabbox:AddTab('Anim')
+    local AnimTab   = RightTabbox:AddTab('Anim')
 
     MenuTab:AddDropdown('LibFontMode', {
-        Text = 'Font',
-        Values = {'Default', 'Monocraft'},
+        Text = 'Font Style',
+        Values = {'Default', 'Monocraft', 'ProggyClean'},
         Default = Library.FontMode,
         Callback = function(v) Library:SetFont(v) end
     })
@@ -3427,64 +3439,17 @@ function Library:CreateConfigSection(Tab)
         Callback = function(v) Library:SetLineStyle(v) end
     })
     MenuTab:AddDivider()
-    MenuTab:AddSlider('LibMenuW', {
-        Text = 'Menu Width',
-        Default = 600, Min = 300, Max = 900, Rounding = 0,
-        Compact = true,
-        Callback = function(v)
-            if not Library.MenuLocked then
-                Library:ResizeMenu(v, Options.LibMenuH and Options.LibMenuH.Value or 580)
-            end
-        end
-    })
-    MenuTab:AddSlider('LibMenuH', {
-        Text = 'Menu Height',
-        Default = 580, Min = 300, Max = 900, Rounding = 0,
-        Compact = true,
-        Callback = function(v)
-            if not Library.MenuLocked then
-                Library:ResizeMenu(Options.LibMenuW and Options.LibMenuW.Value or 600, v)
-            end
-        end
-    })
     MenuTab:AddToggle('LibMenuLock', {
         Text = 'Lock Size',
         Default = true,
-        Callback = function(v) Library.MenuLocked = v end
+        Callback = function(v) Library:SetMenuLocked(v) end
     })
     MenuTab:AddButton({ Text = 'Reset Size', Func = function() Library:ResetMenuSize() end })
     MenuTab:AddDivider()
-    MenuTab:AddDropdown('LibKeybindStyle', {
-        Text = 'Keybind Style',
-        Values = {'Default', 'Minimal'},
-        Default = Library.KeybindStyle or 'Default',
-        Callback = function(v)
-            Library.KeybindStyle = v
-            if Library.KeybindInner then
-                Library.KeybindInner.BorderColor3 = v == 'Minimal' and Library.OutlineColor or Library.AccentColor
-                Library.RegistryMap[Library.KeybindInner].Properties.BorderColor3 = v == 'Minimal' and 'OutlineColor' or 'AccentColor'
-            end
-        end
-    })
     MenuTab:AddSlider('LibKeybindAlpha', {
         Text = 'Keybind Transparency',
         Default = 0, Min = 0, Max = 10, Rounding = 0,
         Callback = function(v) Library:SetKeybindTransparency(v / 10) end
-    })
-    MenuTab:AddDivider()
-    MenuTab:AddDropdown('LibWatermarkStyle', {
-        Text = 'Watermark Style',
-        Values = {'Default', 'Minimal'},
-        Default = Library.WatermarkStyle or 'Default',
-        Callback = function(v)
-            Library.WatermarkStyle = v
-            if Library.Watermark then
-                local wInner = Library.Watermark:FindFirstChildOfClass('Frame')
-                if wInner then
-                    wInner.BorderColor3 = v == 'Minimal' and Library.OutlineColor or Library.AccentColor
-                end
-            end
-        end
     })
     MenuTab:AddSlider('LibWatermarkAlpha', {
         Text = 'Watermark Transparency',
@@ -3498,7 +3463,7 @@ function Library:CreateConfigSection(Tab)
     })
 
     CursorTab:AddDropdown('LibCursorMode', {
-        Text = 'Cursor Style',
+        Text = 'Style',
         Values = {'Default', 'Linoria', 'Cross'},
         Default = Library.CursorMode,
         Callback = function(v)
@@ -3507,10 +3472,15 @@ function Library:CreateConfigSection(Tab)
         end
     })
     CursorTab:AddSlider('LibCursorSize', {
-        Text = 'Cursor Size',
+        Text = 'Size',
         Default = Library.CursorSize or 16,
         Min = 8, Max = 64, Rounding = 0,
         Callback = function(v) Library.CursorSize = v end
+    })
+    CursorTab:AddLabel('Color'):AddColorPicker('LibCursorColor', {
+        Default = Library.AccentColor,
+        Title = 'Cursor Color',
+        Callback = function(v) Library.CursorColor = v end
     })
     CursorTab:AddToggle('LibCursorAlways', {
         Text = 'Always Show',
@@ -3520,6 +3490,7 @@ function Library:CreateConfigSection(Tab)
             Library:RefreshCursor(Library._cursorMenuOpen)
         end
     })
+
     NotifyTab:AddDropdown('LibNotifyPos', {
         Text = 'Position',
         Values = {'LeftTop','LeftBottom','RightTop','RightBottom','CenterTop','CenterBottom','Center','Custom'},
@@ -3531,29 +3502,28 @@ function Library:CreateConfigSection(Tab)
     })
     local NotifyCustomDepbox = NotifyTab:AddDependencyBox()
     NotifyCustomDepbox:AddSlider('LibNotifyCustomX', {
-        Text = 'X', Default = 0, Min = 0, Max = 2000, Rounding = 0,
-        Compact = true,
+        Text = 'X', Default = 0, Min = 0, Max = 2000, Rounding = 0, Compact = true,
         Callback = function(v) Library.NotifyCustomX = v; Library:UpdateNotificationPosition() end
     })
     NotifyCustomDepbox:AddSlider('LibNotifyCustomY', {
-        Text = 'Y', Default = 40, Min = 0, Max = 1000, Rounding = 0,
-        Compact = true,
+        Text = 'Y', Default = 40, Min = 0, Max = 1000, Rounding = 0, Compact = true,
         Callback = function(v) Library.NotifyCustomY = v; Library:UpdateNotificationPosition() end
     })
     NotifyCustomDepbox:SetupDependencies({ { Options.LibNotifyPos, 'Custom' } })
-
+    NotifyTab:AddDivider()
     NotifyTab:AddDropdown('LibNotifyStripePos', {
         Text = 'Stripe Side',
-        Values = {'Left', 'Right', 'Top', 'Bottom'},
+        Values = {'Left','Right','Top','Bottom'},
         Default = Library.NotifyStripePosition,
         Callback = function(v) Library.NotifyStripePosition = v end
     })
     NotifyTab:AddDropdown('LibNotifyStripeStyle', {
         Text = 'Stripe Style',
-        Values = {'Neon', 'Solid'},
+        Values = {'Neon','Solid'},
         Default = Library.NotifyStripeStyle,
         Callback = function(v) Library.NotifyStripeStyle = v end
     })
+    NotifyTab:AddDivider()
     NotifyTab:AddSlider('LibNotifyAlpha', {
         Text = 'Transparency',
         Default = 0, Min = 0, Max = 10, Rounding = 0,
@@ -3561,8 +3531,7 @@ function Library:CreateConfigSection(Tab)
     })
     NotifyTab:AddSlider('LibNotifyDuration', {
         Text = 'Duration (sec)',
-        Default = Library.NotifyDuration or 5,
-        Min = 1, Max = 30, Rounding = 0,
+        Default = Library.NotifyDuration or 5, Min = 1, Max = 30, Rounding = 0,
         Callback = function(v) Library.NotifyDuration = v end
     })
     NotifyTab:AddButton({ Text = 'Test Notification', Func = function()
@@ -3571,7 +3540,7 @@ function Library:CreateConfigSection(Tab)
 
     AnimTab:AddDropdown('LibMenuAnimType', {
         Text = 'Menu Anim',
-        Values = {'None', 'Fade', 'Slide', 'FadeSlide'},
+        Values = {'None','Fade','Slide','FadeSlide'},
         Default = Library.MenuAnimType or 'Fade',
         Callback = function(v) Library.MenuAnimType = v end
     })
@@ -3583,8 +3552,8 @@ function Library:CreateConfigSection(Tab)
     })
     AnimTab:AddDivider()
     AnimTab:AddDropdown('LibNotifyEnterAnim', {
-        Text = 'Notify Enter',
-        Values = {'None', 'Fade', 'Slide'},
+        Text = 'Enter Anim',
+        Values = {'None','Fade','Slide'},
         Default = Library.NotifyEnterAnim or 'Slide',
         Callback = function(v) Library.NotifyEnterAnim = v end
     })
@@ -3595,8 +3564,8 @@ function Library:CreateConfigSection(Tab)
         Callback = function(v) Library.NotifyEnterDirection = v end
     })
     AnimTab:AddDropdown('LibNotifyExitAnim', {
-        Text = 'Notify Exit',
-        Values = {'None', 'Fade', 'Slide'},
+        Text = 'Exit Anim',
+        Values = {'None','Fade','Slide'},
         Default = Library.NotifyExitAnim or 'Slide',
         Callback = function(v) Library.NotifyExitAnim = v end
     })
@@ -3750,7 +3719,7 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(0, 120, 1, -16);
+        Size = UDim2.new(0, E(120,90), 1, -16);
         ZIndex = 1;
         Parent = MainSectionInner;
     });
@@ -3770,8 +3739,8 @@ function Library:CreateWindow(...)
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 136, 0, 8);
-        Size = UDim2.new(1, -144, 1, -16);
+        Position = UDim2.new(0, E(136,106), 0, 8);
+        Size = UDim2.new(1, E(-144,-114), 1, -16);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
@@ -3797,7 +3766,7 @@ function Library:CreateWindow(...)
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
             ClipsDescendants = true;
-            Size = UDim2.new(1, 0, 0, 30);
+            Size = UDim2.new(1, 0, 0, E(30,24));
             ZIndex = 1;
             Parent = TabArea;
         });
