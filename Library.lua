@@ -23,8 +23,9 @@ ScreenGui.Parent = CoreGui;
 local Toggles = {};
 local Options = {};
 
-getgenv().Toggles = Toggles;
-getgenv().Options = Options;
+local _genv = getgenv and getgenv() or {}
+pcall(function() _genv.Toggles = Toggles end)
+pcall(function() _genv.Options = Options end)
 
 local Library = {
     Registry = {};
@@ -3422,8 +3423,8 @@ function Library:CreateConfigSection(Tab)
     MenuTab:AddDropdown('LibFontMode', {
         Text = 'Font Style',
         Values = {'Default', 'Monocraft', 'ProggyClean'},
-        Default = Library.FontMode,
-        Callback = function(v) Library:SetFont(v) end
+        Default = Library.FontMode, AllowNull = true,
+        Callback = function(v) if v then Library:SetFont(v) end end
     })
     MenuTab:AddSlider('LibFontSize', {
         Text = 'Font Size',
@@ -3435,8 +3436,8 @@ function Library:CreateConfigSection(Tab)
     MenuTab:AddDropdown('LibLineStyle', {
         Text = 'Line Style',
         Values = {'Neon', 'Solid'},
-        Default = Library.LineStyle,
-        Callback = function(v) Library:SetLineStyle(v) end
+        Default = Library.LineStyle, AllowNull = true,
+        Callback = function(v) if v then Library:SetLineStyle(v) end end
     })
     MenuTab:AddDivider()
     MenuTab:AddToggle('LibMenuLock', {
@@ -3465,10 +3466,9 @@ function Library:CreateConfigSection(Tab)
     CursorTab:AddDropdown('LibCursorMode', {
         Text = 'Style',
         Values = {'Default', 'Linoria', 'Cross'},
-        Default = Library.CursorMode,
+        Default = Library.CursorMode, AllowNull = true,
         Callback = function(v)
-            Library.CursorMode = v
-            Library:RefreshCursor(Library._cursorMenuOpen)
+            if v then Library.CursorMode = v; Library:RefreshCursor(Library._cursorMenuOpen) end
         end
     })
     CursorTab:AddSlider('LibCursorSize', {
@@ -3494,11 +3494,8 @@ function Library:CreateConfigSection(Tab)
     NotifyTab:AddDropdown('LibNotifyPos', {
         Text = 'Position',
         Values = {'LeftTop','LeftBottom','RightTop','RightBottom','CenterTop','CenterBottom','Center','Custom'},
-        Default = Library.NotifyPosition,
-        Callback = function(v)
-            Library.NotifyPosition = v
-            Library:UpdateNotificationPosition()
-        end
+        Default = Library.NotifyPosition, AllowNull = true,
+        Callback = function(v) if v then Library.NotifyPosition = v; Library:UpdateNotificationPosition() end end
     })
     local NotifyCustomDepbox = NotifyTab:AddDependencyBox()
     NotifyCustomDepbox:AddSlider('LibNotifyCustomX', {
@@ -3514,14 +3511,14 @@ function Library:CreateConfigSection(Tab)
     NotifyTab:AddDropdown('LibNotifyStripePos', {
         Text = 'Stripe Side',
         Values = {'Left','Right','Top','Bottom'},
-        Default = Library.NotifyStripePosition,
-        Callback = function(v) Library.NotifyStripePosition = v end
+        Default = Library.NotifyStripePosition, AllowNull = true,
+        Callback = function(v) if v then Library.NotifyStripePosition = v end end
     })
     NotifyTab:AddDropdown('LibNotifyStripeStyle', {
         Text = 'Stripe Style',
         Values = {'Neon','Solid'},
-        Default = Library.NotifyStripeStyle,
-        Callback = function(v) Library.NotifyStripeStyle = v end
+        Default = Library.NotifyStripeStyle, AllowNull = true,
+        Callback = function(v) if v then Library.NotifyStripeStyle = v end end
     })
     NotifyTab:AddDivider()
     NotifyTab:AddSlider('LibNotifyAlpha', {
@@ -3541,39 +3538,39 @@ function Library:CreateConfigSection(Tab)
     AnimTab:AddDropdown('LibMenuAnimType', {
         Text = 'Menu Anim',
         Values = {'None','Fade','Slide','FadeSlide'},
-        Default = Library.MenuAnimType or 'Fade',
-        Callback = function(v) Library.MenuAnimType = v end
+        Default = Library.MenuAnimType or 'Fade', AllowNull = true,
+        Callback = function(v) if v then Library.MenuAnimType = v end end
     })
     AnimTab:AddDropdown('LibMenuAnimDir', {
         Text = 'Menu Direction',
         Values = {'Top','Bottom','Left','Right','TopLeft','TopRight','BottomLeft','BottomRight'},
-        Default = Library.MenuAnimDirection or 'Top',
-        Callback = function(v) Library.MenuAnimDirection = v end
+        Default = Library.MenuAnimDirection or 'Top', AllowNull = true,
+        Callback = function(v) if v then Library.MenuAnimDirection = v end end
     })
     AnimTab:AddDivider()
     AnimTab:AddDropdown('LibNotifyEnterAnim', {
         Text = 'Enter Anim',
         Values = {'None','Fade','Slide'},
-        Default = Library.NotifyEnterAnim or 'Slide',
-        Callback = function(v) Library.NotifyEnterAnim = v end
+        Default = Library.NotifyEnterAnim or 'Slide', AllowNull = true,
+        Callback = function(v) if v then Library.NotifyEnterAnim = v end end
     })
     AnimTab:AddDropdown('LibNotifyEnterDir', {
         Text = 'Enter Direction',
         Values = {'Left','Right','Top','Bottom','TopLeft','TopRight','BottomLeft','BottomRight'},
-        Default = Library.NotifyEnterDirection or 'Left',
-        Callback = function(v) Library.NotifyEnterDirection = v end
+        Default = Library.NotifyEnterDirection or 'Left', AllowNull = true,
+        Callback = function(v) if v then Library.NotifyEnterDirection = v end end
     })
     AnimTab:AddDropdown('LibNotifyExitAnim', {
         Text = 'Exit Anim',
         Values = {'None','Fade','Slide'},
-        Default = Library.NotifyExitAnim or 'Slide',
-        Callback = function(v) Library.NotifyExitAnim = v end
+        Default = Library.NotifyExitAnim or 'Slide', AllowNull = true,
+        Callback = function(v) if v then Library.NotifyExitAnim = v end end
     })
     AnimTab:AddDropdown('LibNotifyExitDir', {
         Text = 'Exit Direction',
         Values = {'Left','Right','Top','Bottom','TopLeft','TopRight','BottomLeft','BottomRight'},
-        Default = Library.NotifyExitDirection or 'Left',
-        Callback = function(v) Library.NotifyExitDirection = v end
+        Default = Library.NotifyExitDirection or 'Left', AllowNull = true,
+        Callback = function(v) if v then Library.NotifyExitDirection = v end end
     })
 end
 
