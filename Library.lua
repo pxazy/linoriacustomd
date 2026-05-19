@@ -572,7 +572,10 @@ function Library:RefreshCursor(menuOpen)
     if _CursorThread then task.cancel(_CursorThread); _CursorThread = nil end
     _DestroyCursor()
     InputService.MouseIconEnabled = true
-    task.defer(function() Library:StartCursor(menuOpen) end)
+    task.defer(function()
+        _CursorActive = false
+        Library:StartCursor(menuOpen or Library._cursorMenuOpen or false)
+    end)
 end
 
 Library._cursorMenuOpen = false
@@ -3077,7 +3080,8 @@ do
     });
 
     local InnerFrame = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(1, 1, 1);
+        BackgroundColor3 = Library.MainColor;
+        BackgroundTransparency = 0;
         BorderSizePixel = 0;
         Position = UDim2.new(0, 1, 0, 1);
         Size = UDim2.new(1, -2, 1, -2);
@@ -3085,22 +3089,15 @@ do
         Parent = WatermarkInner;
     });
 
-    local Gradient = Library:Create('UIGradient', {
+    Library:AddToRegistry(InnerFrame, { BackgroundColor3 = 'MainColor' });
+
+    Library:Create('UIGradient', {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
             ColorSequenceKeypoint.new(1, Library.MainColor),
         });
         Rotation = -90;
         Parent = InnerFrame;
-    });
-
-    Library:AddToRegistry(Gradient, {
-        Color = function()
-            return ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
-                ColorSequenceKeypoint.new(1, Library.MainColor),
-            });
-        end
     });
 
     local WatermarkLabel = Library:CreateLabel({
@@ -3115,7 +3112,16 @@ do
     Library.Watermark = WatermarkOuter;
     Library.WatermarkText = WatermarkLabel;
     Library.WatermarkInner = WatermarkInner;
+    Library.WatermarkFrame = InnerFrame;
     Library:MakeDraggable(Library.Watermark);
+
+    function Library:SetWatermarkTransparency(alpha)
+        Library.WatermarkTransparency = alpha
+        WatermarkOuter.BackgroundTransparency = alpha
+        WatermarkInner.BackgroundTransparency = alpha
+        InnerFrame.BackgroundTransparency = alpha
+        WatermarkLabel.TextTransparency = alpha
+    end
 
     local KeybindOuter = Library:Create('Frame', {
         AnchorPoint = Vector2.new(0, 0.5);
@@ -3455,12 +3461,7 @@ function Library:CreateConfigSection(Tab)
     MenuTab:AddSlider('LibWatermarkAlpha', {
         Text = 'Watermark Transparency',
         Default = 0, Min = 0, Max = 10, Rounding = 0,
-        Callback = function(v)
-            Library.WatermarkTransparency = v / 10
-            if Library.Watermark then
-                Library.Watermark.BackgroundTransparency = v / 10
-            end
-        end
+        Callback = function(v) Library:SetWatermarkTransparency(v / 10) end
     })
 
     CursorTab:AddDropdown('LibCursorMode', {
@@ -3480,7 +3481,9 @@ function Library:CreateConfigSection(Tab)
     CursorTab:AddLabel('Color'):AddColorPicker('LibCursorColor', {
         Default = Library.AccentColor,
         Title = 'Cursor Color',
-        Callback = function(v) Library.CursorColor = v end
+        Callback = function(v)
+            Library.CursorColor = v
+        end
     })
     CursorTab:AddToggle('LibCursorAlways', {
         Text = 'Always Show',
@@ -3621,19 +3624,37 @@ function Library:CreateWindow(...)
 
     Library:MakeDraggable(Outer, 25);
 
-    local ResizeHandle = Library:Create('ImageLabel', {
+    local ResizeHandle = Library:Create('Frame', {
         BackgroundTransparency = 1;
         AnchorPoint = Vector2.new(1, 1);
         Position = UDim2.new(1, 0, 1, 0);
-        Size = UDim2.fromOffset(14, 14);
-        Image = 'rbxassetid://6034818370';
-        ImageColor3 = Library.AccentColor;
-        Rotation = 0;
+        Size = UDim2.fromOffset(16, 16);
         ZIndex = 50;
         Visible = not Library.MenuLocked;
+        ClipsDescendants = true;
         Parent = Outer;
     })
-    Library:AddToRegistry(ResizeHandle, { ImageColor3 = 'AccentColor' })
+
+    Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        AnchorPoint = Vector2.new(1, 1);
+        Position = UDim2.new(1, 0, 1, 0);
+        Size = UDim2.fromOffset(16, 16);
+        ZIndex = 51;
+        Parent = ResizeHandle;
+    })
+
+    Library:Create('UIGradient', {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1);
+            NumberSequenceKeypoint.new(1, 0);
+        });
+        Rotation = 135;
+        Parent = ResizeHandle:FindFirstChildOfClass('Frame');
+    })
+
+    Library:AddToRegistry(ResizeHandle:FindFirstChildOfClass('Frame'), { BackgroundColor3 = 'AccentColor' })
 
     ResizeHandle.InputBegan:Connect(function(Input)
         if not IsClick(Input) then return end
@@ -4198,8 +4219,13 @@ function Library:CreateWindow(...)
     local OriginalMenuPos = Config.Position;
     local OriginalMenuSize = Config.Size;
 
+    Outer:GetPropertyChangedSignal('Position'):Connect(function()
+        if not Fading then OriginalMenuPos = Outer.Position end
+    end)
+
     function Library:ResizeMenu(W, H)
         Outer.Size = UDim2.fromOffset(W, H)
+        OriginalMenuSize = Outer.Size
     end
 
     function Library:ResetMenuSize()
@@ -4226,7 +4252,10 @@ function Library:CreateWindow(...)
             ModalElement.Modal = Toggled
         end
 
+        local savedPos = OriginalMenuPos
+
         if Toggled then
+            Outer.Position = savedPos
             Outer.Visible = true
             Library:StartCursor(true)
         else
@@ -4248,23 +4277,20 @@ function Library:CreateWindow(...)
             }
             local dir = Library.MenuAnimDirection or 'Top'
             local slideOff = slideOffsets[dir] or slideOffsets['Top']
-            local basePos = OriginalMenuPos
             if Toggled then
-                local hiddenPos = UDim2.new(
-                    basePos.X.Scale, basePos.X.Offset + slideOff.X.Offset,
-                    basePos.Y.Scale, basePos.Y.Offset + slideOff.Y.Offset
+                Outer.Position = UDim2.new(
+                    savedPos.X.Scale, savedPos.X.Offset + slideOff.X.Offset,
+                    savedPos.Y.Scale, savedPos.Y.Offset + slideOff.Y.Offset
                 )
-                Outer.Position = hiddenPos
                 TweenService:Create(Outer, TweenInfo.new(FadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    Position = basePos
+                    Position = savedPos
                 }):Play()
             else
-                local hiddenPos = UDim2.new(
-                    basePos.X.Scale, basePos.X.Offset + slideOff.X.Offset,
-                    basePos.Y.Scale, basePos.Y.Offset + slideOff.Y.Offset
-                )
                 TweenService:Create(Outer, TweenInfo.new(FadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                    Position = hiddenPos
+                    Position = UDim2.new(
+                        savedPos.X.Scale, savedPos.X.Offset + slideOff.X.Offset,
+                        savedPos.Y.Scale, savedPos.Y.Offset + slideOff.Y.Offset
+                    )
                 }):Play()
             end
         end
@@ -4296,8 +4322,11 @@ function Library:CreateWindow(...)
 
         task.wait(FadeTime)
         Outer.Visible = Toggled
-        if Toggled then Outer.Position = OriginalMenuPos end
+        if Toggled then
+            Outer.Position = savedPos
+        end
         Fading = false
+        OriginalMenuPos = Outer.Position
     end
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
