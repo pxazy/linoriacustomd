@@ -530,20 +530,25 @@ local function _SpawnCursor()
                 RenderStepped:Wait()
             end
         elseif mode == 'Cross' then
-            local H = Drawing.new('Line'); H.Visible = true; H.Thickness = 2
-            local V = Drawing.new('Line'); V.Visible = true; V.Thickness = 2
-            local HO = Drawing.new('Line'); HO.Visible = true; HO.Thickness = 4
-            local VO = Drawing.new('Line'); VO.Visible = true; VO.Thickness = 4
+            local H = Drawing.new('Line'); H.Visible = true
+            local V = Drawing.new('Line'); V.Visible = true
+            local HO = Drawing.new('Line'); HO.Visible = true
+            local VO = Drawing.new('Line'); VO.Visible = true
             _CursorDrawings = {HO, VO, H, V}
             while _CursorActive and ScreenGui.Parent do
                 InputService.MouseIconEnabled = false
                 local sz = (Library.CursorSize or 16) / 2
+                local thick = Library.CursorThickness or 2
                 local col = Library.CursorColor or Library.AccentColor
                 local p = InputService:GetMouseLocation()
-                HO.From = Vector2.new(p.X - sz, p.Y); HO.To = Vector2.new(p.X + sz, p.Y); HO.Color = Color3.new(0,0,0)
-                VO.From = Vector2.new(p.X, p.Y - sz); VO.To = Vector2.new(p.X, p.Y + sz); VO.Color = Color3.new(0,0,0)
-                H.From = Vector2.new(p.X - sz, p.Y); H.To = Vector2.new(p.X + sz, p.Y); H.Color = col
-                V.From = Vector2.new(p.X, p.Y - sz); V.To = Vector2.new(p.X, p.Y + sz); V.Color = col
+                HO.From = Vector2.new(p.X - sz, p.Y); HO.To = Vector2.new(p.X + sz, p.Y)
+                HO.Color = Color3.new(0,0,0); HO.Thickness = thick + 2
+                VO.From = Vector2.new(p.X, p.Y - sz); VO.To = Vector2.new(p.X, p.Y + sz)
+                VO.Color = Color3.new(0,0,0); VO.Thickness = thick + 2
+                H.From = Vector2.new(p.X - sz, p.Y); H.To = Vector2.new(p.X + sz, p.Y)
+                H.Color = col; H.Thickness = thick
+                V.From = Vector2.new(p.X, p.Y - sz); V.To = Vector2.new(p.X, p.Y + sz)
+                V.Color = col; V.Thickness = thick
                 RenderStepped:Wait()
             end
         end
@@ -553,8 +558,15 @@ local function _SpawnCursor()
 end
 
 function Library:StartCursor(menuOpen)
+    if Library.CursorMode == 'Default' then
+        _CursorActive = false
+        if _CursorThread then task.cancel(_CursorThread); _CursorThread = nil end
+        _DestroyCursor()
+        InputService.MouseIconEnabled = true
+        return
+    end
     local shouldShow = menuOpen or Library.CursorAlwaysShow
-    if shouldShow and Library.CursorMode ~= 'Default' then
+    if shouldShow then
         if not _CursorActive then
             _CursorActive = true
             _SpawnCursor()
@@ -4308,7 +4320,8 @@ function Library:CreateWindow(...)
         if Fading then return end
 
         local animType = Library.MenuAnimType or 'Fade'
-        local FadeTime = (animType ~= 'None') and (Config.MenuFadeTime or 0.2) or 0
+        local fadeSpeed = Library.MenuAnimSpeed or 0.2
+        local FadeTime = (animType ~= 'None') and fadeSpeed or 0
         Fading = true
         Toggled = not Toggled
         Library._cursorMenuOpen = Toggled
@@ -4342,20 +4355,18 @@ function Library:CreateWindow(...)
             }
             local dir = Library.MenuAnimDirection or 'Top'
             local slideOff = slideOffsets[dir] or slideOffsets['Top']
+            local hiddenPos = UDim2.new(
+                savedPos.X.Scale, savedPos.X.Offset + slideOff.X.Offset,
+                savedPos.Y.Scale, savedPos.Y.Offset + slideOff.Y.Offset
+            )
             if Toggled then
-                Outer.Position = UDim2.new(
-                    savedPos.X.Scale, savedPos.X.Offset + slideOff.X.Offset,
-                    savedPos.Y.Scale, savedPos.Y.Offset + slideOff.Y.Offset
-                )
+                Outer.Position = hiddenPos
                 TweenService:Create(Outer, TweenInfo.new(FadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Position = savedPos
                 }):Play()
             else
                 TweenService:Create(Outer, TweenInfo.new(FadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                    Position = UDim2.new(
-                        savedPos.X.Scale, savedPos.X.Offset + slideOff.X.Offset,
-                        savedPos.Y.Scale, savedPos.Y.Offset + slideOff.Y.Offset
-                    )
+                    Position = hiddenPos
                 }):Play()
             end
         end
@@ -4386,12 +4397,15 @@ function Library:CreateWindow(...)
         end
 
         task.wait(FadeTime)
-        Outer.Visible = Toggled
         if Toggled then
             Outer.Position = savedPos
+            Outer.Visible = true
+        else
+            Outer.Visible = false
+            Outer.Position = savedPos
         end
+        OriginalMenuPos = savedPos
         Fading = false
-        OriginalMenuPos = Outer.Position
     end
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
