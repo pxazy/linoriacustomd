@@ -1189,41 +1189,38 @@ do
         SatVibMap.InputBegan:Connect(function(Input)
             if IsClick(Input) then
                 while IsPressing() do
-                    local MinX = SatVibMap.AbsolutePosition.X;
-                    local MaxX = MinX + SatVibMap.AbsoluteSize.X;
-                    local _mLoc = InputService:GetMouseLocation(); local MouseX = math.clamp(_mLoc.X, MinX, MaxX);
-
-                    local MinY = SatVibMap.AbsolutePosition.Y;
-                    local MaxY = MinY + SatVibMap.AbsoluteSize.Y;
-                    local _mLoc2 = InputService:GetMouseLocation(); local MouseY = math.clamp(_mLoc2.Y, MinY, MaxY);
-
-                    ColorPicker.Sat = (MouseX - MinX) / (MaxX - MinX);
-                    ColorPicker.Vib = 1 - ((MouseY - MinY) / (MaxY - MinY));
-                    ColorPicker:Display();
-
-                    RenderStepped:Wait();
-                end;
-
-                Library:AttemptSave();
-            end;
-        end);
+                    local inset = game:GetService('GuiService'):GetGuiInset()
+                    local mLoc = InputService:GetMouseLocation() - inset
+                    local MinX = SatVibMap.AbsolutePosition.X
+                    local MaxX = MinX + SatVibMap.AbsoluteSize.X
+                    local MinY = SatVibMap.AbsolutePosition.Y
+                    local MaxY = MinY + SatVibMap.AbsoluteSize.Y
+                    local MouseX = math.clamp(mLoc.X, MinX, MaxX)
+                    local MouseY = math.clamp(mLoc.Y, MinY, MaxY)
+                    ColorPicker.Sat = (MouseX - MinX) / (MaxX - MinX)
+                    ColorPicker.Vib = 1 - ((MouseY - MinY) / (MaxY - MinY))
+                    ColorPicker:Display()
+                    RenderStepped:Wait()
+                end
+                Library:AttemptSave()
+            end
+        end)
 
         HueSelectorInner.InputBegan:Connect(function(Input)
             if IsClick(Input) then
                 while IsPressing() do
-                    local MinY = HueSelectorInner.AbsolutePosition.Y;
-                    local MaxY = MinY + HueSelectorInner.AbsoluteSize.Y;
-                    local _mLoc2 = InputService:GetMouseLocation(); local MouseY = math.clamp(_mLoc2.Y, MinY, MaxY);
-
-                    ColorPicker.Hue = ((MouseY - MinY) / (MaxY - MinY));
-                    ColorPicker:Display();
-
-                    RenderStepped:Wait();
-                end;
-
-                Library:AttemptSave();
-            end;
-        end);
+                    local inset = game:GetService('GuiService'):GetGuiInset()
+                    local mLoc = InputService:GetMouseLocation() - inset
+                    local MinY = HueSelectorInner.AbsolutePosition.Y
+                    local MaxY = MinY + HueSelectorInner.AbsoluteSize.Y
+                    local MouseY = math.clamp(mLoc.Y, MinY, MaxY)
+                    ColorPicker.Hue = (MouseY - MinY) / (MaxY - MinY)
+                    ColorPicker:Display()
+                    RenderStepped:Wait()
+                end
+                Library:AttemptSave()
+            end
+        end)
 
         DisplayFrame.InputBegan:Connect(function(Input)
             if IsClick(Input) and not Library:MouseIsOverOpenedFrame() then
@@ -3100,6 +3097,8 @@ do
         Parent = InnerFrame;
     });
 
+    local WatermarkStripeFrame = Library:MakeStripe(InnerFrame, 204, true)
+
     local WatermarkLabel = Library:CreateLabel({
         Position = UDim2.new(0, 5, 0, 0);
         Size = UDim2.new(1, -4, 1, 0);
@@ -3113,6 +3112,7 @@ do
     Library.WatermarkText = WatermarkLabel;
     Library.WatermarkInner = WatermarkInner;
     Library.WatermarkFrame = InnerFrame;
+    Library.WatermarkStripe = WatermarkStripeFrame;
     Library:MakeDraggable(Library.Watermark);
 
     function Library:SetWatermarkTransparency(alpha)
@@ -3121,6 +3121,13 @@ do
         WatermarkInner.BackgroundTransparency = alpha
         InnerFrame.BackgroundTransparency = alpha
         WatermarkLabel.TextTransparency = alpha
+    end
+
+    function Library:SetWatermarkStyle(style)
+        Library.WatermarkStyle = style
+        WatermarkStripeFrame.Visible = (style ~= 'NoStripe')
+        WatermarkInner.BorderColor3 = (style == 'NoStripe') and Library.OutlineColor or Library.AccentColor
+        Library.RegistryMap[WatermarkInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
     end
 
     local KeybindOuter = Library:Create('Frame', {
@@ -3196,6 +3203,7 @@ do
     Library.KeybindInner = KeybindInner;
     Library.KeybindInnerBg = KeybindInnerBg;
     Library.KeybindContainer = KeybindContainer;
+    Library.KeybindStripe = KeybindStripe;
     Library:MakeDraggable(KeybindOuter);
 
     function Library:SetKeybindTransparency(Alpha)
@@ -3203,6 +3211,18 @@ do
         KeybindInner.BackgroundTransparency = Alpha
         KeybindInnerBg.BackgroundTransparency = Alpha
         KeybindOuter.BackgroundTransparency = Alpha
+    end
+
+    function Library:SetKeybindStyle(style)
+        Library.KeybindStyle = style
+        KeybindStripe.Visible = (style ~= 'NoStripe')
+        KeybindInner.BorderColor3 = (style == 'NoStripe') and Library.OutlineColor or Library.AccentColor
+        Library.RegistryMap[KeybindInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
+    end
+
+    function Library:SetKeybindWidth(w)
+        Library.KeybindWidth = w
+        KeybindOuter.Size = UDim2.fromOffset(w, KeybindOuter.Size.Y.Offset)
     end
 
     if Library.IsMobile then
@@ -3434,8 +3454,7 @@ function Library:CreateConfigSection(Tab)
     })
     MenuTab:AddSlider('LibFontSize', {
         Text = 'Font Size',
-        Default = Library.FontSize,
-        Min = 10, Max = 24, Rounding = 0,
+        Default = Library.FontSize, Min = 10, Max = 24, Rounding = 0,
         Callback = function(v) Library:SetFontSize(v) end
     })
     MenuTab:AddDivider()
@@ -3453,15 +3472,33 @@ function Library:CreateConfigSection(Tab)
     })
     MenuTab:AddButton({ Text = 'Reset Size', Func = function() Library:ResetMenuSize() end })
     MenuTab:AddDivider()
-    MenuTab:AddSlider('LibKeybindAlpha', {
-        Text = 'Keybind Transparency',
-        Default = 0, Min = 0, Max = 10, Rounding = 0,
-        Callback = function(v) Library:SetKeybindTransparency(v / 10) end
+    MenuTab:AddDropdown('LibWatermarkStyle', {
+        Text = 'Watermark Style',
+        Values = {'Default', 'NoStripe'},
+        Default = 'Default', AllowNull = true,
+        Callback = function(v) if v then Library:SetWatermarkStyle(v) end end
     })
     MenuTab:AddSlider('LibWatermarkAlpha', {
         Text = 'Watermark Transparency',
         Default = 0, Min = 0, Max = 10, Rounding = 0,
         Callback = function(v) Library:SetWatermarkTransparency(v / 10) end
+    })
+    MenuTab:AddDivider()
+    MenuTab:AddDropdown('LibKeybindStyle', {
+        Text = 'Keybind Style',
+        Values = {'Default', 'NoStripe'},
+        Default = 'Default', AllowNull = true,
+        Callback = function(v) if v then Library:SetKeybindStyle(v) end end
+    })
+    MenuTab:AddSlider('LibKeybindWidth', {
+        Text = 'Keybind Width',
+        Default = 180, Min = 100, Max = 400, Rounding = 0,
+        Callback = function(v) Library:SetKeybindWidth(v) end
+    })
+    MenuTab:AddSlider('LibKeybindAlpha', {
+        Text = 'Keybind Transparency',
+        Default = 0, Min = 0, Max = 10, Rounding = 0,
+        Callback = function(v) Library:SetKeybindTransparency(v / 10) end
     })
 
     CursorTab:AddDropdown('LibCursorMode', {
@@ -3474,17 +3511,28 @@ function Library:CreateConfigSection(Tab)
     })
     CursorTab:AddSlider('LibCursorSize', {
         Text = 'Size',
-        Default = Library.CursorSize or 16,
-        Min = 8, Max = 64, Rounding = 0,
+        Default = Library.CursorSize or 16, Min = 8, Max = 64, Rounding = 0,
         Callback = function(v) Library.CursorSize = v end
     })
-    CursorTab:AddLabel('Color'):AddColorPicker('LibCursorColor', {
+    CursorTab:AddDropdown('LibCursorColorMode', {
+        Text = 'Color Mode',
+        Values = {'AccentColor', 'Custom'},
+        Default = 'AccentColor', AllowNull = true,
+        Callback = function(v)
+            if v == 'AccentColor' then
+                Library.CursorColor = nil
+            end
+        end
+    })
+    local CursorColorDepbox = CursorTab:AddDependencyBox()
+    CursorColorDepbox:AddLabel('Color'):AddColorPicker('LibCursorColor', {
         Default = Library.AccentColor,
         Title = 'Cursor Color',
         Callback = function(v)
             Library.CursorColor = v
         end
     })
+    CursorColorDepbox:SetupDependencies({ { Options.LibCursorColorMode, 'Custom' } })
     CursorTab:AddToggle('LibCursorAlways', {
         Text = 'Always Show',
         Default = Library.CursorAlwaysShow,
@@ -3628,33 +3676,50 @@ function Library:CreateWindow(...)
         BackgroundTransparency = 1;
         AnchorPoint = Vector2.new(1, 1);
         Position = UDim2.new(1, 0, 1, 0);
-        Size = UDim2.fromOffset(16, 16);
+        Size = UDim2.fromOffset(20, 20);
         ZIndex = 50;
         Visible = not Library.MenuLocked;
-        ClipsDescendants = true;
         Parent = Outer;
     })
 
-    Library:Create('Frame', {
+    local ResizeLineH = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
         AnchorPoint = Vector2.new(1, 1);
         Position = UDim2.new(1, 0, 1, 0);
-        Size = UDim2.fromOffset(16, 16);
+        Size = UDim2.fromOffset(16, 2);
         ZIndex = 51;
         Parent = ResizeHandle;
     })
-
     Library:Create('UIGradient', {
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1);
+            NumberSequenceKeypoint.new(0.5, 0);
             NumberSequenceKeypoint.new(1, 0);
         });
-        Rotation = 135;
-        Parent = ResizeHandle:FindFirstChildOfClass('Frame');
+        Parent = ResizeLineH;
     })
+    Library:AddToRegistry(ResizeLineH, { BackgroundColor3 = 'AccentColor' })
 
-    Library:AddToRegistry(ResizeHandle:FindFirstChildOfClass('Frame'), { BackgroundColor3 = 'AccentColor' })
+    local ResizeLineV = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        AnchorPoint = Vector2.new(1, 1);
+        Position = UDim2.new(1, 0, 1, 0);
+        Size = UDim2.fromOffset(2, 16);
+        ZIndex = 51;
+        Parent = ResizeHandle;
+    })
+    Library:Create('UIGradient', {
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1);
+            NumberSequenceKeypoint.new(0.5, 0);
+            NumberSequenceKeypoint.new(1, 0);
+        });
+        Rotation = 90;
+        Parent = ResizeLineV;
+    })
+    Library:AddToRegistry(ResizeLineV, { BackgroundColor3 = 'AccentColor' })
 
     ResizeHandle.InputBegan:Connect(function(Input)
         if not IsClick(Input) then return end
