@@ -1399,8 +1399,8 @@ do
 
         local ContainerLabel = Library:CreateLabel({
             TextXAlignment = Enum.TextXAlignment.Left;
-            Size = UDim2.new(1, 0, 0, 18);
-            TextSize = 13;
+            Size = UDim2.new(1, 0, 0, 15);
+            TextSize = 11;
             Visible = false;
             ZIndex = 110;
             Parent = Library.KeybindContainer;
@@ -1462,11 +1462,10 @@ do
 
             local State = KeyPicker:GetState();
 
-            ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
+            ContainerLabel.Text = string.format('[%s] %s', KeyPicker.Value, Info.Text);
 
             ContainerLabel.Visible = true;
             ContainerLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
-
             Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
 
             local YSize = 0
@@ -1474,16 +1473,17 @@ do
 
             for _, Label in next, Library.KeybindContainer:GetChildren() do
                 if Label:IsA('TextLabel') and Label.Visible then
-                    YSize = YSize + 18;
+                    YSize = YSize + 15;
                     if (Label.TextBounds.X > XSize) then
                         XSize = Label.TextBounds.X
                     end
                 end;
             end;
 
-            Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 10, 180), 0, YSize + 23)
-            TweenService:Create(Library.KeybindFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, math.max(XSize + 10, 180), 0, YSize + 23)
+            local newW = math.max(XSize + 14, 140)
+            local newH = YSize + 20
+            TweenService:Create(Library.KeybindFrame, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.fromOffset(newW, newH)
             }):Play()
         end;
 
@@ -3124,6 +3124,7 @@ do
     });
 
     local WatermarkStripeFrame = Library:MakeStripe(InnerFrame, 204, true)
+    WatermarkStripeFrame.Visible = false
 
     local WatermarkLabel = Library:CreateLabel({
         Position = UDim2.new(0, 5, 0, 0);
@@ -3164,10 +3165,10 @@ do
     end
 
     local KeybindOuter = Library:Create('Frame', {
-        AnchorPoint = Vector2.new(0, 0.5);
+        AnchorPoint = Vector2.new(0, 1);
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 10, 0.5, 0);
-        Size = UDim2.new(0, 180, 0, 20);
+        Position = UDim2.new(0, 10, 1, -10);
+        Size = UDim2.fromOffset(160, 24);
         Visible = false;
         ZIndex = 100;
         Parent = ScreenGui;
@@ -3205,9 +3206,10 @@ do
     local KeybindStripe = Library:MakeStripe(KeybindInnerBg, 102, true);
 
     local KeybindLabel = Library:CreateLabel({
-        Size = UDim2.new(1, 0, 0, 20);
-        Position = UDim2.fromOffset(0, 2),
+        Size = UDim2.new(1, 0, 0, 16);
+        Position = UDim2.fromOffset(0, 1),
         TextXAlignment = Enum.TextXAlignment.Center,
+        TextSize = 12;
         Text = 'Keybinds';
         ZIndex = 104;
         Parent = KeybindInnerBg;
@@ -3215,8 +3217,8 @@ do
 
     local KeybindContainer = Library:Create('Frame', {
         BackgroundTransparency = 1;
-        Size = UDim2.new(1, 0, 1, -20);
-        Position = UDim2.new(0, 0, 0, 20);
+        Size = UDim2.new(1, 0, 1, -18);
+        Position = UDim2.new(0, 0, 0, 18);
         ZIndex = 104;
         Parent = KeybindInnerBg;
     });
@@ -3228,7 +3230,7 @@ do
     });
 
     Library:Create('UIPadding', {
-        PaddingLeft = UDim.new(0, 5),
+        PaddingLeft = UDim.new(0, 4),
         Parent = KeybindContainer,
     })
 
@@ -3250,45 +3252,10 @@ do
         Library.KeybindStyle = style
         KeybindStripe.Visible = (style ~= 'NoStripe')
         KeybindInner.BorderColor3 = (style == 'NoStripe') and Library.OutlineColor or Library.AccentColor
-        Library.RegistryMap[KeybindInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
+        if Library.RegistryMap[KeybindInner] then
+            Library.RegistryMap[KeybindInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
+        end
     end
-
-    function Library:SetKeybindWidth(w)
-        Library.KeybindWidth = w
-        KeybindOuter.Size = UDim2.fromOffset(w, KeybindOuter.Size.Y.Offset)
-    end
-
-    local _kbResizing = false
-    local _kbResizeHandle = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        AnchorPoint = Vector2.new(1, 0.5);
-        Position = UDim2.new(1, 0, 0.5, 0);
-        Size = UDim2.fromOffset(4, 20);
-        ZIndex = 110;
-        Parent = KeybindOuter;
-    })
-    Library:Create('UICorner', { CornerRadius = UDim.new(0, 2); Parent = _kbResizeHandle })
-    Library:AddToRegistry(_kbResizeHandle, { BackgroundColor3 = 'AccentColor' })
-
-    _kbResizeHandle.InputBegan:Connect(function(Input)
-        if not IsClick(Input) then return end
-        local startW = KeybindOuter.AbsoluteSize.X
-        local startX, _ = GetInputPos(Input)
-        local Con = InputService.InputChanged:Connect(function(Changed)
-            if Changed.UserInputType == Enum.UserInputType.MouseMovement
-            or Changed.UserInputType == Enum.UserInputType.Touch then
-                local cx, _ = GetInputPos(Changed)
-                local newW = math.max(80, startW + (cx - startX))
-                KeybindOuter.Size = UDim2.fromOffset(newW, KeybindOuter.Size.Y.Offset)
-                Library.KeybindWidth = newW
-            end
-        end)
-        local EndCon
-        EndCon = InputService.InputEnded:Connect(function(EndInput)
-            if IsClick(EndInput) then Con:Disconnect(); EndCon:Disconnect() end
-        end)
-    end)
 
     if Library.IsMobile then
         local MobileBtn = Library:Create('TextButton', {
