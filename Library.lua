@@ -640,23 +640,26 @@ end;
 function Library:UpdateColorsUsingRegistry()
     local baseFont, fontFace, enumFont = Library:GetActiveFont()
     for Idx, Object in next, Library.Registry do
+        if not Object.Instance or not Object.Instance.Parent then continue end
         for Property, ColorIdx in next, Object.Properties do
-            if Property == 'TextSize' and ColorIdx == 'FontSize' then
-                Object.Instance[Property] = Library.FontSize
-            elseif type(ColorIdx) == 'string' then
-                Object.Instance[Property] = Library[ColorIdx];
-            elseif type(ColorIdx) == 'function' then
-                Object.Instance[Property] = ColorIdx()
-            end
-        end;
-        if Object.Instance:IsA('TextLabel') or Object.Instance:IsA('TextBox') then
-            Object.Instance.Font = enumFont
-            if fontFace then
-                Object.Instance.FontFace = fontFace
-            end
+            local ok, err = pcall(function()
+                if Property == 'TextSize' and ColorIdx == 'FontSize' then
+                    Object.Instance[Property] = Library.FontSize
+                elseif type(ColorIdx) == 'string' then
+                    Object.Instance[Property] = Library[ColorIdx]
+                elseif type(ColorIdx) == 'function' then
+                    Object.Instance[Property] = ColorIdx()
+                end
+            end)
         end
-    end;
-end;
+        pcall(function()
+            if Object.Instance:IsA('TextLabel') or Object.Instance:IsA('TextBox') then
+                Object.Instance.Font = enumFont
+                if fontFace then Object.Instance.FontFace = fontFace end
+            end
+        end)
+    end
+end
 
 function Library:SetFont(Mode)
     Library.FontMode = Mode
@@ -3109,12 +3112,6 @@ do
 
     Library:AddToRegistry(InnerFrame, {
         BackgroundColor3 = 'MainColor';
-        Color = function()
-            return ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
-                ColorSequenceKeypoint.new(1, Library.MainColor),
-            })
-        end
     });
 
     Library:Create('UIGradient', {
@@ -3152,11 +3149,18 @@ do
         WatermarkLabel.TextTransparency = alpha
     end
 
+    function Library:SetWatermarkBgColor(color)
+        Library.WatermarkBgColor = color
+        InnerFrame.BackgroundColor3 = color
+    end
+
     function Library:SetWatermarkStyle(style)
         Library.WatermarkStyle = style
         WatermarkStripeFrame.Visible = (style ~= 'NoStripe')
         WatermarkInner.BorderColor3 = (style == 'NoStripe') and Library.OutlineColor or Library.AccentColor
-        Library.RegistryMap[WatermarkInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
+        if Library.RegistryMap[WatermarkInner] then
+            Library.RegistryMap[WatermarkInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
+        end
     end
 
     local KeybindOuter = Library:Create('Frame', {
@@ -3253,6 +3257,38 @@ do
         Library.KeybindWidth = w
         KeybindOuter.Size = UDim2.fromOffset(w, KeybindOuter.Size.Y.Offset)
     end
+
+    local _kbResizing = false
+    local _kbResizeHandle = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        AnchorPoint = Vector2.new(1, 0.5);
+        Position = UDim2.new(1, 0, 0.5, 0);
+        Size = UDim2.fromOffset(4, 20);
+        ZIndex = 110;
+        Parent = KeybindOuter;
+    })
+    Library:Create('UICorner', { CornerRadius = UDim.new(0, 2); Parent = _kbResizeHandle })
+    Library:AddToRegistry(_kbResizeHandle, { BackgroundColor3 = 'AccentColor' })
+
+    _kbResizeHandle.InputBegan:Connect(function(Input)
+        if not IsClick(Input) then return end
+        local startW = KeybindOuter.AbsoluteSize.X
+        local startX, _ = GetInputPos(Input)
+        local Con = InputService.InputChanged:Connect(function(Changed)
+            if Changed.UserInputType == Enum.UserInputType.MouseMovement
+            or Changed.UserInputType == Enum.UserInputType.Touch then
+                local cx, _ = GetInputPos(Changed)
+                local newW = math.max(80, startW + (cx - startX))
+                KeybindOuter.Size = UDim2.fromOffset(newW, KeybindOuter.Size.Y.Offset)
+                Library.KeybindWidth = newW
+            end
+        end)
+        local EndCon
+        EndCon = InputService.InputEnded:Connect(function(EndInput)
+            if IsClick(EndInput) then Con:Disconnect(); EndCon:Disconnect() end
+        end)
+    end)
 
     if Library.IsMobile then
         local MobileBtn = Library:Create('TextButton', {
@@ -3488,10 +3524,15 @@ function Library:CreateConfigSection(Tab)
     MenuTab:AddButton({ Text='Reset Size', Func=function() Library:ResetMenuSize() end })
     MenuTab:AddDivider()
     MenuTab:AddDropdown('LibWatermarkStyle', { Text='Watermark Style', Values={'Default','NoStripe'}, Default='Default', AllowNull=true, Callback=function(v) if v then Library:SetWatermarkStyle(v) end end })
+    MenuTab:AddLabel('Watermark Bg'):AddColorPicker('LibWatermarkBg', {
+        Default = Library.MainColor, Title = 'Watermark Background',
+        Callback = function(v) Library:SetWatermarkBgColor(v) end
+    })
     MenuTab:AddSlider('LibWatermarkAlpha', { Text='Watermark Alpha', Default=0, Min=0, Max=10, Rounding=0, Callback=function(v) Library:SetWatermarkTransparency(v/10) end })
     MenuTab:AddDivider()
+    MenuTab:AddToggle('LibMenuBorder', { Text='Menu Border', Default=true, Callback=function(v) Library:SetMenuBorder(v) end })
+    MenuTab:AddDivider()
     MenuTab:AddDropdown('LibKeybindStyle', { Text='Keybind Style', Values={'Default','NoStripe'}, Default='Default', AllowNull=true, Callback=function(v) if v then Library:SetKeybindStyle(v) end end })
-    MenuTab:AddSlider('LibKeybindWidth', { Text='Keybind Width', Default=180, Min=100, Max=400, Rounding=0, Callback=function(v) Library:SetKeybindWidth(v) end })
     MenuTab:AddSlider('LibKeybindAlpha', { Text='Keybind Alpha', Default=0, Min=0, Max=10, Rounding=0, Callback=function(v) Library:SetKeybindTransparency(v/10) end })
 
     CursorTab:AddDropdown('LibCursorMode', { Text='Style', Values={'Default','Linoria','Cross'}, Default=Library.CursorMode, AllowNull=true, Callback=function(v) if v then Library.CursorMode=v; Library:RefreshCursor(Library._cursorMenuOpen) end end })
@@ -4225,6 +4266,12 @@ function Library:CreateWindow(...)
         if Library.ResizeHandle then
             Library.ResizeHandle.Visible = not locked
         end
+    end
+
+    function Library:SetMenuBorder(show)
+        Library.MenuBorderVisible = show
+        Outer.BorderSizePixel = show and 1 or 0
+        Inner.BorderSizePixel = show and 1 or 0
     end
 
     function Library:Toggle()
