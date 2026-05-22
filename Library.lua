@@ -234,8 +234,8 @@ local function Library_LoadCustomFont()
         local fontData = Library.ProggyFontBase64:gsub("[^%w%+/=]", "")
         local folder = "LinoriaProggyFont"
         if isfolder and not isfolder(folder) then makefolder(folder) end
-        local ttfPath = folder .. "/font1.ttf"
-        local jsonPath = folder .. "/proggy.font"
+        local ttfPath = folder .. "/font.ttf"
+        local jsonPath = folder .. "/font1.font"
         if not isfile(ttfPath) then
             local ok, decoded = pcall(b64decode, fontData)
             if ok and decoded then writefile(ttfPath, decoded) end
