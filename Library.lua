@@ -43,9 +43,8 @@ local Library = {
 
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code;
+    FontMode = 'Default';
     FontSize = 14;
-
-    CursorColor = nil;
 
     NotifyDuration = 5;
     NotifyTransparency = 0;
@@ -54,7 +53,6 @@ local Library = {
     NotifyCustomY = 40;
     NotifyStripePosition = 'Left';
     NotifyStripeStyle = 'Neon';
-    NotifyStyle = 'Default';
     NotifyEnterAnim = 'Slide';
     NotifyEnterDirection = 'Left';
     NotifyEnterSpeed = 0.25;
@@ -65,10 +63,15 @@ local Library = {
     MenuAnimType = 'Fade';
     MenuAnimDirection = 'Top';
     MenuAnimSpeed = 0.2;
+    MenuBorderVisible = true;
+
+    TabAnimEnabled = true;
+    TabAnimSpeed = 0.15;
+    TabsPosition = 'Left';
 
     KeybindTransparency = 0;
     KeybindStyle = 'Default';
-    KeybindWidth = 180;
+    KeybindBgTransparency = 0;
 
     WatermarkStyle = 'Default';
     WatermarkTransparency = 0;
@@ -81,10 +84,12 @@ local Library = {
     CursorColor = nil;
     CursorAlwaysShow = false;
 
+    MultiKeybinds = {};
+
     TabStripePosition = 'Top';
+    TitleBarAlign = 'Center';
 
     MenuLocked = true;
-
     StripeGradients = {};
 
     IsMobile = (not pcall(function() return InputService.TouchEnabled end)) or
@@ -222,7 +227,7 @@ local function Library_LoadCustomFont()
         end
         if isfile(ttfPath) and not isfile(jsonPath) then
             local assetPath = getcustomasset(ttfPath)
-            local json = '{"name":"CustomFont","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"' .. assetPath .. '"}]}'
+            local json = '{"name":"Monocraft","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"' .. assetPath .. '"}]}'
             writefile(jsonPath, json)
         end
         if isfile(jsonPath) then
@@ -234,7 +239,7 @@ local function Library_LoadCustomFont()
         local fontData = Library.ProggyFontBase64:gsub("[^%w%+/=]", "")
         local folder = "LinoriaProggyFont"
         if isfolder and not isfolder(folder) then makefolder(folder) end
-        local ttfPath = folder .. "/font.ttf"
+        local ttfPath = folder .. "/font1.ttf"
         local jsonPath = folder .. "/font1.font"
         if not isfile(ttfPath) then
             local ok, decoded = pcall(b64decode, fontData)
@@ -673,6 +678,33 @@ end
 
 function Library:GiveSignal(Signal)
     table.insert(Library.Signals, Signal)
+end
+
+function Library:AddMultiKeybind(Keys, Callback)
+    local keybind = { Keys = Keys, Callback = Callback, HeldKeys = {} }
+    table.insert(Library.MultiKeybinds, keybind)
+    Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
+        if Processed then return end
+        local keyName
+        if Input.UserInputType == Enum.UserInputType.Keyboard then
+            keyName = Input.KeyCode.Name
+        end
+        if not keyName then return end
+        keybind.HeldKeys[keyName] = true
+        local allHeld = true
+        for _, k in next, keybind.Keys do
+            if not keybind.HeldKeys[k] then allHeld = false; break end
+        end
+        if allHeld then
+            Library:SafeCallback(keybind.Callback)
+        end
+    end))
+    Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.Keyboard then
+            keybind.HeldKeys[Input.KeyCode.Name] = nil
+        end
+    end))
+    return keybind
 end
 
 function Library:Unload()
@@ -3114,13 +3146,22 @@ do
         BackgroundColor3 = 'MainColor';
     });
 
-    Library:Create('UIGradient', {
+    local WatermarkGradient = Library:Create('UIGradient', {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
             ColorSequenceKeypoint.new(1, Library.MainColor),
         });
         Rotation = -90;
         Parent = InnerFrame;
+    });
+
+    Library:AddToRegistry(WatermarkGradient, {
+        Color = function()
+            return ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
+                ColorSequenceKeypoint.new(1, Library.MainColor),
+            })
+        end
     });
 
     local WatermarkStripeFrame = Library:MakeStripe(InnerFrame, 204, true)
@@ -3140,6 +3181,7 @@ do
     Library.WatermarkInner = WatermarkInner;
     Library.WatermarkFrame = InnerFrame;
     Library.WatermarkStripe = WatermarkStripeFrame;
+    Library.WatermarkGradient = WatermarkGradient;
     Library:MakeDraggable(Library.Watermark);
 
     function Library:SetWatermarkTransparency(alpha)
@@ -3153,14 +3195,18 @@ do
     function Library:SetWatermarkBgColor(color)
         Library.WatermarkBgColor = color
         InnerFrame.BackgroundColor3 = color
+        WatermarkGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Library:GetDarkerColor(color)),
+            ColorSequenceKeypoint.new(1, color),
+        })
     end
 
     function Library:SetWatermarkStyle(style)
         Library.WatermarkStyle = style
-        WatermarkStripeFrame.Visible = (style ~= 'NoStripe')
-        WatermarkInner.BorderColor3 = (style == 'NoStripe') and Library.OutlineColor or Library.AccentColor
+        WatermarkStripeFrame.Visible = (style == 'Stripe')
+        WatermarkInner.BorderColor3 = (style == 'NoBorder') and Color3.fromRGB(0,0,0) or Library.AccentColor
         if Library.RegistryMap[WatermarkInner] then
-            Library.RegistryMap[WatermarkInner].Properties.BorderColor3 = (style == 'NoStripe') and 'OutlineColor' or 'AccentColor'
+            Library.RegistryMap[WatermarkInner].Properties.BorderColor3 = (style == 'NoBorder') and 'Black' or 'AccentColor'
         end
     end
 
@@ -3449,6 +3495,13 @@ function Library:Notify(Text, Time)
         TweenService:Create(NotifyOuter, TweenInfo.new(enterSpeed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Position = UDim2.fromOffset(0, 0)
         }):Play()
+    elseif enterAnim == 'Center' then
+        NotifyOuter.Size = UDim2.fromOffset(0, YSize)
+        NotifyOuter.Position = UDim2.fromOffset(finalWidth / 2, 0)
+        TweenService:Create(NotifyOuter, TweenInfo.new(enterSpeed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.fromOffset(finalWidth, YSize);
+            Position = UDim2.fromOffset(0, 0);
+        }):Play()
     elseif enterAnim == 'Fade' then
         NotifyInner.BackgroundTransparency = 1
         InnerFrame.BackgroundTransparency = 1
@@ -3462,6 +3515,12 @@ function Library:Notify(Text, Time)
             local exitOff = dirMap[exitDir] or dirMap['Left']
             TweenService:Create(NotifyOuter, TweenInfo.new(exitSpeed, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
                 Position = exitOff
+            }):Play()
+            wait(exitSpeed)
+        elseif exitAnim == 'Center' then
+            TweenService:Create(NotifyOuter, TweenInfo.new(exitSpeed, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                Size = UDim2.fromOffset(0, YSize);
+                Position = UDim2.fromOffset(finalWidth / 2, 0);
             }):Play()
             wait(exitSpeed)
         elseif exitAnim == 'Fade' then
@@ -3481,60 +3540,71 @@ function Library:CreateConfigSection(Tab)
     local NotifyTab = RightTabbox:AddTab('Notify')
     local AnimTab   = RightTabbox:AddTab('Anim')
 
-    MenuTab:AddDropdown('LibFontMode', { Text='Font Style', Values={'Default','Monocraft','ProggyClean'}, Default=Library.FontMode, AllowNull=true, Callback=function(v) if v then Library:SetFont(v) end end })
-    MenuTab:AddSlider('LibFontSize', { Text='Font Size', Default=Library.FontSize, Min=10, Max=24, Rounding=0, Callback=function(v) Library:SetFontSize(v) end })
+    -- Font
+    MenuTab:AddDropdown('LibFontMode', { Text='Font', Values={'Default','Monocraft','ProggyClean'}, Default=Library.FontMode or 'Default', AllowNull=true, Callback=function(v) if v then Library:SetFont(v) end end })
+    MenuTab:AddSlider('LibFontSize', { Text='Size', Default=Library.FontSize, Min=10, Max=24, Rounding=0, Callback=function(v) Library:SetFontSize(v) end })
     MenuTab:AddDivider()
+    -- Appearance
     MenuTab:AddDropdown('LibLineStyle', { Text='Line Style', Values={'Neon','Solid'}, Default=Library.LineStyle, AllowNull=true, Callback=function(v) if v then Library:SetLineStyle(v) end end })
-    MenuTab:AddDropdown('LibTabStripe', { Text='Tab Stripe', Values={'Top','Bottom','Left','Right'}, Default=Library.TabStripePosition, AllowNull=true, Callback=function(v) if v then Library.TabStripePosition=v end end })
+    MenuTab:AddDropdown('LibTabStripe', { Text='Tab Stripe', Values={'Top','Bottom','Left','Right'}, Default=Library.TabStripePosition or 'Top', AllowNull=true, Callback=function(v) if v then Library.TabStripePosition=v end end })
     MenuTab:AddDivider()
+    -- Window
     MenuTab:AddToggle('LibMenuLock', { Text='Lock Size', Default=true, Callback=function(v) Library:SetMenuLocked(v) end })
+    MenuTab:AddToggle('LibMenuBorder', { Text='Menu Border', Default=true, Callback=function(v) Library:SetMenuBorder(v) end })
+    MenuTab:AddDropdown('LibTitleAlign', { Text='Title Align', Values={'Left','Center','Right'}, Default='Center', AllowNull=true, Callback=function(v) if v then Library:SetTitleAlignment(v) end end })
     MenuTab:AddButton({ Text='Reset Size', Func=function() Library:ResetMenuSize() end })
     MenuTab:AddDivider()
-    MenuTab:AddDropdown('LibWatermarkStyle', { Text='Watermark Style', Values={'Default','NoStripe'}, Default='Default', AllowNull=true, Callback=function(v) if v then Library:SetWatermarkStyle(v) end end })
-    MenuTab:AddLabel('Watermark Bg'):AddColorPicker('LibWatermarkBg', {
-        Default = Library.MainColor, Title = 'Watermark Background',
-        Callback = function(v) Library:SetWatermarkBgColor(v) end
-    })
+    -- Watermark
+    MenuTab:AddDropdown('LibWatermarkStyle', { Text='Watermark Style', Values={'Default','Stripe','NoBorder'}, Default='Default', AllowNull=true, Callback=function(v) if v then Library:SetWatermarkStyle(v) end end })
+    MenuTab:AddLabel('Watermark Bg'):AddColorPicker('LibWatermarkBg', { Default=Library.MainColor, Title='Watermark Bg', Callback=function(v) Library:SetWatermarkBgColor(v) end })
     MenuTab:AddSlider('LibWatermarkAlpha', { Text='Watermark Alpha', Default=0, Min=0, Max=10, Rounding=0, Callback=function(v) Library:SetWatermarkTransparency(v/10) end })
     MenuTab:AddDivider()
-    MenuTab:AddToggle('LibMenuBorder', { Text='Menu Border', Default=true, Callback=function(v) Library:SetMenuBorder(v) end })
-    MenuTab:AddDivider()
+    -- Keybind
     MenuTab:AddDropdown('LibKeybindStyle', { Text='Keybind Style', Values={'Default','NoStripe'}, Default='Default', AllowNull=true, Callback=function(v) if v then Library:SetKeybindStyle(v) end end })
     MenuTab:AddSlider('LibKeybindAlpha', { Text='Keybind Alpha', Default=0, Min=0, Max=10, Rounding=0, Callback=function(v) Library:SetKeybindTransparency(v/10) end })
+    MenuTab:AddSlider('LibBgAlpha', { Text='Background Alpha', Default=0, Min=0, Max=10, Rounding=0, Compact=true, Callback=function(v)
+        Library.KeybindBgTransparency = v/10
+        if Library.KeybindInnerBg then Library.KeybindInnerBg.BackgroundTransparency = v/10 end
+    end })
 
+    -- Cursor
     CursorTab:AddDropdown('LibCursorMode', { Text='Style', Values={'Default','Linoria','Cross'}, Default=Library.CursorMode, AllowNull=true, Callback=function(v) if v then Library.CursorMode=v; Library:RefreshCursor(Library._cursorMenuOpen) end end })
     CursorTab:AddSlider('LibCursorSize', { Text='Size', Default=Library.CursorSize or 16, Min=8, Max=64, Rounding=0, Callback=function(v) Library.CursorSize=v end })
-    CursorTab:AddSlider('LibCursorThick', { Text='Thickness', Default=Library.CursorThickness or 2, Min=1, Max=8, Rounding=0, Callback=function(v) Library.CursorThickness=v end })
-    CursorTab:AddDropdown('LibCursorColorMode', { Text='Color', Values={'AccentColor','Custom'}, Default='AccentColor', AllowNull=true, Callback=function(v) if v=='AccentColor' then Library.CursorColor=nil end end })
-    local CursorColorDepbox = CursorTab:AddDependencyBox()
-    CursorColorDepbox:AddLabel('Cursor Color'):AddColorPicker('LibCursorColor', { Default=Library.AccentColor, Title='Cursor Color', Callback=function(v) Library.CursorColor=v end })
-    CursorColorDepbox:SetupDependencies({ { Options.LibCursorColorMode, 'Custom' } })
+    local CrossDepbox = CursorTab:AddDependencyBox()
+    CrossDepbox:AddSlider('LibCursorThick', { Text='Thickness', Default=Library.CursorThickness or 2, Min=1, Max=8, Rounding=0, Callback=function(v) Library.CursorThickness=v end })
+    CrossDepbox:AddLabel('Cursor Color'):AddColorPicker('LibCursorColor', { Default=Library.AccentColor, Title='Cursor Color', Callback=function(v) Library.CursorColor=v end })
+    CrossDepbox:SetupDependencies({ { Options.LibCursorMode, 'Cross' } })
     CursorTab:AddToggle('LibCursorAlways', { Text='Always Show', Default=Library.CursorAlwaysShow, Callback=function(v) Library.CursorAlwaysShow=v; Library:RefreshCursor(Library._cursorMenuOpen) end })
 
+    -- Notify
     NotifyTab:AddDropdown('LibNotifyPos', { Text='Position', Values={'LeftTop','LeftBottom','RightTop','RightBottom','CenterTop','CenterBottom','Center','Custom'}, Default=Library.NotifyPosition, AllowNull=true, Callback=function(v) if v then Library.NotifyPosition=v; Library:UpdateNotificationPosition() end end })
-    local NotifyCustomDepbox = NotifyTab:AddDependencyBox()
-    NotifyCustomDepbox:AddSlider('LibNotifyCustomX', { Text='X', Default=0, Min=0, Max=2000, Rounding=0, Compact=true, Callback=function(v) Library.NotifyCustomX=v; Library:UpdateNotificationPosition() end })
-    NotifyCustomDepbox:AddSlider('LibNotifyCustomY', { Text='Y', Default=40, Min=0, Max=1000, Rounding=0, Compact=true, Callback=function(v) Library.NotifyCustomY=v; Library:UpdateNotificationPosition() end })
-    NotifyCustomDepbox:SetupDependencies({ { Options.LibNotifyPos, 'Custom' } })
+    local NDepbox = NotifyTab:AddDependencyBox()
+    NDepbox:AddSlider('LibNotifyCustomX', { Text='X', Default=0, Min=0, Max=2000, Rounding=0, Compact=true, Callback=function(v) Library.NotifyCustomX=v; Library:UpdateNotificationPosition() end })
+    NDepbox:AddSlider('LibNotifyCustomY', { Text='Y', Default=40, Min=0, Max=1000, Rounding=0, Compact=true, Callback=function(v) Library.NotifyCustomY=v; Library:UpdateNotificationPosition() end })
+    NDepbox:SetupDependencies({ { Options.LibNotifyPos, 'Custom' } })
     NotifyTab:AddDivider()
     NotifyTab:AddDropdown('LibNotifyStripePos', { Text='Stripe Side', Values={'Left','Right','Top','Bottom'}, Default=Library.NotifyStripePosition, AllowNull=true, Callback=function(v) if v then Library.NotifyStripePosition=v end end })
     NotifyTab:AddDropdown('LibNotifyStripeStyle', { Text='Stripe Style', Values={'Neon','Solid'}, Default=Library.NotifyStripeStyle, AllowNull=true, Callback=function(v) if v then Library.NotifyStripeStyle=v end end })
     NotifyTab:AddDivider()
     NotifyTab:AddSlider('LibNotifyAlpha', { Text='Transparency', Default=0, Min=0, Max=10, Rounding=0, Callback=function(v) Library.NotifyTransparency=v/10 end })
-    NotifyTab:AddSlider('LibNotifyDuration', { Text='Duration (sec)', Default=Library.NotifyDuration or 5, Min=1, Max=30, Rounding=0, Callback=function(v) Library.NotifyDuration=v end })
+    NotifyTab:AddSlider('LibNotifyDuration', { Text='Duration', Default=Library.NotifyDuration or 5, Min=1, Max=30, Rounding=0, Callback=function(v) Library.NotifyDuration=v end })
     NotifyTab:AddButton({ Text='Test Notification', Func=function() Library:Notify('Test notification!', Library.NotifyDuration) end })
 
+    -- Anim
+    AnimTab:AddToggle('LibTabAnim', { Text='Tab Animations', Default=true, Callback=function(v) Library.TabAnimEnabled=v end })
+    AnimTab:AddSlider('LibTabAnimSpeed', { Text='Tab Speed', Default=15, Min=1, Max=100, Rounding=0, Compact=true, Callback=function(v) Library.TabAnimSpeed=v/100 end })
+    AnimTab:AddDivider()
     AnimTab:AddDropdown('LibMenuAnimType', { Text='Menu Type', Values={'None','Fade','Slide','FadeSlide'}, Default=Library.MenuAnimType or 'Fade', AllowNull=true, Callback=function(v) if v then Library.MenuAnimType=v end end })
     AnimTab:AddDropdown('LibMenuAnimDir', { Text='Menu Dir', Values={'Top','Bottom','Left','Right','TopLeft','TopRight','BottomLeft','BottomRight'}, Default=Library.MenuAnimDirection or 'Top', AllowNull=true, Callback=function(v) if v then Library.MenuAnimDirection=v end end })
-    AnimTab:AddSlider('LibMenuAnimSpeed', { Text='Menu Speed', Default=20, Min=1, Max=100, Rounding=0, Callback=function(v) Library.MenuAnimSpeed=v/100 end })
+    AnimTab:AddSlider('LibMenuAnimSpeed', { Text='Menu Speed', Default=20, Min=1, Max=100, Rounding=0, Compact=true, Callback=function(v) Library.MenuAnimSpeed=v/100 end })
     AnimTab:AddDivider()
-    AnimTab:AddDropdown('LibNotifyEnterAnim', { Text='Enter Type', Values={'None','Fade','Slide'}, Default=Library.NotifyEnterAnim or 'Slide', AllowNull=true, Callback=function(v) if v then Library.NotifyEnterAnim=v end end })
+    AnimTab:AddDropdown('LibNotifyEnterAnim', { Text='Enter Type', Values={'None','Fade','Slide','Center'}, Default=Library.NotifyEnterAnim or 'Slide', AllowNull=true, Callback=function(v) if v then Library.NotifyEnterAnim=v end end })
     AnimTab:AddDropdown('LibNotifyEnterDir', { Text='Enter Dir', Values={'Left','Right','Top','Bottom','TopLeft','TopRight','BottomLeft','BottomRight'}, Default=Library.NotifyEnterDirection or 'Left', AllowNull=true, Callback=function(v) if v then Library.NotifyEnterDirection=v end end })
-    AnimTab:AddSlider('LibNotifyEnterSpeed', { Text='Enter Speed', Default=25, Min=1, Max=100, Rounding=0, Callback=function(v) Library.NotifyEnterSpeed=v/100 end })
+    AnimTab:AddSlider('LibNotifyEnterSpeed', { Text='Enter Speed', Default=25, Min=1, Max=100, Rounding=0, Compact=true, Callback=function(v) Library.NotifyEnterSpeed=v/100 end })
     AnimTab:AddDivider()
-    AnimTab:AddDropdown('LibNotifyExitAnim', { Text='Exit Type', Values={'None','Fade','Slide'}, Default=Library.NotifyExitAnim or 'Slide', AllowNull=true, Callback=function(v) if v then Library.NotifyExitAnim=v end end })
+    AnimTab:AddDropdown('LibNotifyExitAnim', { Text='Exit Type', Values={'None','Fade','Slide','Center'}, Default=Library.NotifyExitAnim or 'Slide', AllowNull=true, Callback=function(v) if v then Library.NotifyExitAnim=v end end })
     AnimTab:AddDropdown('LibNotifyExitDir', { Text='Exit Dir', Values={'Left','Right','Top','Bottom','TopLeft','TopRight','BottomLeft','BottomRight'}, Default=Library.NotifyExitDirection or 'Left', AllowNull=true, Callback=function(v) if v then Library.NotifyExitDirection=v end end })
-    AnimTab:AddSlider('LibNotifyExitSpeed', { Text='Exit Speed', Default=20, Min=1, Max=100, Rounding=0, Callback=function(v) Library.NotifyExitSpeed=v/100 end })
+    AnimTab:AddSlider('LibNotifyExitSpeed', { Text='Exit Speed', Default=20, Min=1, Max=100, Rounding=0, Compact=true, Callback=function(v) Library.NotifyExitSpeed=v/100 end })
 end
 
 
@@ -3750,6 +3820,17 @@ function Library:CreateWindow(...)
         WindowLabel.Text = Title;
     end;
 
+    function Library:SetTitleAlignment(align)
+        Library.TitleBarAlign = align
+        if align == 'Left' then
+            WindowLabel.TextXAlignment = Enum.TextXAlignment.Left
+        elseif align == 'Right' then
+            WindowLabel.TextXAlignment = Enum.TextXAlignment.Right
+        else
+            WindowLabel.TextXAlignment = Enum.TextXAlignment.Center
+        end
+    end
+
     function Window:AddTab(Name)
         local Tab = {
             Groupboxes = {};
@@ -3879,6 +3960,21 @@ function Library:CreateWindow(...)
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
             TabActiveLine.Visible = true;
             TabFrame.Visible = true;
+            if Library.TabAnimEnabled then
+                local spd = Library.TabAnimSpeed or 0.15
+                for _, Desc in next, TabFrame:GetDescendants() do
+                    if Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
+                        Desc.TextTransparency = 1
+                        TweenService:Create(Desc, TweenInfo.new(spd, Enum.EasingStyle.Quad), { TextTransparency = 0 }):Play()
+                    elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
+                        if Desc.BackgroundTransparency < 1 then
+                            local orig = Desc.BackgroundTransparency
+                            Desc.BackgroundTransparency = 1
+                            TweenService:Create(Desc, TweenInfo.new(spd, Enum.EasingStyle.Quad), { BackgroundTransparency = orig }):Play()
+                        end
+                    end
+                end
+            end
         end;
 
         function Tab:HideTab()
