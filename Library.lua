@@ -1752,7 +1752,60 @@ do
         return Label;
     end;
 
-    function Funcs:AddButton(...)
+    function Funcs:AddDualLabel(PrimaryText, SecondaryText, SecondaryColor)
+        local Label = {}
+        local Groupbox = self
+        local Container = Groupbox.Container
+
+        local Holder = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, -4, 0, 15);
+            ZIndex = 5;
+            Parent = Container;
+        })
+
+        local PrimaryLabel = Library:CreateLabel({
+            Size = UDim2.new(0.5, -2, 1, 0);
+            TextSize = 14;
+            Text = PrimaryText;
+            TextXAlignment = Enum.TextXAlignment.Left;
+            ZIndex = 5;
+            Parent = Holder;
+        })
+
+        local SecondaryLabel = Library:CreateLabel({
+            Position = UDim2.new(0.5, 2, 0, 0);
+            Size = UDim2.new(0.5, -2, 1, 0);
+            TextSize = 14;
+            Text = SecondaryText or '';
+            TextXAlignment = Enum.TextXAlignment.Left;
+            ZIndex = 5;
+            Parent = Holder;
+        })
+
+        if SecondaryColor then
+            SecondaryLabel.TextColor3 = SecondaryColor
+        else
+            SecondaryLabel.TextColor3 = Library.AccentColor
+            Library:AddToRegistry(SecondaryLabel, { TextColor3 = 'AccentColor' })
+        end
+
+        function Label:SetPrimary(text) PrimaryLabel.Text = text end
+        function Label:SetSecondary(text, color)
+            SecondaryLabel.Text = text
+            if color then SecondaryLabel.TextColor3 = color end
+        end
+        function Label:SetSecondaryColor(color)
+            SecondaryLabel.TextColor3 = color
+        end
+
+        Label.Holder = Holder
+
+        Groupbox:AddBlank(5)
+        Groupbox:Resize()
+
+        return Label
+    end;
         local Button = {};
         local function ProcessButtonParams(Class, Obj, ...)
             local Props = select(1, ...)
@@ -2658,7 +2711,14 @@ do
         });
 
         local function RecalculateListPosition()
-            ListOuter.Position = UDim2.fromOffset(DropdownOuter.AbsolutePosition.X, DropdownOuter.AbsolutePosition.Y + DropdownOuter.Size.Y.Offset + 1);
+            local screenH = ScreenGui.AbsoluteSize.Y
+            local posX = DropdownOuter.AbsolutePosition.X
+            local posY = DropdownOuter.AbsolutePosition.Y + DropdownOuter.AbsoluteSize.Y + 1
+            local listH = ListOuter.Size.Y.Offset
+            if posY + listH > screenH then
+                posY = DropdownOuter.AbsolutePosition.Y - listH - 1
+            end
+            ListOuter.Position = UDim2.fromOffset(posX, posY)
         end;
 
         local function RecalculateListSize(YSize)
@@ -3204,15 +3264,14 @@ do
 
     function Library:SetWatermarkBgColor(color)
         Library.WatermarkBgColor = color
+        Library:RemoveFromRegistry(InnerFrame)
+        Library:RemoveFromRegistry(WatermarkInner)
         InnerFrame.BackgroundColor3 = color
-        if Library.RegistryMap[InnerFrame] then
-            Library.RegistryMap[InnerFrame].Properties.BackgroundColor3 = nil
-        end
+        WatermarkInner.BackgroundColor3 = color
         WatermarkGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Library:GetDarkerColor(color)),
             ColorSequenceKeypoint.new(1, color),
         })
-        WatermarkInner.BackgroundColor3 = color
     end
 
     function Library:SetWatermarkStyle(style)
@@ -3555,7 +3614,7 @@ function Library:CreateConfigSection(Tab)
     local AnimTab   = RightTabbox:AddTab('Anim')
 
     -- Font
-    MenuTab:AddDropdown('LibFontMode', { Text='Font', Values={'Default','Monocraft','ProggyClean'}, Default=Library.FontMode or 'Default', AllowNull=true, Callback=function(v) if v then Library:SetFont(v) end end })
+    MenuTab:AddDropdown('LibFontMode', { Text='Font', Values={'Default','ProggyClean'}, Default=Library.FontMode or 'Default', AllowNull=true, Callback=function(v) if v then Library:SetFont(v) end end })
     MenuTab:AddSlider('LibFontSize', { Text='Size', Default=Library.FontSize, Min=10, Max=24, Rounding=0, Callback=function(v) Library:SetFontSize(v) end })
     MenuTab:AddDivider()
     -- Appearance
@@ -3575,7 +3634,7 @@ function Library:CreateConfigSection(Tab)
     -- Keybind
     MenuTab:AddDropdown('LibKeybindStyle', { Text='Keybind Style', Values={'Default','NoStripe'}, Default='Default', AllowNull=true, Callback=function(v) if v then Library:SetKeybindStyle(v) end end })
     MenuTab:AddSlider('LibKeybindAlpha', { Text='Keybind Alpha', Default=0, Min=0, Max=10, Rounding=0, Callback=function(v) Library:SetKeybindTransparency(v/10) end })
-    MenuTab:AddSlider('LibBgAlpha', { Text='Background Alpha', Default=0, Min=0, Max=10, Rounding=0, Compact=true, Callback=function(v)
+    MenuTab:AddSlider('LibBgAlpha', { Text='Keybind BG Alpha', Default=0, Min=0, Max=10, Rounding=0, Compact=true, Callback=function(v)
         Library.KeybindBgTransparency = v/10
         if Library.KeybindInnerBg then Library.KeybindInnerBg.BackgroundTransparency = v/10 end
     end })
@@ -3604,6 +3663,7 @@ function Library:CreateConfigSection(Tab)
     NotifyTab:AddButton({ Text='Test Notification', Func=function() Library:Notify('Test notification!', Library.NotifyDuration) end })
 
     -- Anim
+    AnimTab:AddToggle('LibAnimEnabled', { Text='All Animations', Default=true, Callback=function(v) Library.AnimationsEnabled=v end })
     AnimTab:AddToggle('LibTabAnim', { Text='Tab Animations', Default=true, Callback=function(v) Library.TabAnimEnabled=v end })
     AnimTab:AddSlider('LibTabAnimSpeed', { Text='Tab Speed', Default=15, Min=1, Max=100, Rounding=0, Compact=true, Callback=function(v) Library.TabAnimSpeed=v/100 end })
     AnimTab:AddDivider()
@@ -3819,6 +3879,7 @@ function Library:CreateWindow(...)
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
+        ClipsDescendants = true;
         Position = UDim2.new(0, E(136,106), 0, 8);
         Size = UDim2.new(1, E(-144,-114), 1, -16);
         ZIndex = 2;
@@ -3955,9 +4016,12 @@ function Library:CreateWindow(...)
         });
 
         for _, Side in next, { LeftSide, RightSide } do
-            Side:WaitForChild('UIListLayout'):GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
-                Side.CanvasSize = UDim2.fromOffset(0, Side.UIListLayout.AbsoluteContentSize.Y);
-            end);
+            local layout = Side:FindFirstChildOfClass('UIListLayout')
+            if layout then
+                layout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+                    Side.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y + 8)
+                end)
+            end
         end;
 
         local TabActiveLine = Library:MakeStripe(TabButton, 4, true)
@@ -4354,7 +4418,7 @@ function Library:CreateWindow(...)
     function Library:Toggle()
         if Fading then return end
 
-        local animType = Library.MenuAnimType or 'Fade'
+        local animType = (Library.AnimationsEnabled ~= false) and (Library.MenuAnimType or 'Fade') or 'None'
         local fadeSpeed = Library.MenuAnimSpeed or 0.2
         local FadeTime = (animType ~= 'None') and fadeSpeed or 0
         Fading = true
