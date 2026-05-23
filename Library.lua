@@ -3155,15 +3155,6 @@ do
         Parent = InnerFrame;
     });
 
-    Library:AddToRegistry(WatermarkGradient, {
-        Color = function()
-            return ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)),
-                ColorSequenceKeypoint.new(1, Library.MainColor),
-            })
-        end
-    });
-
     local WatermarkStripeFrame = Library:MakeStripe(InnerFrame, 204, true)
     WatermarkStripeFrame.Visible = false
 
@@ -3195,10 +3186,14 @@ do
     function Library:SetWatermarkBgColor(color)
         Library.WatermarkBgColor = color
         InnerFrame.BackgroundColor3 = color
+        if Library.RegistryMap[InnerFrame] then
+            Library.RegistryMap[InnerFrame].Properties.BackgroundColor3 = nil
+        end
         WatermarkGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Library:GetDarkerColor(color)),
             ColorSequenceKeypoint.new(1, color),
         })
+        WatermarkInner.BackgroundColor3 = color
     end
 
     function Library:SetWatermarkStyle(style)
@@ -3741,10 +3736,11 @@ function Library:CreateWindow(...)
     });
 
     local WindowLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 0, 0, 0);
-        Size = UDim2.new(1, 0, 0, 25);
+        Position = UDim2.new(0, 8, 0, 0);
+        Size = UDim2.new(1, -16, 0, 25);
         Text = Config.Title or '';
         TextXAlignment = Enum.TextXAlignment.Center;
+        TextTruncate = Enum.TextTruncate.AtEnd;
         ZIndex = 1;
         Parent = Inner;
     });
