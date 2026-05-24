@@ -1,12 +1,11 @@
-local PROGGY_FONT_BASE64 = nil
-
-local InputService = game:GetService('UserInputService');
-local TextService = game:GetService('TextService');
-local CoreGui = game:GetService('CoreGui');
-local Teams = game:GetService('Teams');
-local Players = game:GetService('Players');
-local RunService = game:GetService('RunService')
-local TweenService = game:GetService('TweenService');
+local _game = game
+local InputService = _game:GetService('UserInputService');
+local TextService = _game:GetService('TextService');
+local CoreGui = _game:GetService('CoreGui');
+local Teams = _game:GetService('Teams');
+local Players = _game:GetService('Players');
+local RunService = _game:GetService('RunService')
+local TweenService = _game:GetService('TweenService');
 local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 local Mouse = LocalPlayer:GetMouse();
@@ -32,7 +31,7 @@ local Library = {
     HudRegistry = {};
 
     FontColor = Color3.fromRGB(255, 255, 255);
-    ProggyFontBase64 = PROGGY_FONT_BASE64;
+    ProggyFontBase64 = nil;
     MainColor = Color3.fromRGB(28, 28, 28);
     BackgroundColor = Color3.fromRGB(20, 20, 20);
     AccentColor = Color3.fromRGB(0, 85, 255);
