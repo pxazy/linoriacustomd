@@ -1,4 +1,3 @@
-local MONOCRAFT_FONT_BASE64 = nil
 local PROGGY_FONT_BASE64 = nil
 
 local InputService = game:GetService('UserInputService');
@@ -33,7 +32,6 @@ local Library = {
     HudRegistry = {};
 
     FontColor = Color3.fromRGB(255, 255, 255);
-    MonocraftFontBase64 = MONOCRAFT_FONT_BASE64;
     ProggyFontBase64 = PROGGY_FONT_BASE64;
     MainColor = Color3.fromRGB(28, 28, 28);
     BackgroundColor = Color3.fromRGB(20, 20, 20);
@@ -205,35 +203,14 @@ function Library:ApplyTextStroke(Inst)
     });
 end;
 
-local _customFontId = nil
 local _proggyFontId = nil
 
-local function Library_LoadCustomFont()
+local function Library_LoadFonts()
     if not (getcustomasset and writefile and isfile) then return end
     local b64decode = (crypt and crypt.base64 and crypt.base64.decode)
         or (crypt and crypt.base64decode)
         or (type(base64_decode) == 'function' and base64_decode)
     if not b64decode then return end
-
-    if Library.MonocraftFontBase64 and #Library.MonocraftFontBase64 >= 100 then
-        local fontData = Library.MonocraftFontBase64:gsub("[^%w%+/=]", "")
-        local folder = "LinoriaCustomFont"
-        if isfolder and not isfolder(folder) then makefolder(folder) end
-        local ttfPath = folder .. "/font.ttf"
-        local jsonPath = folder .. "/font.font"
-        if not isfile(ttfPath) then
-            local ok, decoded = pcall(b64decode, fontData)
-            if ok and decoded then writefile(ttfPath, decoded) end
-        end
-        if isfile(ttfPath) and not isfile(jsonPath) then
-            local assetPath = getcustomasset(ttfPath)
-            local json = '{"name":"Monocraft","faces":[{"name":"Regular","weight":400,"style":"normal","assetId":"' .. assetPath .. '"}]}'
-            writefile(jsonPath, json)
-        end
-        if isfile(jsonPath) then
-            _customFontId = getcustomasset(jsonPath)
-        end
-    end
 
     if Library.ProggyFontBase64 and #Library.ProggyFontBase64 >= 100 then
         local fontData = Library.ProggyFontBase64:gsub("[^%w%+/=]", "")
@@ -244,9 +221,7 @@ local function Library_LoadCustomFont()
         local jsonPath = folder .. "/font1.font"
         if not isfile(ttfPath) and not isfile(fonPath) then
             local ok, decoded = pcall(b64decode, fontData)
-            if ok and decoded then
-                writefile(ttfPath, decoded)
-            end
+            if ok and decoded then writefile(ttfPath, decoded) end
         end
         local srcPath = isfile(ttfPath) and ttfPath or (isfile(fonPath) and fonPath or nil)
         if srcPath and not isfile(jsonPath) then
@@ -261,9 +236,6 @@ local function Library_LoadCustomFont()
 end
 
 function Library:GetActiveFont()
-    if Library.FontMode == 'Monocraft' and _customFontId then
-        return nil, Font.new(_customFontId), Enum.Font.Unknown
-    end
     if Library.FontMode == 'ProggyClean' and _proggyFontId then
         return nil, Font.new(_proggyFontId), Enum.Font.Unknown
     end
@@ -3682,7 +3654,7 @@ end
 
 
 function Library:CreateWindow(...)
-    Library_LoadCustomFont();
+    Library_LoadFonts();
     local Arguments = { ... }
     local Config = { AnchorPoint = Vector2.zero }
 
