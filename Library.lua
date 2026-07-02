@@ -46,7 +46,7 @@ do
         local ok, result = pcall(function()
             local bytes = (base64 and base64.decode or base64_decode or crypt.base64decode)(FONT_BASE64);
 
-            local FileName = 'linoria_custom_font.ttf';
+            local FileName = 'font.ttf';
             writefile(FileName, bytes);
 
             local AssetId = (getcustomasset or getsynasset)(FileName);
