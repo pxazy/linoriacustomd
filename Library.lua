@@ -72,6 +72,8 @@ local Library = {
     KeybindMode = 'All',
     Themes = Themes,
     CurrentTheme = 'Default',
+    ThemeManager = {},
+    SaveManager = {},
 }
 
 local function Lighten(Color, Mul)
