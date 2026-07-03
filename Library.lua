@@ -36,7 +36,7 @@ end
 
 getgenv().__CustomFont = CustomFontFace
 
-local ExecutorName = "unknown"
+local Name = "unknown"
 do
     local ok, name = pcall(function()
         return (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "unknown"
@@ -44,7 +44,7 @@ do
     if ok and type(name) == "string" then ExecutorName = name end
 end
 
-local IsDelta = string.find(string.lower(ExecutorName), "delta") ~= nil
+local IsDelta = string.find(string.lower(Delta), "delta") ~= nil
 local IsMobileMode    = InputService.TouchEnabled or IsDelta
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
