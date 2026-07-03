@@ -44,7 +44,7 @@ do
     if ok and type(name) == "string" then ExecutorName = name end
 end
 
-local IsDeltaExecutor = string.find(string.lower(ExecutorName), "delta") ~= nil
+local IsDelta = string.find(string.lower(Delta), "delta") ~= nil
 local IsMobileMode    = InputService.TouchEnabled or IsDeltaExecutor
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
