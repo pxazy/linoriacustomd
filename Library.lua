@@ -720,16 +720,24 @@ function Funcs:AddColorPicker(Idx, Info)
         return Track, Fill
     end
 
+    local RFill, GFill, BFill
+
     local function Refresh()
         Swatch.BackgroundColor3 = ColorPicker.Value
+        -- keep the R/G/B sliders in sync when the color is changed from
+        -- outside this popup (SetValueRGB), not just from dragging them
+        if RFill then RFill.Size = UDim2.new(ColorPicker.Value.R, 0, 1, 0) end
+        if GFill then GFill.Size = UDim2.new(ColorPicker.Value.G, 0, 1, 0) end
+        if BFill then BFill.Size = UDim2.new(ColorPicker.Value.B, 0, 1, 0) end
         Library:SafeCallback(ColorPicker.Callback, ColorPicker.Value)
         if ColorPicker.Changed then Library:SafeCallback(ColorPicker.Changed, ColorPicker.Value) end
     end
 
     local r, g, b = ColorPicker.Value.R, ColorPicker.Value.G, ColorPicker.Value.B
-    local RTrack, RFill = AddChannel('R', 4, r)
-    local GTrack, GFill = AddChannel('G', 26, g)
-    local BTrack, BFill = AddChannel('B', 48, b)
+    local RTrack, GTrack, BTrack
+    RTrack, RFill = AddChannel('R', 4, r)
+    GTrack, GFill = AddChannel('G', 26, g)
+    BTrack, BFill = AddChannel('B', 48, b)
 
     local function BindChannel(Track, Fill, GetSet)
         Track.InputBegan:Connect(function(Input)
@@ -1057,6 +1065,583 @@ if IsMobileMode then
     end)
 
 end
+
+-- =====================================================================
+-- SaveManager
+-- =====================================================================
+local SaveManager = {} do
+    SaveManager.Folder = 'LinoriaCustomD'
+    SaveManager.Ignore = {}
+    SaveManager.LastConfig = nil
+
+    SaveManager.Parser = {
+        Toggle = {
+            Save = function(idx, object)
+                return { type = 'Toggle', idx = idx, value = object.Value }
+            end,
+            Load = function(idx, data)
+                if Toggles[idx] then Toggles[idx]:SetValue(data.value) end
+            end,
+        },
+        Slider = {
+            Save = function(idx, object)
+                return { type = 'Slider', idx = idx, value = tostring(object.Value) }
+            end,
+            Load = function(idx, data)
+                if Options[idx] then Options[idx]:SetValue(data.value) end
+            end,
+        },
+        Dropdown = {
+            Save = function(idx, object)
+                return { type = 'Dropdown', idx = idx, value = object.Value }
+            end,
+            Load = function(idx, data)
+                if Options[idx] then Options[idx]:SetValue(data.value) end
+            end,
+        },
+        Input = {
+            Save = function(idx, object)
+                return { type = 'Input', idx = idx, text = object.Value }
+            end,
+            Load = function(idx, data)
+                if Options[idx] and type(data.text) == 'string' then
+                    Options[idx]:SetValue(data.text)
+                end
+            end,
+        },
+        ColorPicker = {
+            Save = function(idx, object)
+                return { type = 'ColorPicker', idx = idx, value = object.Value:ToHex() }
+            end,
+            Load = function(idx, data)
+                if Options[idx] then
+                    local ok, color = pcall(Color3.fromHex, data.value)
+                    if ok then Options[idx]:SetValueRGB(color) end
+                end
+            end,
+        },
+        KeyPicker = {
+            Save = function(idx, object)
+                return { type = 'KeyPicker', idx = idx, key = object.Value }
+            end,
+            Load = function(idx, data)
+                if Options[idx] then Options[idx]:SetValue({ data.key }) end
+            end,
+        },
+    }
+
+    function SaveManager:SetIgnoreIndexes(list)
+        for _, key in next, list do
+            self.Ignore[key] = true
+        end
+    end
+
+    function SaveManager:SetFolder(folder)
+        self.Folder = folder
+        self:BuildFolderTree()
+    end
+
+    function SaveManager:IgnoreThemeSettings()
+        self:SetIgnoreIndexes({
+            'ThemeManager_BackgroundColor', 'ThemeManager_MainColor', 'ThemeManager_AccentColor',
+            'ThemeManager_OutlineColor', 'ThemeManager_FontColor', 'ThemeManager_ThemeList',
+            'ThemeManager_ThemeName',
+        })
+    end
+
+    function SaveManager:BuildFolderTree()
+        local paths = { self.Folder, self.Folder .. '/settings' }
+        for i = 1, #paths do
+            if not isfolder(paths[i]) then makefolder(paths[i]) end
+        end
+    end
+
+    function SaveManager:Save(name)
+        name = name or self.LastConfig
+        if not name then return false, 'no config name given' end
+
+        local data = { objects = {} }
+
+        for idx, toggle in next, Toggles do
+            if self.Ignore[idx] then continue end
+            if not self.Parser[toggle.Type] then continue end
+            table.insert(data.objects, self.Parser[toggle.Type].Save(idx, toggle))
+        end
+
+        for idx, option in next, Options do
+            if self.Ignore[idx] then continue end
+            if not self.Parser[option.Type] then continue end
+            table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
+        end
+
+        local HttpService = game:GetService('HttpService')
+        local ok, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+        if not ok then return false, 'failed to encode data' end
+
+        writefile(self.Folder .. '/settings/' .. name .. '.json', encoded)
+        self.LastConfig = name
+        return true
+    end
+
+    function SaveManager:Load(name)
+        if not name then return false, 'no config name given' end
+
+        local file = self.Folder .. '/settings/' .. name .. '.json'
+        if not isfile(file) then return false, 'config does not exist' end
+
+        local HttpService = game:GetService('HttpService')
+        local ok, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+        if not ok then return false, 'failed to decode config' end
+
+        for _, entry in next, decoded.objects do
+            if self.Parser[entry.type] then
+                task.spawn(function()
+                    self.Parser[entry.type].Load(entry.idx, entry)
+                end)
+            end
+        end
+
+        self.LastConfig = name
+        return true
+    end
+
+    function SaveManager:Delete(name)
+        if not name then return false, 'no config name given' end
+
+        local file = self.Folder .. '/settings/' .. name .. '.json'
+        if not isfile(file) then return false, 'config does not exist' end
+
+        delfile(file)
+        if self.LastConfig == name then self.LastConfig = nil end
+        return true
+    end
+
+    function SaveManager:RefreshConfigList()
+        local list = listfiles(self.Folder .. '/settings')
+        local out = {}
+
+        for i = 1, #list do
+            local file = list[i]
+            if file:sub(-5) == '.json' then
+                local pos = file:find('.json', 1, true)
+                local stop = pos
+
+                local char = file:sub(pos, pos)
+                while char ~= '/' and char ~= '\\' and #char > 0 do
+                    pos = pos - 1
+                    char = file:sub(pos, pos)
+                end
+
+                if char == '/' or char == '\\' then
+                    table.insert(out, file:sub(pos + 1, stop - 1))
+                end
+            end
+        end
+
+        return out
+    end
+
+    function SaveManager:LoadAutoloadConfig()
+        local file = self.Folder .. '/settings/autoload.txt'
+        if isfile(file) then
+            local name = readfile(file)
+            local ok, err = self:Load(name)
+            if not ok then
+                return Library:Notify('Failed to autoload config: ' .. tostring(err))
+            end
+            Library:Notify(string.format('Auto loaded config %q', name))
+        end
+    end
+
+    function SaveManager:BuildConfigSection(tab)
+        local section = tab:AddRightGroupbox('Configuration')
+
+        section:AddInput('SaveManager_ConfigName', { Text = 'Config name' })
+        section:AddDropdown('SaveManager_ConfigList', {
+            Text = 'Config list',
+            Values = self:RefreshConfigList(),
+        })
+
+        section:AddButton('Create config', function()
+            local name = Options.SaveManager_ConfigName.Value
+
+            if not name or name:gsub(' ', '') == '' then
+                return Library:Notify('Invalid config name (empty)', 2)
+            end
+
+            local ok, err = self:Save(name)
+            if not ok then
+                return Library:Notify('Failed to save config: ' .. tostring(err))
+            end
+
+            Library:Notify(string.format('Created config %q', name))
+            Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+        end)
+
+        section:AddButton('Load config', function()
+            local name = Options.SaveManager_ConfigList.Value
+
+            local ok, err = self:Load(name)
+            if not ok then
+                return Library:Notify('Failed to load config: ' .. tostring(err))
+            end
+
+            Library:Notify(string.format('Loaded config %q', name))
+        end)
+
+        section:AddButton('Overwrite config', function()
+            local name = Options.SaveManager_ConfigList.Value
+            if not name then return Library:Notify('No config selected', 2) end
+
+            local ok, err = self:Save(name)
+            if not ok then
+                return Library:Notify('Failed to overwrite config: ' .. tostring(err))
+            end
+
+            Library:Notify(string.format('Overwrote config %q', name))
+        end)
+
+        section:AddButton('Delete config', function()
+            local name = Options.SaveManager_ConfigList.Value
+
+            local ok, err = self:Delete(name)
+            if not ok then
+                return Library:Notify('Failed to delete config: ' .. tostring(err))
+            end
+
+            Library:Notify(string.format('Deleted config %q', name))
+            Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+        end)
+
+        section:AddButton('Refresh list', function()
+            Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+            Library:Notify('Refreshed config list')
+        end)
+
+        section:AddButton('Set as autoload', function()
+            local name = Options.SaveManager_ConfigList.Value
+            if not name then return Library:Notify('No config selected', 2) end
+
+            writefile(self.Folder .. '/settings/autoload.txt', name)
+            SaveManager.AutoloadLabel:SetText('Current autoload config: ' .. name)
+            Library:Notify(string.format('Set %q to auto load', name))
+        end)
+
+        SaveManager.AutoloadLabel = section:AddLabel('Current autoload config: none')
+
+        if isfile(self.Folder .. '/settings/autoload.txt') then
+            local name = readfile(self.Folder .. '/settings/autoload.txt')
+            SaveManager.AutoloadLabel:SetText('Current autoload config: ' .. name)
+        end
+
+        self:SetIgnoreIndexes({ 'SaveManager_ConfigList', 'SaveManager_ConfigName' })
+    end
+
+    SaveManager:BuildFolderTree()
+end
+
+-- =====================================================================
+-- ThemeManager
+-- =====================================================================
+local ThemeManager = {} do
+    ThemeManager.Folder = 'LinoriaCustomD'
+    ThemeManager.CustomThemeFolder = 'LinoriaCustomD/themes'
+
+    ThemeManager.BuiltInThemes = {
+        ['Default'] = {
+            FontColor = Color3.fromRGB(235, 235, 235),
+            MainColor = Color3.fromRGB(22, 22, 22),
+            BackgroundColor = Color3.fromRGB(14, 14, 14),
+            AccentColor = Color3.fromRGB(0, 140, 255),
+            OutlineColor = Color3.fromRGB(35, 35, 35),
+        },
+        ['Grape'] = {
+            FontColor = Color3.fromRGB(235, 235, 235),
+            MainColor = Color3.fromRGB(28, 25, 34),
+            BackgroundColor = Color3.fromRGB(20, 18, 25),
+            AccentColor = Color3.fromRGB(140, 90, 255),
+            OutlineColor = Color3.fromRGB(50, 45, 60),
+        },
+        ['Ocean'] = {
+            FontColor = Color3.fromRGB(235, 235, 235),
+            MainColor = Color3.fromRGB(18, 26, 29),
+            BackgroundColor = Color3.fromRGB(12, 18, 20),
+            AccentColor = Color3.fromRGB(0, 175, 205),
+            OutlineColor = Color3.fromRGB(40, 55, 60),
+        },
+        ['Rose'] = {
+            FontColor = Color3.fromRGB(235, 235, 235),
+            MainColor = Color3.fromRGB(30, 21, 24),
+            BackgroundColor = Color3.fromRGB(21, 15, 17),
+            AccentColor = Color3.fromRGB(255, 75, 125),
+            OutlineColor = Color3.fromRGB(55, 38, 42),
+        },
+        ['Forest'] = {
+            FontColor = Color3.fromRGB(235, 235, 235),
+            MainColor = Color3.fromRGB(20, 26, 20),
+            BackgroundColor = Color3.fromRGB(14, 19, 14),
+            AccentColor = Color3.fromRGB(75, 205, 105),
+            OutlineColor = Color3.fromRGB(40, 55, 40),
+        },
+    }
+
+    function ThemeManager:SetFolder(folder)
+        self.Folder = folder
+        self.CustomThemeFolder = folder .. '/themes'
+        self:BuildFolderTree()
+    end
+
+    function ThemeManager:BuildFolderTree()
+        local paths = { self.Folder, self.CustomThemeFolder }
+        for i = 1, #paths do
+            if not isfolder(paths[i]) then makefolder(paths[i]) end
+        end
+    end
+
+    function ThemeManager:GetThemeList()
+        local list = {}
+
+        for name in next, self.BuiltInThemes do
+            table.insert(list, name)
+        end
+        table.sort(list)
+
+        for _, name in next, self:RefreshCustomThemeList() do
+            table.insert(list, name)
+        end
+
+        return list
+    end
+
+    function ThemeManager:RefreshCustomThemeList()
+        local list = listfiles(self.CustomThemeFolder)
+        local out = {}
+
+        for i = 1, #list do
+            local file = list[i]
+            if file:sub(-5) == '.json' then
+                local pos = file:find('.json', 1, true)
+                local stop = pos
+
+                local char = file:sub(pos, pos)
+                while char ~= '/' and char ~= '\\' and #char > 0 do
+                    pos = pos - 1
+                    char = file:sub(pos, pos)
+                end
+
+                if char == '/' or char == '\\' then
+                    table.insert(out, file:sub(pos + 1, stop - 1))
+                end
+            end
+        end
+
+        return out
+    end
+
+    function ThemeManager:ApplyColorScheme(scheme)
+        Library.FontColor = scheme.FontColor
+        Library.MainColor = scheme.MainColor
+        Library.BackgroundColor = scheme.BackgroundColor
+        Library.AccentColor = scheme.AccentColor
+        Library.OutlineColor = scheme.OutlineColor
+
+        Library:UpdateColorsUsingRegistry()
+    end
+
+    function ThemeManager:ApplyTheme(name)
+        if not name then return false end
+
+        local builtin = self.BuiltInThemes[name]
+        if builtin then
+            self:ApplyColorScheme(builtin)
+            return true
+        end
+
+        local custom = self:LoadCustomTheme(name)
+        if custom then
+            self:ApplyColorScheme(custom)
+            return true
+        end
+
+        return false
+    end
+
+    function ThemeManager:SaveCustomTheme(name)
+        if (not name) or name:gsub(' ', '') == '' then
+            return false, 'invalid theme name'
+        end
+
+        local data = {
+            FontColor = { Library.FontColor.R, Library.FontColor.G, Library.FontColor.B },
+            MainColor = { Library.MainColor.R, Library.MainColor.G, Library.MainColor.B },
+            BackgroundColor = { Library.BackgroundColor.R, Library.BackgroundColor.G, Library.BackgroundColor.B },
+            AccentColor = { Library.AccentColor.R, Library.AccentColor.G, Library.AccentColor.B },
+            OutlineColor = { Library.OutlineColor.R, Library.OutlineColor.G, Library.OutlineColor.B },
+        }
+
+        local HttpService = game:GetService('HttpService')
+        local ok, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+        if not ok then return false, 'failed to encode theme' end
+
+        writefile(self.CustomThemeFolder .. '/' .. name .. '.json', encoded)
+        return true
+    end
+
+    function ThemeManager:LoadCustomTheme(name)
+        local file = self.CustomThemeFolder .. '/' .. name .. '.json'
+        if not isfile(file) then return nil end
+
+        local HttpService = game:GetService('HttpService')
+        local ok, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+        if not ok then return nil end
+
+        local function toColor(rgb)
+            return Color3.new(rgb[1], rgb[2], rgb[3])
+        end
+
+        return {
+            FontColor = toColor(decoded.FontColor),
+            MainColor = toColor(decoded.MainColor),
+            BackgroundColor = toColor(decoded.BackgroundColor),
+            AccentColor = toColor(decoded.AccentColor),
+            OutlineColor = toColor(decoded.OutlineColor),
+        }
+    end
+
+    function ThemeManager:DeleteCustomTheme(name)
+        local file = self.CustomThemeFolder .. '/' .. name .. '.json'
+        if not isfile(file) then return false, 'theme does not exist' end
+
+        delfile(file)
+        return true
+    end
+
+    function ThemeManager:SaveDefaultThemeName(name)
+        writefile(self.Folder .. '/default_theme.txt', name)
+    end
+
+    function ThemeManager:ApplyDefaultTheme()
+        local file = self.Folder .. '/default_theme.txt'
+        if isfile(file) then
+            self:ApplyTheme(readfile(file))
+        end
+    end
+
+    function ThemeManager:CreateThemeManager(tab)
+        local groupbox = tab:AddLeftGroupbox('Theme')
+
+        groupbox:AddLabel('Background color'):AddColorPicker('ThemeManager_BackgroundColor', {
+            Default = Library.BackgroundColor,
+            Callback = function(new)
+                Library.BackgroundColor = new
+                Library:UpdateColorsUsingRegistry()
+            end,
+        })
+
+        groupbox:AddLabel('Main color'):AddColorPicker('ThemeManager_MainColor', {
+            Default = Library.MainColor,
+            Callback = function(new)
+                Library.MainColor = new
+                Library:UpdateColorsUsingRegistry()
+            end,
+        })
+
+        groupbox:AddLabel('Accent color'):AddColorPicker('ThemeManager_AccentColor', {
+            Default = Library.AccentColor,
+            Callback = function(new)
+                Library.AccentColor = new
+                Library:UpdateColorsUsingRegistry()
+            end,
+        })
+
+        groupbox:AddLabel('Outline color'):AddColorPicker('ThemeManager_OutlineColor', {
+            Default = Library.OutlineColor,
+            Callback = function(new)
+                Library.OutlineColor = new
+                Library:UpdateColorsUsingRegistry()
+            end,
+        })
+
+        groupbox:AddLabel('Font color'):AddColorPicker('ThemeManager_FontColor', {
+            Default = Library.FontColor,
+            Callback = function(new)
+                Library.FontColor = new
+                Library:UpdateColorsUsingRegistry()
+            end,
+        })
+
+        groupbox:AddDropdown('ThemeManager_ThemeList', {
+            Text = 'Theme list',
+            Values = self:GetThemeList(),
+            Default = 'Default',
+        })
+
+        local function SyncPickersToLibrary()
+            Options.ThemeManager_BackgroundColor:SetValueRGB(Library.BackgroundColor)
+            Options.ThemeManager_MainColor:SetValueRGB(Library.MainColor)
+            Options.ThemeManager_AccentColor:SetValueRGB(Library.AccentColor)
+            Options.ThemeManager_OutlineColor:SetValueRGB(Library.OutlineColor)
+            Options.ThemeManager_FontColor:SetValueRGB(Library.FontColor)
+        end
+
+        groupbox:AddButton('Apply theme', function()
+            local name = Options.ThemeManager_ThemeList.Value
+
+            if self:ApplyTheme(name) then
+                SyncPickersToLibrary()
+                Library:Notify(string.format('Applied theme %q', name))
+            else
+                Library:Notify('Failed to apply theme', 2)
+            end
+        end)
+
+        groupbox:AddButton('Refresh list', function()
+            Options.ThemeManager_ThemeList:SetValues(self:GetThemeList())
+            Library:Notify('Refreshed theme list')
+        end)
+
+        groupbox:AddInput('ThemeManager_ThemeName', { Text = 'Custom theme name' })
+
+        groupbox:AddButton('Save as custom theme', function()
+            local name = Options.ThemeManager_ThemeName.Value
+
+            local ok, err = self:SaveCustomTheme(name)
+            if not ok then
+                return Library:Notify('Failed to save theme: ' .. tostring(err))
+            end
+
+            Options.ThemeManager_ThemeList:SetValues(self:GetThemeList())
+            Library:Notify(string.format('Saved custom theme %q', name))
+        end)
+
+        groupbox:AddButton('Delete custom theme', function()
+            local name = Options.ThemeManager_ThemeList.Value
+
+            local ok, err = self:DeleteCustomTheme(name)
+            if not ok then
+                return Library:Notify('Failed to delete theme: ' .. tostring(err))
+            end
+
+            Options.ThemeManager_ThemeList:SetValues(self:GetThemeList())
+            Library:Notify(string.format('Deleted custom theme %q', name))
+        end)
+
+        groupbox:AddButton('Set as default theme', function()
+            local name = Options.ThemeManager_ThemeList.Value
+            if not name then return Library:Notify('No theme selected', 2) end
+
+            self:SaveDefaultThemeName(name)
+            Library:Notify(string.format('Set %q as the default theme', name))
+        end)
+    end
+
+    ThemeManager:BuildFolderTree()
+end
+
+Library.SaveManager = SaveManager
+Library.ThemeManager = ThemeManager
+getgenv().SaveManager = SaveManager
+getgenv().ThemeManager = ThemeManager
 
 getgenv().Library = Library
 return Library
