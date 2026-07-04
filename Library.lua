@@ -78,6 +78,7 @@ local Library = {
     ScreenGui = ScreenGui,
 
     Toggled = false,
+    UILocked = false,
     IsMobileMode = IsMobileMode,
     ExecutorName = ExecutorName,
     KeybindMode = 'All',
@@ -99,6 +100,15 @@ function Library:Create(Class, Props)
         pcall(function() inst.FontFace = getgenv().__CustomFont end)
     end
     return inst
+end
+
+function Library:ApplyFontToDescendants(Root)
+    if not getgenv().__CustomFont then return end
+    for _, Inst in next, Root:GetDescendants() do
+        if Inst:IsA('TextLabel') or Inst:IsA('TextBox') or Inst:IsA('TextButton') then
+            pcall(function() Inst.FontFace = getgenv().__CustomFont end)
+        end
+    end
 end
 
 function Library:AddToRegistry(Instance, Properties)
@@ -165,6 +175,7 @@ function Library:MakeDraggable(Handle, Target, Cutoff)
     Target = Target or Handle
     Handle.Active = true
     Handle.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
         if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
         local StartPos = Target.Position
         local DragStart = Input.Position
@@ -172,6 +183,7 @@ function Library:MakeDraggable(Handle, Target, Cutoff)
 
         local Changed, Ended
         Changed = InputService.InputChanged:Connect(function(Change)
+            if Library.UILocked then return end
             if Change.UserInputType == Enum.UserInputType.MouseMovement or Change == Input then
                 local Delta = Change.Position - DragStart
                 local Viewport = workspace.CurrentCamera.ViewportSize
@@ -240,13 +252,15 @@ do
     end
 end
 
+-- Keybinds panel: compact, centered title on top, binds listed below
 do
     local Bar = Library:Create('Frame', {
         Name = 'Keybinds',
         BackgroundColor3 = Color3.fromRGB(10, 10, 10),
         BackgroundTransparency = 0.15,
-        Position = UDim2.new(0, 10, 0, 30),
-        Size = UDim2.new(0, 190, 0, 18),
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 30),
+        Size = UDim2.new(0, 140, 0, 34),
         ZIndex = 500,
         Visible = false,
         Parent = ScreenGui,
@@ -258,15 +272,26 @@ do
         ZIndex = 501,
         Parent = Bar,
     })
+
+    local Title = Library:CreateLabel({
+        Text = 'Keybinds',
+        Position = UDim2.new(0, 0, 0, 2),
+        Size = UDim2.new(1, 0, 0, 14),
+        TextXAlignment = Enum.TextXAlignment.Center,
+        ZIndex = 501,
+        Parent = Bar,
+    })
+
     local List = Library:Create('Frame', {
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 4, 0, 2),
-        Size = UDim2.new(1, -8, 1, -2),
+        Position = UDim2.new(0, 4, 0, 17),
+        Size = UDim2.new(1, -8, 1, -19),
         ZIndex = 501,
         Parent = Bar,
     })
     Library:Create('UIListLayout', {
         FillDirection = Enum.FillDirection.Vertical,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
         SortOrder = Enum.SortOrder.LayoutOrder,
         Parent = List,
     })
@@ -280,11 +305,11 @@ function Library:RefreshKeybindFrame()
     local Y, X = 0, 0
     for _, child in next, Library.KeybindContainer:GetChildren() do
         if child:IsA('TextLabel') and child.Visible then
-            Y = Y + 16
+            Y = Y + 14
             X = math.max(X, child.TextBounds.X)
         end
     end
-    Library.KeybindFrame.Size = UDim2.new(0, math.max(X + 16, 150), 0, math.max(Y + 4, 18))
+    Library.KeybindFrame.Size = UDim2.new(0, math.max(X + 16, 120), 0, math.max(Y, 12) + 19)
 end
 
 do
@@ -396,6 +421,7 @@ function Funcs:AddButton(Text, Func)
     })
 
     Outer.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             Library:SafeCallback(Func)
         end
@@ -413,9 +439,12 @@ function Funcs:AddToggle(Idx, Info)
         Callback = Info.Callback or function() end,
     }
 
+    -- Smaller (2.5x) flat checkbox, no gradient
+    local BOX_SIZE = 6
+
     local Row = Library:Create('Frame', {
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, 18),
+        Size = UDim2.new(1, 0, 0, 16),
         Parent = Groupbox.Container,
     })
 
@@ -423,8 +452,8 @@ function Funcs:AddToggle(Idx, Info)
         BackgroundColor3 = Color3.fromRGB(35, 35, 35),
         BorderColor3 = Color3.fromRGB(0, 0, 0),
         BorderSizePixel = 1,
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new(0, 0, 0.5, -7),
+        Size = UDim2.new(0, BOX_SIZE, 0, BOX_SIZE),
+        Position = UDim2.new(0, 0, 0.5, -BOX_SIZE / 2),
         Parent = Row,
     })
     local BoxFill = Library:Create('Frame', {
@@ -436,20 +465,9 @@ function Funcs:AddToggle(Idx, Info)
     })
     Library:AddToRegistry(BoxFill, { BackgroundColor3 = 'AccentColor' })
 
-    local BoxGradient = Library:Create('UIGradient', {
-        Color = ColorSequence.new(Library.AccentColor, Lighten(Library.AccentColor, 0.4)),
-        Rotation = 90,
-        Parent = BoxFill,
-    })
-    Library:AddToRegistry(BoxGradient, {
-        Color = function()
-            return ColorSequence.new(Library.AccentColor, Lighten(Library.AccentColor, 0.4))
-        end
-    })
-
     local Lbl = Library:CreateLabel({
-        Position = UDim2.new(0, 22, 0, 0),
-        Size = UDim2.new(1, -22, 1, 0),
+        Position = UDim2.new(0, BOX_SIZE + 8, 0, 0),
+        Size = UDim2.new(1, -(BOX_SIZE + 8), 1, 0),
         Text = Info.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextColor3 = Info.Risky and Library.RiskColor or Library.FontColor,
@@ -467,6 +485,7 @@ function Funcs:AddToggle(Idx, Info)
 
     local Clickable = Library:Create('Frame', { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Parent = Row })
     Clickable.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             Toggle:SetValue(not Toggle.Value)
             Library:AttemptSave()
@@ -529,6 +548,7 @@ function Funcs:AddSlider(Idx, Info)
     function Slider:OnChanged(f) Slider.Changed = f; f(Slider.Value) end
 
     Track.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
         if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
         local function Update(px)
             local rel = math.clamp((px - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
@@ -598,6 +618,7 @@ function Funcs:AddDropdown(Idx, Info)
                 Parent = List,
             })
             Item.MouseButton1Click:Connect(function()
+                if Library.UILocked then return end
                 Dropdown.Value = Val
                 Preview.Text = tostring(Val)
                 List.Visible = false
@@ -613,6 +634,7 @@ function Funcs:AddDropdown(Idx, Info)
     BuildList()
 
     Box.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             List.Visible = not List.Visible
         end
@@ -650,17 +672,24 @@ function Funcs:AddInput(Idx, Info)
     })
     Library:FlatFill(Box, Color3.fromRGB(38, 38, 38), 0.55, 2)
 
+    -- Fixed: TextBox previously had no Font/TextSize/TextColor3, which made
+    -- typed text invisible / tiny (it fell back to Roblox defaults).
     local Input = Library:Create('TextBox', {
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 6, 0, 0),
         Size = UDim2.new(1, -12, 1, 0),
         ClearTextOnFocus = false,
         PlaceholderText = Info.Placeholder or '',
+        PlaceholderColor3 = Library.MutedFontColor,
         Text = Textbox.Value,
+        Font = Library.Font,
+        TextSize = Library.FontSize,
+        TextColor3 = Library.FontColor,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 3,
         Parent = Box,
     })
+    Library:AddToRegistry(Input, { TextColor3 = 'FontColor' })
 
     local function Commit()
         Textbox.Value = Input.Text
@@ -685,9 +714,12 @@ function Funcs:AddInput(Idx, Info)
     return Textbox
 end
 
+-- ColorPicker rewritten Linoria-style: Sat/Vib square + Hue bar (not raw RGB sliders)
 function Funcs:AddColorPicker(Idx, Info)
     local ColorPicker = { Value = Info.Default, Type = 'ColorPicker', Callback = Info.Callback or function() end }
     local Parent = self.TextLabel or self.Container
+
+    local Hue, Sat, Vib = Color3.toHSV(ColorPicker.Value)
 
     local Swatch = Library:Create('Frame', {
         BackgroundColor3 = ColorPicker.Value,
@@ -704,72 +736,143 @@ function Funcs:AddColorPicker(Idx, Info)
     local Popup = Library:Create('Frame', {
         BackgroundColor3 = Color3.fromRGB(20, 20, 20),
         BorderSizePixel = 0,
-        Size = UDim2.new(0, 150, 0, 90),
+        Size = UDim2.new(0, 170, 0, 150),
         Visible = false,
         ZIndex = 60,
         Parent = ScreenGui,
     })
+    Library:AddToRegistry(Popup, { BackgroundColor3 = 'MainColor' })
+
     Swatch:GetPropertyChangedSignal('AbsolutePosition'):Connect(function()
-        Popup.Position = UDim2.fromOffset(Swatch.AbsolutePosition.X - 150 + Swatch.AbsoluteSize.X, Swatch.AbsolutePosition.Y + 18)
+        Popup.Position = UDim2.fromOffset(Swatch.AbsolutePosition.X - 170 + Swatch.AbsoluteSize.X, Swatch.AbsolutePosition.Y + 18)
     end)
 
-    local function AddChannel(Name, Y, Value)
-        local Lbl = Library:CreateLabel({ Position = UDim2.new(0, 6, 0, Y), Size = UDim2.new(0, 16, 0, 16), Text = Name, ZIndex = 61, Parent = Popup })
-        local Track = Library:Create('Frame', { BackgroundColor3 = Color3.fromRGB(35, 35, 35), BorderSizePixel = 0, Position = UDim2.new(0, 24, 0, Y + 2), Size = UDim2.new(1, -30, 0, 4), ZIndex = 61, Parent = Popup })
-        local Fill = Library:Create('Frame', { BackgroundColor3 = Color3.fromRGB(200, 200, 200), BorderSizePixel = 0, Size = UDim2.new(Value, 0, 1, 0), ZIndex = 62, Parent = Track })
-        return Track, Fill
-    end
+    local SatVibOuter = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 6, 0, 6),
+        Size = UDim2.new(0, 120, 0, 120),
+        ZIndex = 61,
+        Parent = Popup,
+    })
+    local SatVibMap = Library:Create('ImageLabel', {
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 1, 0),
+        Image = 'rbxassetid://4155801252',
+        ZIndex = 62,
+        Parent = SatVibOuter,
+    })
+    local SVCursor = Library:Create('Frame', {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        BorderColor3 = Color3.new(0, 0, 0),
+        Size = UDim2.new(0, 5, 0, 5),
+        ZIndex = 63,
+        Parent = SatVibMap,
+    })
 
-    local RFill, GFill, BFill
+    local HueOuter = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 132, 0, 6),
+        Size = UDim2.new(0, 14, 0, 120),
+        ZIndex = 61,
+        Parent = Popup,
+    })
+
+    local SeqTbl = {}
+    for h = 0, 1, 0.1 do
+        table.insert(SeqTbl, ColorSequenceKeypoint.new(h, Color3.fromHSV(h, 1, 1)))
+    end
+    Library:Create('UIGradient', { Color = ColorSequence.new(SeqTbl), Rotation = 90, Parent = HueOuter })
+
+    local HueCursor = Library:Create('Frame', {
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        BorderColor3 = Color3.new(0, 0, 0),
+        Size = UDim2.new(1, 0, 0, 2),
+        ZIndex = 62,
+        Parent = HueOuter,
+    })
+
+    local HexBox = Library:Create('TextBox', {
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 6, 0, 130),
+        Size = UDim2.new(1, -12, 0, 16),
+        Font = Library.Font,
+        TextSize = Library.FontSize,
+        TextColor3 = Library.FontColor,
+        ClearTextOnFocus = false,
+        Text = '#' .. ColorPicker.Value:ToHex(),
+        ZIndex = 61,
+        Parent = Popup,
+    })
+    Library:AddToRegistry(HexBox, { TextColor3 = 'FontColor' })
 
     local function Refresh()
+        ColorPicker.Value = Color3.fromHSV(Hue, Sat, Vib)
         Swatch.BackgroundColor3 = ColorPicker.Value
-        -- keep the R/G/B sliders in sync when the color is changed from
-        -- outside this popup (SetValueRGB), not just from dragging them
-        if RFill then RFill.Size = UDim2.new(ColorPicker.Value.R, 0, 1, 0) end
-        if GFill then GFill.Size = UDim2.new(ColorPicker.Value.G, 0, 1, 0) end
-        if BFill then BFill.Size = UDim2.new(ColorPicker.Value.B, 0, 1, 0) end
+        SatVibMap.BackgroundColor3 = Color3.fromHSV(Hue, 1, 1)
+        SVCursor.Position = UDim2.new(Sat, 0, 1 - Vib, 0)
+        HueCursor.Position = UDim2.new(0, 0, Hue, 0)
+        HexBox.Text = '#' .. ColorPicker.Value:ToHex()
+
         Library:SafeCallback(ColorPicker.Callback, ColorPicker.Value)
         if ColorPicker.Changed then Library:SafeCallback(ColorPicker.Changed, ColorPicker.Value) end
     end
 
-    local r, g, b = ColorPicker.Value.R, ColorPicker.Value.G, ColorPicker.Value.B
-    local RTrack, GTrack, BTrack
-    RTrack, RFill = AddChannel('R', 4, r)
-    GTrack, GFill = AddChannel('G', 26, g)
-    BTrack, BFill = AddChannel('B', 48, b)
-
-    local function BindChannel(Track, Fill, GetSet)
-        Track.InputBegan:Connect(function(Input)
-            if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
-            local function Update(px)
-                local rel = math.clamp((px - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
-                Fill.Size = UDim2.new(rel, 0, 1, 0)
-                GetSet(rel)
-                Refresh()
-            end
-            Update(Input.Position.X)
-            local Changed, Ended
-            Changed = InputService.InputChanged:Connect(function(c)
-                if c.UserInputType == Enum.UserInputType.MouseMovement or c == Input then Update(c.Position.X) end
-            end)
-            Ended = InputService.InputEnded:Connect(function(e)
-                if e == Input or e.UserInputType == Enum.UserInputType.Touch then Changed:Disconnect(); Ended:Disconnect(); Library:AttemptSave() end
-            end)
+    SatVibOuter.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
+        if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local function Update(px, py)
+            local relX = math.clamp((px - SatVibOuter.AbsolutePosition.X) / SatVibOuter.AbsoluteSize.X, 0, 1)
+            local relY = math.clamp((py - SatVibOuter.AbsolutePosition.Y) / SatVibOuter.AbsoluteSize.Y, 0, 1)
+            Sat, Vib = relX, 1 - relY
+            Refresh()
+        end
+        Update(Input.Position.X, Input.Position.Y)
+        local Changed, Ended
+        Changed = InputService.InputChanged:Connect(function(c)
+            if c.UserInputType == Enum.UserInputType.MouseMovement or c == Input then Update(c.Position.X, c.Position.Y) end
         end)
-    end
+        Ended = InputService.InputEnded:Connect(function(e)
+            if e == Input or e.UserInputType == Enum.UserInputType.Touch then Changed:Disconnect(); Ended:Disconnect(); Library:AttemptSave() end
+        end)
+    end)
 
-    BindChannel(RTrack, RFill, function(v) ColorPicker.Value = Color3.new(v, ColorPicker.Value.G, ColorPicker.Value.B) end)
-    BindChannel(GTrack, GFill, function(v) ColorPicker.Value = Color3.new(ColorPicker.Value.R, v, ColorPicker.Value.B) end)
-    BindChannel(BTrack, BFill, function(v) ColorPicker.Value = Color3.new(ColorPicker.Value.R, ColorPicker.Value.G, v) end)
+    HueOuter.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
+        if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local function Update(py)
+            Hue = math.clamp((py - HueOuter.AbsolutePosition.Y) / HueOuter.AbsoluteSize.Y, 0, 1)
+            Refresh()
+        end
+        Update(Input.Position.Y)
+        local Changed, Ended
+        Changed = InputService.InputChanged:Connect(function(c)
+            if c.UserInputType == Enum.UserInputType.MouseMovement or c == Input then Update(c.Position.Y) end
+        end)
+        Ended = InputService.InputEnded:Connect(function(e)
+            if e == Input or e.UserInputType == Enum.UserInputType.Touch then Changed:Disconnect(); Ended:Disconnect(); Library:AttemptSave() end
+        end)
+    end)
+
+    HexBox.FocusLost:Connect(function(enter)
+        if enter then
+            local ok, result = pcall(Color3.fromHex, HexBox.Text)
+            if ok then Hue, Sat, Vib = Color3.toHSV(result) end
+        end
+        Refresh()
+        Library:AttemptSave()
+    end)
 
     local function SetActive(Active)
         Swatch.BorderColor3 = Active and Library.AccentColor or Color3.new(0, 0, 0)
-        local Reg = Library.RegistryMap[Swatch]
-        if Reg then Reg.Properties.BorderColor3 = Active and 'AccentColor' or nil end
     end
 
     Swatch.InputBegan:Connect(function(Input)
+        if Library.UILocked then return end
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             Popup.Visible = not Popup.Visible
             SetActive(Popup.Visible)
@@ -792,11 +895,15 @@ function Funcs:AddColorPicker(Idx, Info)
         end
     end))
 
-    function ColorPicker:SetValueRGB(Color) ColorPicker.Value = Color; Refresh() end
+    function ColorPicker:SetValueRGB(Color)
+        Hue, Sat, Vib = Color3.toHSV(Color)
+        Refresh()
+    end
     function ColorPicker:OnChanged(f) ColorPicker.Changed = f; f(ColorPicker.Value) end
 
+    Refresh()
     Options[Idx] = ColorPicker
-    return ColorPicker
+    return self
 end
 
 function Funcs:AddKeyPicker(Idx, Info)
@@ -819,7 +926,7 @@ function Funcs:AddKeyPicker(Idx, Info)
     })
 
     local Entry = Library:CreateLabel({
-        Size = UDim2.new(1, 0, 0, 16),
+        Size = UDim2.new(1, 0, 0, 14),
         Text = string.format('[%s] %s', KeyPicker.Value, Info.Text or ''),
         TextXAlignment = Enum.TextXAlignment.Left,
         Visible = false,
@@ -833,13 +940,14 @@ function Funcs:AddKeyPicker(Idx, Info)
 
     local function UpdateEntry()
         Entry.Text = string.format('[%s] %s', KeyPicker.Value, Info.Text or '')
-        Entry.Visible = Library.KeybindMode ~= 'Toggled' or (ParentObj.Value == true)
+        Entry.Visible = (not Info.NoUI) and (Library.KeybindMode ~= 'Toggled' or (ParentObj.Value == true))
         Library:RefreshKeybindFrame()
     end
     UpdateEntry()
 
     local Picking = false
     Btn.MouseButton1Click:Connect(function()
+        if Library.UILocked then return end
         Picking = true
         Btn.Text = '...'
         local Conn
@@ -957,7 +1065,7 @@ function Library:CreateWindow(Config)
             TabBtn.TextColor3 = Library.FontColor
         end
 
-        TabBtn.MouseButton1Click:Connect(function() Tab:Show() end)
+        TabBtn.MouseButton1Click:Connect(function() if not Library.UILocked then Tab:Show() end end)
 
         function Tab:AddGroupbox(Name, Side)
             local Parent = (Side == 2) and RightSide or LeftSide
@@ -1021,6 +1129,7 @@ end
 function Library:OnUnload(cb) Library.OnUnload = cb end
 function Library:AttemptSave() if Library.SaveManager then Library.SaveManager:Save() end end
 
+-- Mobile-only quick access buttons: Toggle UI / Lock UI
 if IsMobileMode then
     local MobileGui = Instance.new('ScreenGui')
     MobileGui.Name = 'LinoriaMobileUI'
@@ -1057,13 +1166,19 @@ if IsMobileMode then
 
     ToggleBtn.MouseButton1Click:Connect(function() Library:Toggle() end)
 
-    local Locked = false
+    -- Fix: "Lock UI" now actually disables dragging/clicking on the main
+    -- window instead of only changing the button text/color.
     LockBtn.MouseButton1Click:Connect(function()
-        Locked = not Locked
-        LockBtn.Text = Locked and 'Unlock UI' or 'Lock UI'
-        LockBtn.TextColor3 = Locked and Library.AccentColor or Library.FontColor
+        Library.UILocked = not Library.UILocked
+        LockBtn.Text = Library.UILocked and 'Unlock UI' or 'Lock UI'
+        LockBtn.TextColor3 = Library.UILocked and Library.AccentColor or Library.FontColor
     end)
 
+    -- Fix: make sure the custom font is applied to every mobile element
+    -- (previously could be missed depending on creation order/executor).
+    task.defer(function()
+        Library:ApplyFontToDescendants(MobileGui)
+    end)
 end
 
 -- =====================================================================
@@ -1444,6 +1559,7 @@ local ThemeManager = {} do
         Library.BackgroundColor = scheme.BackgroundColor
         Library.AccentColor = scheme.AccentColor
         Library.OutlineColor = scheme.OutlineColor
+        Library.AccentColorDark = Lighten(Library.AccentColor, 0.45)
 
         Library:UpdateColorsUsingRegistry()
     end
@@ -1483,6 +1599,7 @@ local ThemeManager = {} do
         local ok, encoded = pcall(HttpService.JSONEncode, HttpService, data)
         if not ok then return false, 'failed to encode theme' end
 
+        if not isfolder(self.CustomThemeFolder) then makefolder(self.CustomThemeFolder) end
         writefile(self.CustomThemeFolder .. '/' .. name .. '.json', encoded)
         return true
     end
@@ -1550,6 +1667,7 @@ local ThemeManager = {} do
             Default = Library.AccentColor,
             Callback = function(new)
                 Library.AccentColor = new
+                Library.AccentColorDark = Lighten(Library.AccentColor, 0.45)
                 Library:UpdateColorsUsingRegistry()
             end,
         })
