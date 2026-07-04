@@ -161,19 +161,34 @@ function Library:FlatFill(Parent, ColorTop, ColorBottomMul, ZIndex)
     return f
 end
 
-function Library:MakeDraggable(Frame, Cutoff)
-    Frame.Active = true
-    Frame.InputBegan:Connect(function(Input)
+function Library:MakeDraggable(Handle, Target, Cutoff)
+    Target = Target or Handle
+    Handle.Active = true
+    Handle.InputBegan:Connect(function(Input)
         if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
-        local StartPos = Frame.Position
+        local StartPos = Target.Position
         local DragStart = Input.Position
-        if Cutoff and (DragStart.Y - Frame.AbsolutePosition.Y) > Cutoff then return end
+        if Cutoff and (DragStart.Y - Handle.AbsolutePosition.Y) > Cutoff then return end
 
         local Changed, Ended
         Changed = InputService.InputChanged:Connect(function(Change)
             if Change.UserInputType == Enum.UserInputType.MouseMovement or Change == Input then
                 local Delta = Change.Position - DragStart
-                Frame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+                local Viewport = workspace.CurrentCamera.ViewportSize
+                local NewX = StartPos.X.Offset + Delta.X
+                local NewY = StartPos.Y.Offset + Delta.Y
+
+                local HalfW = Target.AbsoluteSize.X * Target.AnchorPoint.X
+                local HalfH = Target.AbsoluteSize.Y * Target.AnchorPoint.Y
+
+                if StartPos.X.Scale == 0 then
+                    NewX = math.clamp(NewX, -HalfW, Viewport.X - Target.AbsoluteSize.X + HalfW)
+                end
+                if StartPos.Y.Scale == 0 then
+                    NewY = math.clamp(NewY, -HalfH, Viewport.Y - Target.AbsoluteSize.Y + HalfH)
+                end
+
+                Target.Position = UDim2.new(StartPos.X.Scale, NewX, StartPos.Y.Scale, NewY)
             end
         end)
         Ended = InputService.InputEnded:Connect(function(EndInput)
@@ -419,10 +434,17 @@ function Funcs:AddToggle(Idx, Info)
         Visible = Toggle.Value,
         Parent = Box,
     })
-    Library:Create('UIGradient', {
+    Library:AddToRegistry(BoxFill, { BackgroundColor3 = 'AccentColor' })
+
+    local BoxGradient = Library:Create('UIGradient', {
         Color = ColorSequence.new(Library.AccentColor, Lighten(Library.AccentColor, 0.4)),
         Rotation = 90,
         Parent = BoxFill,
+    })
+    Library:AddToRegistry(BoxGradient, {
+        Color = function()
+            return ColorSequence.new(Library.AccentColor, Lighten(Library.AccentColor, 0.4))
+        end
     })
 
     local Lbl = Library:CreateLabel({
@@ -551,34 +573,44 @@ function Funcs:AddDropdown(Idx, Info)
         BackgroundColor3 = Color3.fromRGB(20, 20, 20),
         BorderSizePixel = 0,
         Position = UDim2.new(0, 0, 1, 2),
-        Size = UDim2.new(1, 0, 0, math.min(#Dropdown.Values, 6) * 18),
+        Size = UDim2.new(1, 0, 0, 0),
         Visible = false,
         ZIndex = 50,
         Parent = Box,
     })
     Library:Create('UIListLayout', { SortOrder = Enum.SortOrder.LayoutOrder, Parent = List })
 
-    for _, Val in next, Dropdown.Values do
-        local Item = Library:Create('TextButton', {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 18),
-            Text = tostring(Val),
-            Font = Library.Font,
-            TextSize = Library.FontSize,
-            TextColor3 = Library.FontColor,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 51,
-            Parent = List,
-        })
-        Item.MouseButton1Click:Connect(function()
-            Dropdown.Value = Val
-            Preview.Text = tostring(Val)
-            List.Visible = false
-            Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-            if Dropdown.Changed then Library:SafeCallback(Dropdown.Changed, Dropdown.Value) end
-            Library:AttemptSave()
-        end)
+    local function BuildList()
+        for _, Child in next, List:GetChildren() do
+            if not Child:IsA('UIListLayout') then Child:Destroy() end
+        end
+
+        for _, Val in next, Dropdown.Values do
+            local Item = Library:Create('TextButton', {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 18),
+                Text = tostring(Val),
+                Font = Library.Font,
+                TextSize = Library.FontSize,
+                TextColor3 = Library.FontColor,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 51,
+                Parent = List,
+            })
+            Item.MouseButton1Click:Connect(function()
+                Dropdown.Value = Val
+                Preview.Text = tostring(Val)
+                List.Visible = false
+                Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+                if Dropdown.Changed then Library:SafeCallback(Dropdown.Changed, Dropdown.Value) end
+                Library:AttemptSave()
+            end)
+        end
+
+        List.Size = UDim2.new(1, 0, 0, math.min(#Dropdown.Values, 6) * 18)
     end
+
+    BuildList()
 
     Box.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
@@ -591,11 +623,66 @@ function Funcs:AddDropdown(Idx, Info)
         Preview.Text = tostring(v)
         Library:SafeCallback(Dropdown.Callback, v)
     end
+    function Dropdown:SetValues(NewValues)
+        Dropdown.Values = NewValues
+        BuildList()
+    end
     function Dropdown:OnChanged(f) Dropdown.Changed = f; f(Dropdown.Value) end
 
     Groupbox:AddBlank(4); Groupbox:Resize()
     Options[Idx] = Dropdown
     return Dropdown
+end
+
+function Funcs:AddInput(Idx, Info)
+    local Groupbox = self
+    local Textbox = { Value = Info.Default or '', Type = 'Input', Callback = Info.Callback or function() end }
+
+    local Wrap = Library:Create('Frame', { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 34), Parent = Groupbox.Container })
+    Library:CreateLabel({ Size = UDim2.new(1, 0, 0, 14), Text = Info.Text, TextXAlignment = Enum.TextXAlignment.Left, Parent = Wrap })
+
+    local Box = Library:Create('Frame', {
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 0, 0, 16),
+        Size = UDim2.new(1, 0, 0, 20),
+        Parent = Wrap,
+    })
+    Library:FlatFill(Box, Color3.fromRGB(38, 38, 38), 0.55, 2)
+
+    local Input = Library:Create('TextBox', {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 6, 0, 0),
+        Size = UDim2.new(1, -12, 1, 0),
+        ClearTextOnFocus = false,
+        PlaceholderText = Info.Placeholder or '',
+        Text = Textbox.Value,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 3,
+        Parent = Box,
+    })
+
+    local function Commit()
+        Textbox.Value = Input.Text
+        Library:SafeCallback(Textbox.Callback, Textbox.Value)
+        if Textbox.Changed then Library:SafeCallback(Textbox.Changed, Textbox.Value) end
+    end
+
+    if Info.Finished then
+        Input.FocusLost:Connect(function(enter) if enter then Commit() end end)
+    else
+        Input:GetPropertyChangedSignal('Text'):Connect(Commit)
+    end
+
+    function Textbox:SetValue(v)
+        Textbox.Value = v
+        Input.Text = v
+    end
+    function Textbox:OnChanged(f) Textbox.Changed = f; f(Textbox.Value) end
+
+    Groupbox:AddBlank(4); Groupbox:Resize()
+    Options[Idx] = Textbox
+    return Textbox
 end
 
 function Funcs:AddColorPicker(Idx, Info)
@@ -612,6 +699,7 @@ function Funcs:AddColorPicker(Idx, Info)
         ZIndex = 5,
         Parent = Parent,
     })
+    Library:AddToRegistry(Swatch, {})
 
     local Popup = Library:Create('Frame', {
         BackgroundColor3 = Color3.fromRGB(20, 20, 20),
@@ -667,11 +755,34 @@ function Funcs:AddColorPicker(Idx, Info)
     BindChannel(GTrack, GFill, function(v) ColorPicker.Value = Color3.new(ColorPicker.Value.R, v, ColorPicker.Value.B) end)
     BindChannel(BTrack, BFill, function(v) ColorPicker.Value = Color3.new(ColorPicker.Value.R, ColorPicker.Value.G, v) end)
 
+    local function SetActive(Active)
+        Swatch.BorderColor3 = Active and Library.AccentColor or Color3.new(0, 0, 0)
+        local Reg = Library.RegistryMap[Swatch]
+        if Reg then Reg.Properties.BorderColor3 = Active and 'AccentColor' or nil end
+    end
+
     Swatch.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             Popup.Visible = not Popup.Visible
+            SetActive(Popup.Visible)
         end
     end)
+
+    Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
+        if not Popup.Visible then return end
+        if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+
+        local MousePos = InputService:GetMouseLocation()
+        local function IsOver(Inst)
+            local Pos, Size = Inst.AbsolutePosition, Inst.AbsoluteSize
+            return MousePos.X >= Pos.X and MousePos.X <= Pos.X + Size.X and MousePos.Y >= Pos.Y and MousePos.Y <= Pos.Y + Size.Y
+        end
+
+        if not IsOver(Popup) and not IsOver(Swatch) then
+            Popup.Visible = false
+            SetActive(false)
+        end
+    end))
 
     function ColorPicker:SetValueRGB(Color) ColorPicker.Value = Color; Refresh() end
     function ColorPicker:OnChanged(f) ColorPicker.Changed = f; f(ColorPicker.Value) end
@@ -781,7 +892,7 @@ function Library:CreateWindow(Config)
     Library:FlatFill(Outer, Color3.fromRGB(16, 16, 16), 0.7, 0)
 
     local TitleBar = Library:Create('Frame', { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Parent = Outer })
-    Library:MakeDraggable(TitleBar)
+    Library:MakeDraggable(TitleBar, Outer)
     Library:CreateLabel({ Position = UDim2.new(0, 10, 0, 0), Size = UDim2.new(1, -20, 1, 0), Text = Config.Title, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar })
     Library:Create('Frame', { BackgroundColor3 = Library.AccentColor, BorderSizePixel = 0, Position = UDim2.new(0, 8, 1, -1), Size = UDim2.new(1, -16, 0, 1), Parent = TitleBar })
 
