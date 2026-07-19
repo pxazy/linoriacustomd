@@ -1850,6 +1850,14 @@ do
             Parent = ToggleInner;
         });
 
+        local function UpdateToggleLabelWidth()
+            local Available = Container.AbsoluteSize.X - ToggleOuter.Size.X.Offset - 6 - 2;
+            ToggleLabel.Size = UDim2.new(0, math.max(Available, 10), 1, 0);
+        end;
+
+        Container:GetPropertyChangedSignal('AbsoluteSize'):Connect(UpdateToggleLabelWidth);
+        task.spawn(UpdateToggleLabelWidth);
+
         Library:Create('UIListLayout', {
             Padding = UDim.new(0, 4);
             FillDirection = Enum.FillDirection.Horizontal;
