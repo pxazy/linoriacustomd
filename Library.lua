@@ -311,12 +311,11 @@ function Library:GetTextBounds(Text, Font, Size, Resolution)
 end;
 
 function Library:GetDarkerColor(Color)
-    local H, S, V = Color3.toHSV(Color);
-    return Color3.fromHSV(H, S, V / 1.5);
+    return Color:Lerp(Color3.new(0, 0, 0), 0.35);
 end;
 
 function Library:GetLighterColor(Color)
-    return Color:Lerp(Color3.new(1, 1, 1), 0.22);
+    return Color:Lerp(Color3.new(1, 1, 1), 0.4);
 end;
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
 
@@ -432,6 +431,15 @@ do
             Parent = ToggleLabel;
         });
 
+        local DisplayFrameGloss = Library:Create('UIGradient', {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Library:GetLighterColor(ColorPicker.Value)),
+                ColorSequenceKeypoint.new(1, Library:GetDarkerColor(ColorPicker.Value))
+            });
+            Rotation = 90;
+            Parent = DisplayFrame;
+        });
+
         local CheckerFrame = Library:Create('ImageLabel', {
             BorderSizePixel = 0;
             Size = UDim2.new(0, 21, 0, 11);
@@ -476,9 +484,11 @@ do
         local HighlightGradient = Library:Create('UIGradient', {
             Color = ColorSequence.new(Library.AccentColor);
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.6),
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(0.12, 0.35),
                 NumberSequenceKeypoint.new(0.5, 0),
-                NumberSequenceKeypoint.new(1, 0.6),
+                NumberSequenceKeypoint.new(0.88, 0.35),
+                NumberSequenceKeypoint.new(1, 1),
             });
             Parent = Highlight;
         });
@@ -843,6 +853,11 @@ do
                 BackgroundColor3 = ColorPicker.Value;
                 BackgroundTransparency = ColorPicker.Transparency;
                 BorderColor3 = Library:GetDarkerColor(ColorPicker.Value);
+            });
+
+            DisplayFrameGloss.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Library:GetLighterColor(ColorPicker.Value)),
+                ColorSequenceKeypoint.new(1, Library:GetDarkerColor(ColorPicker.Value))
             });
 
             if TransparencyBoxInner then
@@ -2869,9 +2884,11 @@ do
     local ColorFrameGradient = Library:Create('UIGradient', {
         Color = ColorSequence.new(Library.AccentColor);
         Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.6),
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.12, 0.35),
             NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(1, 0.6),
+            NumberSequenceKeypoint.new(0.88, 0.35),
+            NumberSequenceKeypoint.new(1, 1),
         });
         Parent = ColorFrame;
     });
@@ -3087,9 +3104,11 @@ function Library:CreateWindow(...)
             ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 200)),
         });
         Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.5),
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.12, 0.35),
             NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(1, 0.5),
+            NumberSequenceKeypoint.new(0.88, 0.35),
+            NumberSequenceKeypoint.new(1, 1),
         });
         Parent = TopGlow;
     });
@@ -3243,9 +3262,11 @@ function Library:CreateWindow(...)
             Color = ColorSequence.new(Library.AccentColor);
             Rotation = 90;
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.6),
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(0.12, 0.35),
                 NumberSequenceKeypoint.new(0.5, 0),
-                NumberSequenceKeypoint.new(1, 0.6),
+                NumberSequenceKeypoint.new(0.88, 0.35),
+                NumberSequenceKeypoint.new(1, 1),
             });
             Parent = AccentBar;
         });
@@ -3379,9 +3400,11 @@ function Library:CreateWindow(...)
             local HighlightGradient = Library:Create('UIGradient', {
                 Color = ColorSequence.new(Library.AccentColor);
                 Transparency = NumberSequence.new({
-                    NumberSequenceKeypoint.new(0, 0.6),
+                    NumberSequenceKeypoint.new(0, 1),
+                    NumberSequenceKeypoint.new(0.12, 0.35),
                     NumberSequenceKeypoint.new(0.5, 0),
-                    NumberSequenceKeypoint.new(1, 0.6),
+                    NumberSequenceKeypoint.new(0.88, 0.35),
+                    NumberSequenceKeypoint.new(1, 1),
                 });
                 Parent = Highlight;
             });
@@ -3491,9 +3514,11 @@ function Library:CreateWindow(...)
             local HighlightGradient = Library:Create('UIGradient', {
                 Color = ColorSequence.new(Library.AccentColor);
                 Transparency = NumberSequence.new({
-                    NumberSequenceKeypoint.new(0, 0.6),
+                    NumberSequenceKeypoint.new(0, 1),
+                    NumberSequenceKeypoint.new(0.12, 0.35),
                     NumberSequenceKeypoint.new(0.5, 0),
-                    NumberSequenceKeypoint.new(1, 0.6),
+                    NumberSequenceKeypoint.new(0.88, 0.35),
+                    NumberSequenceKeypoint.new(1, 1),
                 });
                 Parent = Highlight;
             });
