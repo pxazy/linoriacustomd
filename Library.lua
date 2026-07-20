@@ -316,8 +316,7 @@ function Library:GetDarkerColor(Color)
 end;
 
 function Library:GetLighterColor(Color)
-    local H, S, V = Color3.toHSV(Color);
-    return Color3.fromHSV(H, S * 0.6, math.clamp(V * 1.6, 0, 1));
+    return Color:Lerp(Color3.new(1, 1, 1), 0.22);
 end;
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
 
@@ -2042,6 +2041,7 @@ do
             BackgroundColor3 = Library.MainColor;
             BorderColor3 = Library.OutlineColor;
             BorderMode = Enum.BorderMode.Inset;
+            ClipsDescendants = true;
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 6;
             Parent = SliderOuter;
@@ -2130,6 +2130,7 @@ do
             end
 
             local X = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize));
+            X = math.clamp(X, 0, SliderInner.AbsoluteSize.X > 0 and SliderInner.AbsoluteSize.X or Slider.MaxSize);
             Fill.Size = UDim2.new(0, X, 1, 0);
 
             HideBorderRight.Visible = not (X == Slider.MaxSize or X == 0);
@@ -2858,15 +2859,27 @@ do
     }, true);
 
     local ColorFrame = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
+        BackgroundColor3 = Color3.new(1, 1, 1);
         BorderSizePixel = 0;
         Size = UDim2.new(1, 0, 0, 2);
         ZIndex = 102;
         Parent = KeybindInner;
     });
 
-    Library:AddToRegistry(ColorFrame, {
-        BackgroundColor3 = 'AccentColor';
+    local ColorFrameGradient = Library:Create('UIGradient', {
+        Color = ColorSequence.new(Library.AccentColor);
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.6),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 0.6),
+        });
+        Parent = ColorFrame;
+    });
+
+    Library:AddToRegistry(ColorFrameGradient, {
+        Color = function()
+            return ColorSequence.new(Library.AccentColor)
+        end
     }, true);
 
     local KeybindLabel = Library:CreateLabel({
@@ -3022,7 +3035,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(640, 560) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(680, 560) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3048,8 +3061,7 @@ function Library:CreateWindow(...)
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
-        BorderMode = Enum.BorderMode.Inset;
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 1, 0, 1);
         Size = UDim2.new(1, -2, 1, -2);
         ZIndex = 1;
@@ -3058,7 +3070,6 @@ function Library:CreateWindow(...)
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'AccentColor';
     });
 
     local TopGlow = Library:Create('Frame', {
@@ -3120,7 +3131,7 @@ function Library:CreateWindow(...)
         BackgroundColor3 = 'BackgroundColor';
     });
 
-    local SideBarWidth = 40;
+    local SideBarWidth = 48;
 
     local SideBarOuter = Library:Create('Frame', {
         BackgroundColor3 = Color3.new(0, 0, 0);
@@ -3219,7 +3230,7 @@ function Library:CreateWindow(...)
         end
 
         local AccentBar = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
+            BackgroundColor3 = Color3.new(1, 1, 1);
             BorderSizePixel = 0;
             Position = UDim2.new(0, -3, 0, 0);
             Size = UDim2.new(0, 2, 1, 0);
@@ -3228,8 +3239,21 @@ function Library:CreateWindow(...)
             Parent = TabButton;
         });
 
-        Library:AddToRegistry(AccentBar, {
-            BackgroundColor3 = 'AccentColor';
+        local AccentBarGradient = Library:Create('UIGradient', {
+            Color = ColorSequence.new(Library.AccentColor);
+            Rotation = 90;
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.6),
+                NumberSequenceKeypoint.new(0.5, 0),
+                NumberSequenceKeypoint.new(1, 0.6),
+            });
+            Parent = AccentBar;
+        });
+
+        Library:AddToRegistry(AccentBarGradient, {
+            Color = function()
+                return ColorSequence.new(Library.AccentColor)
+            end
         });
 
         local TabFrame = Library:Create('Frame', {
