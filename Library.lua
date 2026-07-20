@@ -467,11 +467,27 @@ do
         });
 
         local Highlight = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
+            BackgroundColor3 = Color3.new(1, 1, 1);
             BorderSizePixel = 0;
             Size = UDim2.new(1, 0, 0, 2);
             ZIndex = 17;
             Parent = PickerFrameInner;
+        });
+
+        local HighlightGradient = Library:Create('UIGradient', {
+            Color = ColorSequence.new(Library.AccentColor);
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.6),
+                NumberSequenceKeypoint.new(0.5, 0),
+                NumberSequenceKeypoint.new(1, 0.6),
+            });
+            Parent = Highlight;
+        });
+
+        Library:AddToRegistry(HighlightGradient, {
+            Color = function()
+                return ColorSequence.new(Library.AccentColor)
+            end
         });
 
         local SatVibMapOuter = Library:Create('Frame', {
@@ -779,7 +795,6 @@ do
         end
 
         Library:AddToRegistry(PickerFrameInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor'; });
-        Library:AddToRegistry(Highlight, { BackgroundColor3 = 'AccentColor'; });
         Library:AddToRegistry(SatVibMapInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor'; });
 
         Library:AddToRegistry(HueBoxInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; });
@@ -1435,13 +1450,22 @@ do
                 Parent = Inner;
             });
 
-            Library:Create('UIGradient', {
+            local GlossGradient = Library:Create('UIGradient', {
                 Color = ColorSequence.new({
                     ColorSequenceKeypoint.new(0, Library:GetLighterColor(Library.MainColor)),
                     ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
                 });
                 Rotation = 90;
                 Parent = Inner;
+            });
+
+            Library:AddToRegistry(GlossGradient, {
+                Color = function()
+                    return ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Library:GetLighterColor(Library.MainColor)),
+                        ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
+                    });
+                end
             });
 
             Library:AddToRegistry(Outer, {
@@ -1669,13 +1693,22 @@ do
             Library:AddToolTip(Info.Tooltip, TextBoxOuter)
         end
 
-        Library:Create('UIGradient', {
+        local TextBoxGloss = Library:Create('UIGradient', {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Library:GetLighterColor(Library.MainColor)),
                 ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
             });
             Rotation = 90;
             Parent = TextBoxInner;
+        });
+
+        Library:AddToRegistry(TextBoxGloss, {
+            Color = function()
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Library:GetLighterColor(Library.MainColor)),
+                    ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
+                });
+            end
         });
 
         local Container = Library:Create('Frame', {
@@ -2102,6 +2135,14 @@ do
             HideBorderRight.Visible = not (X == Slider.MaxSize or X == 0);
         end;
 
+        local function UpdateSliderMaxSize()
+            Slider.MaxSize = math.max(SliderInner.AbsoluteSize.X, 10);
+            Slider:Display();
+        end;
+
+        SliderInner:GetPropertyChangedSignal('AbsoluteSize'):Connect(UpdateSliderMaxSize);
+        task.spawn(UpdateSliderMaxSize);
+
         function Slider:OnChanged(Func)
             Slider.Changed = Func;
             Func(Slider.Value);
@@ -2249,13 +2290,22 @@ do
             BorderColor3 = 'OutlineColor';
         });
 
-        Library:Create('UIGradient', {
+        local DropdownGloss = Library:Create('UIGradient', {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Library:GetLighterColor(Library.MainColor)),
                 ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
             });
             Rotation = 90;
             Parent = DropdownInner;
+        });
+
+        Library:AddToRegistry(DropdownGloss, {
+            Color = function()
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Library:GetLighterColor(Library.MainColor)),
+                    ColorSequenceKeypoint.new(1, Library:GetDarkerColor(Library.MainColor))
+                });
+            end
         });
 
         local DropdownArrow = Library:Create('ImageLabel', {
@@ -2972,7 +3022,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(560, 560) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(640, 560) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3070,7 +3120,7 @@ function Library:CreateWindow(...)
         BackgroundColor3 = 'BackgroundColor';
     });
 
-    local SideBarWidth = 34;
+    local SideBarWidth = 40;
 
     local SideBarOuter = Library:Create('Frame', {
         BackgroundColor3 = Color3.new(0, 0, 0);
@@ -3283,6 +3333,7 @@ function Library:CreateWindow(...)
             local BoxInner = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
                 BorderColor3 = Color3.new(0, 0, 0);
+                ClipsDescendants = true;
                 Size = UDim2.new(1, -2, 1, -2);
                 Position = UDim2.new(0, 1, 0, 1);
                 ZIndex = 4;
@@ -3394,6 +3445,7 @@ function Library:CreateWindow(...)
             local BoxInner = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
                 BorderColor3 = Color3.new(0, 0, 0);
+                ClipsDescendants = true;
                 Size = UDim2.new(1, -2, 1, -2);
                 Position = UDim2.new(0, 1, 0, 1);
                 ZIndex = 4;
@@ -3405,15 +3457,27 @@ function Library:CreateWindow(...)
             });
 
             local Highlight = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
+                BackgroundColor3 = Color3.new(1, 1, 1);
                 BorderSizePixel = 0;
                 Size = UDim2.new(1, 0, 0, 2);
                 ZIndex = 10;
                 Parent = BoxInner;
             });
 
-            Library:AddToRegistry(Highlight, {
-                BackgroundColor3 = 'AccentColor';
+            local HighlightGradient = Library:Create('UIGradient', {
+                Color = ColorSequence.new(Library.AccentColor);
+                Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0, 0.6),
+                    NumberSequenceKeypoint.new(0.5, 0),
+                    NumberSequenceKeypoint.new(1, 0.6),
+                });
+                Parent = Highlight;
+            });
+
+            Library:AddToRegistry(HighlightGradient, {
+                Color = function()
+                    return ColorSequence.new(Library.AccentColor)
+                end
             });
 
             local TabboxButtons = Library:Create('Frame', {
