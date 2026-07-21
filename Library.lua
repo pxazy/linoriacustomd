@@ -39,8 +39,8 @@ local Library = {
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code;
 
-    GlossLight = Color3.fromRGB(80, 80, 80);
-    GlossDark = Color3.fromRGB(10, 10, 10);
+    GlossLight = Color3.fromRGB(210, 210, 210);
+    GlossDark = Color3.fromRGB(8, 8, 8);
 
     OpenedFrames = {};
     DependencyBoxes = {};
