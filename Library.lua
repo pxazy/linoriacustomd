@@ -485,9 +485,9 @@ do
             Color = ColorSequence.new(Library.AccentColor);
             Transparency = NumberSequence.new({
                 NumberSequenceKeypoint.new(0, 1),
-                NumberSequenceKeypoint.new(0.12, 0.35),
+                NumberSequenceKeypoint.new(0.2, 0.25),
                 NumberSequenceKeypoint.new(0.5, 0),
-                NumberSequenceKeypoint.new(0.88, 0.35),
+                NumberSequenceKeypoint.new(0.8, 0.25),
                 NumberSequenceKeypoint.new(1, 1),
             });
             Parent = Highlight;
@@ -1447,6 +1447,11 @@ do
                 ZIndex = 5;
             });
 
+            Library:Create('UICorner', {
+                CornerRadius = UDim.new(0, 4);
+                Parent = Outer;
+            });
+
             local Inner = Library:Create('Frame', {
                 BackgroundColor3 = Library.MainColor;
                 BorderColor3 = Library.OutlineColor;
@@ -1454,6 +1459,11 @@ do
                 Size = UDim2.new(1, 0, 1, 0);
                 ZIndex = 6;
                 Parent = Outer;
+            });
+
+            Library:Create('UICorner', {
+                CornerRadius = UDim.new(0, 4);
+                Parent = Inner;
             });
 
             local Label = Library:CreateLabel({
@@ -1855,9 +1865,14 @@ do
         local ToggleOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
             BorderColor3 = Color3.new(0, 0, 0);
-            Size = UDim2.new(0, 13, 0, 13);
+            Size = UDim2.new(0, 11, 0, 11);
             ZIndex = 5;
             Parent = Container;
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 3);
+            Parent = ToggleOuter;
         });
 
         Library:AddToRegistry(ToggleOuter, {
@@ -1871,6 +1886,11 @@ do
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 6;
             Parent = ToggleOuter;
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 3);
+            Parent = ToggleInner;
         });
 
         Library:AddToRegistry(ToggleInner, {
@@ -2786,7 +2806,7 @@ do
     });
 
     local WatermarkOuter = Library:Create('Frame', {
-        BorderColor3 = Color3.new(0, 0, 0);
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 100, 0, -25);
         Size = UDim2.new(0, 213, 0, 20);
         ZIndex = 200;
@@ -2796,15 +2816,40 @@ do
 
     local WatermarkInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
-        BorderMode = Enum.BorderMode.Inset;
+        BorderSizePixel = 0;
         Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 201;
         Parent = WatermarkOuter;
     });
 
     Library:AddToRegistry(WatermarkInner, {
-        BorderColor3 = 'AccentColor';
+        BackgroundColor3 = 'MainColor';
+    });
+
+    local WatermarkGlow = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Size = UDim2.new(1, 0, 0, 2);
+        ZIndex = 202;
+        Parent = WatermarkInner;
+    });
+
+    local WatermarkGlowGradient = Library:Create('UIGradient', {
+        Color = ColorSequence.new(Library.AccentColor);
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.2, 0.25),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(0.8, 0.25),
+            NumberSequenceKeypoint.new(1, 1),
+        });
+        Parent = WatermarkGlow;
+    });
+
+    Library:AddToRegistry(WatermarkGlowGradient, {
+        Color = function()
+            return ColorSequence.new(Library.AccentColor)
+        end
     });
 
     local InnerFrame = Library:Create('Frame', {
@@ -2851,7 +2896,7 @@ do
 
     local KeybindOuter = Library:Create('Frame', {
         AnchorPoint = Vector2.new(0, 0.5);
-        BorderColor3 = Color3.new(0, 0, 0);
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 10, 0.5, 0);
         Size = UDim2.new(0, 210, 0, 20);
         Visible = false;
@@ -2861,8 +2906,7 @@ do
 
     local KeybindInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        BorderMode = Enum.BorderMode.Inset;
+        BorderSizePixel = 0;
         Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 101;
         Parent = KeybindOuter;
@@ -2870,7 +2914,6 @@ do
 
     Library:AddToRegistry(KeybindInner, {
         BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'OutlineColor';
     }, true);
 
     local ColorFrame = Library:Create('Frame', {
@@ -2885,9 +2928,9 @@ do
         Color = ColorSequence.new(Library.AccentColor);
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.12, 0.35),
+            NumberSequenceKeypoint.new(0.2, 0.25),
             NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(0.88, 0.35),
+            NumberSequenceKeypoint.new(0.8, 0.25),
             NumberSequenceKeypoint.new(1, 1),
         });
         Parent = ColorFrame;
@@ -2901,8 +2944,8 @@ do
 
     local KeybindLabel = Library:CreateLabel({
         Size = UDim2.new(1, 0, 0, 20);
-        Position = UDim2.fromOffset(5, 2),
-        TextXAlignment = Enum.TextXAlignment.Left,
+        Position = UDim2.fromOffset(0, 2),
+        TextXAlignment = Enum.TextXAlignment.Center,
 
         Text = 'Keybinds';
         ZIndex = 104;
@@ -3098,19 +3141,21 @@ function Library:CreateWindow(...)
     });
 
     local TopGlowGradient = Library:Create('UIGradient', {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 200, 255)),
-            ColorSequenceKeypoint.new(0.5, Library.AccentColor),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 200)),
-        });
+        Color = ColorSequence.new(Library.AccentColor);
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.12, 0.35),
+            NumberSequenceKeypoint.new(0.2, 0.25),
             NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(0.88, 0.35),
+            NumberSequenceKeypoint.new(0.8, 0.25),
             NumberSequenceKeypoint.new(1, 1),
         });
         Parent = TopGlow;
+    });
+
+    Library:AddToRegistry(TopGlowGradient, {
+        Color = function()
+            return ColorSequence.new(Library.AccentColor)
+        end
     });
 
     local WindowLabel = Library:CreateLabel({
@@ -3263,9 +3308,9 @@ function Library:CreateWindow(...)
             Rotation = 90;
             Transparency = NumberSequence.new({
                 NumberSequenceKeypoint.new(0, 1),
-                NumberSequenceKeypoint.new(0.12, 0.35),
+                NumberSequenceKeypoint.new(0.2, 0.25),
                 NumberSequenceKeypoint.new(0.5, 0),
-                NumberSequenceKeypoint.new(0.88, 0.35),
+                NumberSequenceKeypoint.new(0.8, 0.25),
                 NumberSequenceKeypoint.new(1, 1),
             });
             Parent = AccentBar;
@@ -3401,9 +3446,9 @@ function Library:CreateWindow(...)
                 Color = ColorSequence.new(Library.AccentColor);
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1),
-                    NumberSequenceKeypoint.new(0.12, 0.35),
+                    NumberSequenceKeypoint.new(0.2, 0.25),
                     NumberSequenceKeypoint.new(0.5, 0),
-                    NumberSequenceKeypoint.new(0.88, 0.35),
+                    NumberSequenceKeypoint.new(0.8, 0.25),
                     NumberSequenceKeypoint.new(1, 1),
                 });
                 Parent = Highlight;
@@ -3515,9 +3560,9 @@ function Library:CreateWindow(...)
                 Color = ColorSequence.new(Library.AccentColor);
                 Transparency = NumberSequence.new({
                     NumberSequenceKeypoint.new(0, 1),
-                    NumberSequenceKeypoint.new(0.12, 0.35),
+                    NumberSequenceKeypoint.new(0.2, 0.25),
                     NumberSequenceKeypoint.new(0.5, 0),
-                    NumberSequenceKeypoint.new(0.88, 0.35),
+                    NumberSequenceKeypoint.new(0.8, 0.25),
                     NumberSequenceKeypoint.new(1, 1),
                 });
                 Parent = Highlight;
