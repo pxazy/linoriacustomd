@@ -39,9 +39,6 @@ local Library = {
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Code;
 
-    GlossLight = Color3.fromRGB(210, 210, 210);
-    GlossDark = Color3.fromRGB(8, 8, 8);
-
     OpenedFrames = {};
     DependencyBoxes = {};
 
@@ -321,6 +318,16 @@ function Library:GetLighterColor(Color)
     return Color:Lerp(Color3.new(1, 1, 1), 0.4);
 end;
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
+
+function Library:GetGlossColors(Base)
+    local H, S, V = Color3.toHSV(Base);
+
+    if V < 0.5 then
+        return Base:Lerp(Color3.new(1, 1, 1), 0.5), Base:Lerp(Color3.new(0, 0, 0), 0.35);
+    else
+        return Base:Lerp(Color3.new(1, 1, 1), 0.18), Base:Lerp(Color3.new(0, 0, 0), 0.55);
+    end;
+end;
 
 function Library:AddToRegistry(Instance, Properties, IsHud)
     local Idx = #Library.Registry + 1;
@@ -1467,13 +1474,23 @@ do
                 Parent = Inner;
             });
 
-            Library:Create('UIGradient', {
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Library.GlossLight),
-                    ColorSequenceKeypoint.new(1, Library.GlossDark)
-                });
+            local GlossGradient = Library:Create('UIGradient', {
                 Rotation = 90;
                 Parent = Inner;
+            });
+
+            local function UpdateGloss()
+                local Light, Dark = Library:GetGlossColors(Library.MainColor);
+                GlossGradient.Color = ColorSequence.new(Light, Dark);
+            end;
+
+            UpdateGloss();
+
+            Library:AddToRegistry(GlossGradient, {
+                Color = function()
+                    local Light, Dark = Library:GetGlossColors(Library.MainColor);
+                    return ColorSequence.new(Light, Dark);
+                end
             });
 
             Library:AddToRegistry(Outer, {
@@ -1701,13 +1718,21 @@ do
             Library:AddToolTip(Info.Tooltip, TextBoxOuter)
         end
 
-        Library:Create('UIGradient', {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library.GlossLight),
-                ColorSequenceKeypoint.new(1, Library.GlossDark)
-            });
+        local TextBoxGlossGradient = Library:Create('UIGradient', {
             Rotation = 90;
             Parent = TextBoxInner;
+        });
+
+        do
+            local Light, Dark = Library:GetGlossColors(Library.MainColor);
+            TextBoxGlossGradient.Color = ColorSequence.new(Light, Dark);
+        end;
+
+        Library:AddToRegistry(TextBoxGlossGradient, {
+            Color = function()
+                local Light, Dark = Library:GetGlossColors(Library.MainColor);
+                return ColorSequence.new(Light, Dark);
+            end
         });
 
         local Container = Library:Create('Frame', {
@@ -1932,10 +1957,8 @@ do
                 });
                 ToggleGradient.Transparency = NumberSequence.new(0);
             else
-                ToggleGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Library.GlossLight),
-                    ColorSequenceKeypoint.new(1, Library.GlossDark)
-                });
+                local Light, Dark = Library:GetGlossColors(Library.MainColor);
+                ToggleGradient.Color = ColorSequence.new(Light, Dark);
                 ToggleGradient.Transparency = NumberSequence.new(0);
             end;
         end;
@@ -2291,13 +2314,21 @@ do
             BorderColor3 = 'OutlineColor';
         });
 
-        Library:Create('UIGradient', {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Library.GlossLight),
-                ColorSequenceKeypoint.new(1, Library.GlossDark)
-            });
+        local DropdownGlossGradient = Library:Create('UIGradient', {
             Rotation = 90;
             Parent = DropdownInner;
+        });
+
+        do
+            local Light, Dark = Library:GetGlossColors(Library.MainColor);
+            DropdownGlossGradient.Color = ColorSequence.new(Light, Dark);
+        end;
+
+        Library:AddToRegistry(DropdownGlossGradient, {
+            Color = function()
+                local Light, Dark = Library:GetGlossColors(Library.MainColor);
+                return ColorSequence.new(Light, Dark);
+            end
         });
 
         local DropdownArrow = Library:Create('ImageLabel', {
