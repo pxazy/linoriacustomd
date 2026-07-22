@@ -2338,7 +2338,7 @@ local Library do
                 Position = UDim2New(1, -2, 0.5, 0),
                 Size = UDim2New(0, 14, 1, -2),
                 BorderSizePixel = 0,
-                Rotation = 0,
+                Rotation = -90,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })  
 
@@ -2456,7 +2456,7 @@ local Library do
                 Items["OptionHolder"].Instance.Visible = true
                 Items["OptionHolder"].Instance.ZIndex = 1001
 
-                Items["OpenIcon"]:Tween(TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Rotation = 180})
+                Items["OpenIcon"].Instance.Rotation = 0
 
                 for Index, Value in Items["OptionHolder"].Instance:GetDescendants() do 
                     if not StringFind(Value.ClassName, "UI") then 
@@ -2470,7 +2470,7 @@ local Library do
                 Items["OptionHolder"].Instance.Visible = false
                 Items["OptionHolder"].Instance.ZIndex = 1
 
-                Items["OpenIcon"]:Tween(TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Rotation = 0})
+                Items["OpenIcon"].Instance.Rotation = -90
 
                 for Index, Value in Items["OptionHolder"].Instance:GetDescendants() do
                     if not StringFind(Value.ClassName, "UI") then 
@@ -2654,15 +2654,7 @@ local Library do
 
             IsOpen = false,
 
-            Pages = { },
-
-            Flag = Data.Flag,
-
-            OnAnimationChanged = nil,
-
-            CurrentAnimation = "",
-            AnimationIntensity = 0,
-            AnimationSpeed = 0
+            Flag = Data.Flag
         }
 
         Library.Flags[Colorpicker.Flag] = { }
@@ -2717,7 +2709,7 @@ local Library do
 
             Items["ColorpickerWindow"] = Components.Window({
                 Position = UDim2New(0, Camera.ViewportSize.X / 3, 0, Camera.ViewportSize.Y / 3),
-                Size = UDim2New(0, 263, 0, 243),
+                Size = UDim2New(0, 220, 0, 232),
                 Parent = Library.Holder,
                 Visible = false,
                 IsTextButton = true,
@@ -2726,98 +2718,16 @@ local Library do
 
             Items["ColorpickerWindow"]["Outline"].Instance.Visible = false
 
-            Items["Pages"] = Instances:Create("Frame", {
-                Parent = Items["ColorpickerWindow"]["Inline"].Instance,
-                Name = "\0",
-                Position = UDim2New(0.12, -12, 0, 12),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(0.875, -2, 0, 37),
-                BorderSizePixel = 2,
-                BackgroundColor3 = FromRGB(13, 13, 13)
-            })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
-
-            Instances:Create("UIStroke", {
-                Parent = Items["Pages"].Instance,
-                Color = FromRGB(68, 68, 68),
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            }):AddToTheme({Color = "Border"})
-
-            Items["RealHolder"] = Instances:Create("Frame", {
-                Parent = Items["Pages"].Instance,
-                Name = "\0",
-                BackgroundTransparency = 1,
-                Position = UDim2New(0, 7, 0, 0),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(1, -14, 1, 0),
-                BorderSizePixel = 0,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            }) 
-
-            Instances:Create("UIListLayout", {
-                Parent = Items["RealHolder"].Instance,
-                VerticalAlignment = Enum.VerticalAlignment.Center,
-                FillDirection = Enum.FillDirection.Horizontal,
-                HorizontalFlex = Enum.UIFlexAlignment.Fill,
-                Padding = UDimNew(0, 15),
-                SortOrder = Enum.SortOrder.LayoutOrder
-            }) 
-
-            Items["Content"] = Instances:Create("Frame", {
-                Parent = Items["ColorpickerWindow"]["Inline"].Instance,
-                Name = "\0",
-                Position = UDim2New(0.12, -12, 0, 60),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(0.875, -2, 1, -69),
-                BorderSizePixel = 2,
-                BackgroundColor3 = FromRGB(13, 13, 13)
-            })  Items["Content"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
-
-            Instances:Create("UIStroke", {
-                Parent = Items["Content"].Instance,
-                Color = FromRGB(68, 68, 68),
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            }):AddToTheme({Color = "Border"})
-
-            local PickingPage, PickingPageItems = Components.Page({
-                HasColumns = false,
-                PageHolder = Items["RealHolder"],
-                Name = "Picking",
-                PagesTable = Colorpicker.Pages,
-                ContentHolder =  Items["Content"],
-            })
-
-            local LerpingPage, LerpingPageItems = Components.Page({
-                HasColumns = false,
-                PageHolder = Items["RealHolder"],
-                Name = "Lerping",
-                PagesTable = Colorpicker.Pages,
-                ContentHolder =  Items["Content"],
-            })
-
-            LerpingPageItems["Page"].Instance.Visible = false
-
-            local ColorsPage, ColorsPageItems = Components.Page({
-                HasColumns = false,
-                PageHolder = Items["RealHolder"],
-                Name = "Colors",
-                PagesTable = Colorpicker.Pages,
-                ContentHolder =  Items["Content"],
-            })
-
-            ColorsPageItems["Page"].Instance.Visible = false
-
             Items["Palette"] = Instances:Create("TextButton", {
-                Parent = PickingPageItems["Page"].Instance,
+                Parent = Items["ColorpickerWindow"]["Inline"].Instance,
                 FontFace = Library.Font,
                 TextColor3 = FromRGB(0, 0, 0),
                 BorderColor3 = FromRGB(0, 0, 0),
                 Text = "",
                 AutoButtonColor = false,
                 Name = "\0",
-                Position = UDim2New(0.05, 2, 0.07, -2),
-                Size = UDim2New(0.9, -4, 0.67, 0),
+                Position = UDim2New(0.05, 2, 0.06, 0),
+                Size = UDim2New(0.9, -4, 0.5, 0),
                 BorderSizePixel = 0,
                 TextSize = 14,
                 BackgroundColor3 = FromRGB(31, 226, 130)
@@ -2866,16 +2776,49 @@ local Library do
                 BackgroundColor3 = FromRGB(255, 255, 255)
             }) 
 
+            Items["Hue"] = Instances:Create("ImageButton", {
+                Parent = Items["ColorpickerWindow"]["Inline"].Instance,
+                BorderColor3 = FromRGB(0, 0, 0),
+                AutoButtonColor = false,
+                Image = Library:GetImage("Hue"),
+                Name = "\0",
+                Position = UDim2New(0.05, 2, 0.6, 4),
+                Size = UDim2New(0.9, -4, 0, 15),
+                BorderSizePixel = 0,
+                BackgroundColor3 = FromRGB(255, 255, 255)
+            }) 
+
+            Instances:Create("UIStroke", {
+                Parent = Items["Hue"].Instance,
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                LineJoinMode = Enum.LineJoinMode.Miter
+            }):AddToTheme({Color = "Outline"})
+
+            Items["HueDragger"] = Instances:Create("Frame", {
+                Parent = Items["Hue"].Instance,
+                Name = "\0",
+                BorderColor3 = FromRGB(0, 0, 0),
+                Size = UDim2New(0, 1, 1, 0),
+                BorderSizePixel = 0,
+                BackgroundColor3 = FromRGB(255, 255, 255)
+            }) 
+
+            Instances:Create("UIStroke", {
+                Parent = Items["HueDragger"].Instance,
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                LineJoinMode = Enum.LineJoinMode.Miter
+            }):AddToTheme({Color = "Outline"})
+
             Items["Alpha"] = Instances:Create("TextButton", {
-                Parent = PickingPageItems["Page"].Instance,
+                Parent = Items["ColorpickerWindow"]["Inline"].Instance,
                 FontFace = Library.Font,
                 TextColor3 = FromRGB(0, 0, 0),
                 BorderColor3 = FromRGB(0, 0, 0),
                 Text = "",
                 AutoButtonColor = false,
                 Name = "\0",
-                Position = UDim2New(0.05, 2, 1, -22),
-                Size = UDim2New(0.9, -4, 0.1, -3),
+                Position = UDim2New(0.05, 2, 0.7, 8),
+                Size = UDim2New(0.9, -4, 0, 15),
                 BorderSizePixel = 0,
                 TextSize = 14,
                 BackgroundColor3 = FromRGB(31, 226, 130)
@@ -2920,181 +2863,15 @@ local Library do
                 LineJoinMode = Enum.LineJoinMode.Miter
             }):AddToTheme({Color = "Outline"})
 
-            Items["Hue"] = Instances:Create("ImageButton", {
-                Parent = PickingPageItems["Page"].Instance,
-                BorderColor3 = FromRGB(0, 0, 0),
-                AutoButtonColor = false,
-                Image = Library:GetImage("Hue"),
-                Name = "\0",
-                Position = UDim2New(0.05, 2, 1, -40),
-                Size = UDim2New(0.9, -4, 0.1, -3),
-                BorderSizePixel = 0,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            }) 
-
-            Instances:Create("UIStroke", {
-                Parent = Items["Hue"].Instance,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                LineJoinMode = Enum.LineJoinMode.Miter
-            }):AddToTheme({Color = "Outline"})
-
-            Items["HueDragger"] = Instances:Create("Frame", {
-                Parent = Items["Hue"].Instance,
-                Name = "\0",
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(0, 1, 1, 0),
-                BorderSizePixel = 0,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            }) 
-
-            Instances:Create("UIStroke", {
-                Parent = Items["HueDragger"].Instance,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                LineJoinMode = Enum.LineJoinMode.Miter
-            }):AddToTheme({Color = "Outline"})
-
-            local AnimationIntensitySlider
-            local AnimationIntensitySliderItems
-
-            local AnimationSpeedSlider 
-            local AnimationSpeedSliderItems
-
-            local AnimationModeDropdown, AnimationModeDropdownItems = Components.Dropdown({
-                Parent = LerpingPageItems["Page"],
-                Name = "Animation",
-                Flag = Colorpicker.Flag .. "AnimationModeDropdown",
-                Items = { "Rainbow", "Fade Alpha" },
-                MaxSize = 50,
-                Default = nil,
-                Callback = function(Value)
-                    Colorpicker.CurrentAnimation = Value
-
-                    if Colorpicker.OnAnimationChanged then 
-                        Colorpicker.OnAnimationChanged(Value)
-                    end
-
-                    if Value == "Fade Alpha" and AnimationIntensitySlider and AnimationSpeedSlider then 
-                        AnimationIntensitySlider:SetVisibility(true)
-                        AnimationSpeedSlider:SetVisibility(true)
-                        AnimationSpeedSliderItems["Slider"].Instance.Position = UDim2New(0, 8, 0, 55)
-                    elseif Value == "Rainbow" and AnimationIntensitySlider and  AnimationSpeedSlider then
-                        AnimationIntensitySlider:SetVisibility(false)
-                        AnimationSpeedSlider:SetVisibility(true)
-                        AnimationSpeedSliderItems["Slider"].Instance.Position = UDim2New(0, 8, 0, 25)
-                    else
-                        AnimationIntensitySlider:SetVisibility(false)
-                        AnimationSpeedSlider:SetVisibility(false)
-                        AnimationSpeedSliderItems["Slider"].Instance.Position = UDim2New(0, 8, 0, 55)
-                    end
-                end,
-                Multi = false
-            })
-
-            AnimationModeDropdownItems["Dropdown"].Instance.Size = UDim2New(1, -16, 0, 17)
-            AnimationModeDropdownItems["Dropdown"].Instance.Position = UDim2New(0, 8, 0, 8)
-
-            AnimationIntensitySlider, AnimationIntensitySliderItems = Components.Slider({
-                Parent = LerpingPageItems["Page"],
-                Name = "Intensity",
-                Flag = Colorpicker.Flag .. "AnimationIntensitySlider",
-                Min = 0,
-                Max = 100,
-                Default = 50,
-                Suffix = "%",
-                Callback = function(Value)
-                    Colorpicker.CurrentAnimationIntensity = Value
-                end
-            })
-
-            AnimationIntensitySlider:SetVisibility(false)
-            AnimationIntensitySliderItems["Slider"].Instance.Size = UDim2New(1, -16, 0, 26)
-            AnimationIntensitySliderItems["Slider"].Instance.Position = UDim2New(0, 8, 0, 25)
-
-            AnimationSpeedSlider, AnimationSpeedSliderItems = Components.Slider({
-                Parent = LerpingPageItems["Page"],
-                Name = "Speed",
-                Flag = Colorpicker.Flag .. "AnimationSpeedSlider",
-                Min = 0,
-                Max = 5,
-                Decimals = 0.01,
-                Default = 0.2,
-                Suffix = "s",
-                Callback = function(Value)
-                    Colorpicker.CurrentAnimationSpeed = Value
-                end
-            })
-
-            AnimationSpeedSlider:SetVisibility(false)
-            AnimationSpeedSliderItems["Slider"].Instance.Position = UDim2New(0, 8, 0, 55)
-            AnimationSpeedSliderItems["Slider"].Instance.Size = UDim2New(1, -16, 0, 26)
-
-            Items["CurrentColor"] = Instances:Create("Frame", {
-                Parent = ColorsPageItems["Page"].Instance,
-                Name = "\0",
-                Position = UDim2New(0, 8, 0, 8),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(0, 55, 1, -16),
-                BorderSizePixel = 0,
-                BackgroundColor3 = FromRGB(31, 226, 130)
-            }) 
-
-            Instances:Create("UIStroke", {
-                Parent = Items["CurrentColor"].Instance,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                LineJoinMode = Enum.LineJoinMode.Miter
-            }):AddToTheme({Color = "Outline"})
-
-            Instances:Create("UIGradient", {
-                Parent = Items["CurrentColor"].Instance,
-                Rotation = 123,
-                Color = RGBSequence{RGBSequenceKeypoint(0, FromRGB(125, 125, 125)), RGBSequenceKeypoint(1, FromRGB(255, 255, 255))}
-            }) 
-
-            Items["RGB"] = Instances:Create("TextLabel", {
-                Parent = ColorsPageItems["Page"].Instance,
-                TextWrapped = true,
-                TextColor3 = FromRGB(180, 180, 180),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Text = "R,G,B:",
-                Name = "\0",
-                Size = UDim2New(1, -75, 0, 15),
-                Position = UDim2New(0, 70, 0, 4),
-                BorderSizePixel = 0,
-                BackgroundTransparency = 1,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                RichText = true,
-                FontFace = Library.Font,
-                TextSize = 12,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            })  Items["RGB"]:AddToTheme({TextColor3 = "Text"})
-
-            Items["HSV"] = Instances:Create("TextLabel", {
-                Parent = ColorsPageItems["Page"].Instance,
-                TextWrapped = true,
-                TextColor3 = FromRGB(180, 180, 180),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Text = "H,S,V: ",
-                Name = "\0",
-                Size = UDim2New(1, -75, 0, 15),
-                Position = UDim2New(0, 70, 0, 21),
-                BorderSizePixel = 0,
-                BackgroundTransparency = 1,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                RichText = true,
-                FontFace = Library.Font,
-                TextSize = 12,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            })  Items["HSV"]:AddToTheme({TextColor3 = "Text"})
-
             Items["Hex"] = Instances:Create("TextLabel", {
-                Parent = ColorsPageItems["Page"].Instance,
+                Parent = Items["ColorpickerWindow"]["Inline"].Instance,
                 TextWrapped = true,
                 TextColor3 = FromRGB(180, 180, 180),
                 BorderColor3 = FromRGB(0, 0, 0),
                 Text = "HEX:",
                 Name = "\0",
-                Size = UDim2New(1, -75, 0, 15),
-                Position = UDim2New(0, 70, 0, 38),
+                Size = UDim2New(0.9, -4, 0, 15),
+                Position = UDim2New(0.05, 2, 0.8, 10),
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
@@ -3106,19 +2883,19 @@ local Library do
 
             local CopyButton, CopyButtonItems = Components.Button({
                 Name = "Copy",
-                Parent = ColorsPageItems["Page"],
+                Parent = Items["ColorpickerWindow"]["Inline"],
                 Callback = function()
                     Library.CopiedColor = Colorpicker.Color
                     setclipboard(tostring(Colorpicker.Color))
                 end
             })
 
-            CopyButtonItems["Button"].Instance.Position = UDim2New(0, 70, 0, 57)
-            CopyButtonItems["Button"].Instance.Size = UDim2New(1, -75, 0, 17)
+            CopyButtonItems["Button"].Instance.Position = UDim2New(0.05, 2, 0.88, 10)
+            CopyButtonItems["Button"].Instance.Size = UDim2New(0.9, -4, 0, 17)
 
             local PasteButton, PasteButtonItems = Components.Button({
                 Name = "Paste",
-                Parent = ColorsPageItems["Page"],
+                Parent = Items["ColorpickerWindow"]["Inline"],
                 Callback = function()
                     if Library.CopiedColor then 
                         Colorpicker:Set(Library.CopiedColor, Colorpicker.Alpha)
@@ -3126,8 +2903,8 @@ local Library do
                 end
             })
 
-            PasteButtonItems["Button"].Instance.Position = UDim2New(0, 70, 0, 77)
-            PasteButtonItems["Button"].Instance.Size = UDim2New(1, -75, 0, 17)
+            PasteButtonItems["Button"].Instance.Position = UDim2New(0.05, 2, 0.95, 15)
+            PasteButtonItems["Button"].Instance.Size = UDim2New(0.9, -4, 0, 17)
         end
 
         local SlidingPalette = false
@@ -3173,19 +2950,7 @@ local Library do
             Items["Palette"]:Tween(nil, {BackgroundColor3 = FromHSV(Colorpicker.Hue, 1, 1)})
             Items["ColorpickerButton"]:Tween(nil, {BackgroundColor3 = Colorpicker.Color})
 
-            Items["CurrentColor"]:Tween(nil, {BackgroundColor3 = Colorpicker.Color})
-
-            local Red = MathFloor(Library:Round(Colorpicker.Color.R, 0.01) * 255)
-            local Green = MathFloor(Library:Round(Colorpicker.Color.G, 0.01) * 255)
-            local Blue = MathFloor(Library:Round(Colorpicker.Color.B, 0.01) * 255)
-
-            local Hue = Library:Round(Colorpicker.Hue, 0.01)
-            local Saturation = Library:Round(Colorpicker.Saturation, 0.01)
-            local Value = Library:Round(Colorpicker.Value, 0.01)
-
-            Items["RGB"].Instance.Text = "RGB: ".. Library:ToRich("".. Red .. ", ".. Green .. ", ".. Blue, Colorpicker.Color)
             Items["Hex"].Instance.Text = "HEX: ".. Library:ToRich(Colorpicker.HexValue, Colorpicker.Color)
-            Items["HSV"].Instance.Text = "HSV: ".. Library:ToRich("" .. Hue .. ", ".. Saturation .. ", ".. Value, Colorpicker.Color)
 
             Library.Flags[Colorpicker.Flag] = {
                 HexValue = Colorpicker.HexValue,
@@ -3249,8 +3014,6 @@ local Library do
             Items["ColorpickerButton"].Instance.Visible = Bool
         end
 
-        local OldColor = Colorpicker.Color
-
         function Colorpicker:SlidePalette(Input)
             if not SlidingPalette or not Input then
                 return 
@@ -3267,8 +3030,6 @@ local Library do
 
             Items["PaletteDragger"]:Tween(TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(SlideX, 0, SlideY, 0)})
             Colorpicker:Update()        
-            
-            OldColor = Colorpicker.Color
         end
 
         function Colorpicker:SlideHue(Input)
@@ -3286,8 +3047,6 @@ local Library do
             Colorpicker:Update()
         end
 
-        local OldAlpha = Colorpicker.Alpha
-
         function Colorpicker:SlideAlpha(Input)
             if not Input or not SlidingAlpha then 
                 return
@@ -3297,47 +3056,10 @@ local Library do
             
             Colorpicker.Alpha = ValueX
 
-            OldAlpha = Colorpicker.Alpha
-
             local PositionX = MathClamp((Input.Position.X - Items["Alpha"].Instance.AbsolutePosition.X) / Items["Alpha"].Instance.AbsoluteSize.X, 0, 0.994)
 
             Items["AlphaDragger"]:Tween(TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(PositionX, 0, 0, 0)})
             Colorpicker:Update(true)
-        end
-
-        Colorpicker.OnAnimationChanged = function(Value)
-            if Value == "Rainbow" then
-                OldColor = Colorpicker.Color
-                Library:Thread(function()
-                    while task.wait() do 
-                        local RainbowHue = MathAbs(MathSin(tick() * Colorpicker.CurrentAnimationSpeed))
-                        local Color = FromHSV(RainbowHue, 1, 1)
-
-                        Colorpicker:Set(Color, Colorpicker.Alpha)
-
-                        if Colorpicker.CurrentAnimation ~= "Rainbow" then
-                            Colorpicker:Set(OldColor, Colorpicker.Alpha)
-                            break
-                        end
-                    end
-                end)
-            end
-
-            if Value == "Fade Alpha" then
-                Library:Thread(function()
-                    while task.wait() do
-                        local AlphaIntensity = Colorpicker.CurrentAnimationIntensity
-                        local Alpha = MathAbs(MathSin(tick() % AlphaIntensity) * Colorpicker.CurrentAnimationSpeed)
-
-                        Colorpicker:Set(Colorpicker.Color, Alpha)
-
-                        if Colorpicker.CurrentAnimation ~= "Fade Alpha" then
-                            Colorpicker:Set(Colorpicker.Color, OldAlpha)
-                            break
-                        end
-                    end
-                end)
-            end
         end
 
         Items["ColorpickerButton"]:Connect("MouseButton1Down", function()
@@ -4253,7 +3975,7 @@ local Library do
                     UIGradient.Instance.Offset = Vector2New(GradientOffset, 0)   
                 end)
             else
-                Items["Text"]:AddToTheme({TextColor3 = "Text"})
+                Items["Text"].Instance.TextColor3 = FromRGB(255, 255, 255)
             end
 
             Items["Pages"] = Instances:Create("Frame", {
