@@ -328,55 +328,16 @@ local Library do
 
     local Themes = {
         ["Default"] = {
-            ["Window Background"] = FromRGB(43, 43, 43),
-            ["Inline"] = FromRGB(12, 12, 12),
+            ["Window Background"] = FromRGB(24, 22, 28),
+            ["Inline"] = FromRGB(10, 9, 12),
             ["Text"] = FromRGB(180, 180, 180),
-            ["Section Background"] = FromRGB(19, 19, 19),
-            ["Element"] = FromRGB(63, 63, 63),
-            ["Border"] = FromRGB(68, 68, 68),
+            ["Section Background"] = FromRGB(16, 15, 19),
+            ["Element"] = FromRGB(40, 36, 46),
+            ["Border"] = FromRGB(50, 45, 58),
             ["Outline"] = FromRGB(0, 0, 0),
-            ["Dark Liner"] = FromRGB(56, 56, 56),
+            ["Dark Liner"] = FromRGB(38, 35, 45),
             ["Risky"] = FromRGB(255, 50, 50),
-            ["Accent"] = FromRGB(31, 226, 130)
-        },
-
-        ["Bitchbot"] = {
-            ["Window Background"] = FromRGB(33, 33, 33),
-            ["Inline"] = FromRGB(14, 14, 14),
-            ["Text"] = FromRGB(255, 255, 255),
-            ["Section Background"] = FromRGB(18, 18, 18),
-            ["Element"] = FromRGB(14, 14, 14),
-            ["Border"] = FromRGB(0, 0, 0),
-            ["Outline"] = FromRGB(19, 19, 19),
-            ["Dark Liner"] = FromRGB(21, 21, 21),
-            ["Risky"] = FromRGB(255, 50, 50),
-            ["Accent"] = FromRGB(158, 79, 249)
-        },
-
-        ["Onetap"] = {
-            ["Window Background"] = FromRGB(71, 71, 71),
-            ["Inline"] = FromRGB(30, 30, 30),
-            ["Text"] = FromRGB(244, 239, 232),
-            ["Section Background"] = FromRGB(20, 20, 20),
-            ["Element"] = FromRGB(33, 33, 33),
-            ["Border"] = FromRGB(0, 0, 0),
-            ["Outline"] = FromRGB(51, 51, 51),
-            ["Dark Liner"] = FromRGB(22, 22, 20),
-            ["Risky"] = FromRGB(255, 50, 50),
-            ["Accent"] = FromRGB(237, 170, 0)
-        },
-
-        ["Aqua"] = {
-            ["Window Background"] = FromRGB(71, 84, 99),
-            ["Inline"] = FromRGB(31, 35, 39),
-            ["Text"] = FromRGB(255, 255, 255),
-            ["Section Background"] = FromRGB(22, 25, 28),
-            ["Element"] = FromRGB(58, 66, 77),
-            ["Border"] = FromRGB(48, 56, 63),
-            ["Outline"] = FromRGB(20, 25, 30),
-            ["Dark Liner"] = FromRGB(38, 45, 53),
-            ["Risky"] = FromRGB(255, 50, 50),
-            ["Accent"] = FromRGB(104, 214, 255)
+            ["Accent"] = FromRGB(88, 24, 160)
         }
     }
 
@@ -2709,7 +2670,7 @@ local Library do
 
             Items["ColorpickerWindow"] = Components.Window({
                 Position = UDim2New(0, Camera.ViewportSize.X / 3, 0, Camera.ViewportSize.Y / 3),
-                Size = UDim2New(0, 220, 0, 250),
+                Size = UDim2New(0, 220, 0, 225),
                 Parent = Library.Holder,
                 Visible = false,
                 IsTextButton = true,
@@ -2726,8 +2687,8 @@ local Library do
                 Text = "",
                 AutoButtonColor = false,
                 Name = "\0",
-                Position = UDim2New(0, 5, 0, 5),
-                Size = UDim2New(1, -10, 0, 100),
+                Position = UDim2New(0, 5, 0, 8),
+                Size = UDim2New(1, -10, 0, 95),
                 BorderSizePixel = 0,
                 TextSize = 14,
                 BackgroundColor3 = FromRGB(31, 226, 130)
@@ -2782,7 +2743,7 @@ local Library do
                 AutoButtonColor = false,
                 Image = Library:GetImage("Hue"),
                 Name = "\0",
-                Position = UDim2New(0, 5, 0, 113),
+                Position = UDim2New(0, 5, 0, 111),
                 Size = UDim2New(1, -10, 0, 15),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
@@ -2817,7 +2778,7 @@ local Library do
                 Text = "",
                 AutoButtonColor = false,
                 Name = "\0",
-                Position = UDim2New(0, 5, 0, 132),
+                Position = UDim2New(0, 5, 0, 134),
                 Size = UDim2New(1, -10, 0, 15),
                 BorderSizePixel = 0,
                 TextSize = 14,
@@ -2871,7 +2832,7 @@ local Library do
                 Text = "HEX:",
                 Name = "\0",
                 Size = UDim2New(1, -10, 0, 15),
-                Position = UDim2New(0, 5, 0, 151),
+                Position = UDim2New(0, 5, 0, 157),
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
@@ -2890,7 +2851,7 @@ local Library do
                 end
             })
 
-            CopyButtonItems["Button"].Instance.Position = UDim2New(0, 5, 0, 170)
+            CopyButtonItems["Button"].Instance.Position = UDim2New(0, 5, 0, 176)
             CopyButtonItems["Button"].Instance.Size = UDim2New(1, -10, 0, 17)
 
             local PasteButton, PasteButtonItems = Components.Button({
@@ -2903,7 +2864,7 @@ local Library do
                 end
             })
 
-            PasteButtonItems["Button"].Instance.Position = UDim2New(0, 5, 0, 191)
+            PasteButtonItems["Button"].Instance.Position = UDim2New(0, 5, 0, 197)
             PasteButtonItems["Button"].Instance.Size = UDim2New(1, -10, 0, 17)
         end
 
@@ -2973,7 +2934,7 @@ local Library do
 
             if Colorpicker.IsOpen then 
                 Debounce = true 
-                Items["ColorpickerWindow"]["Outline"].Instance.Position = UDim2New(0, Items["ColorpickerButton"].Instance.AbsolutePosition.X, 0, Items["ColorpickerButton"].Instance.AbsolutePosition.Y + 135)
+                Items["ColorpickerWindow"]["Outline"].Instance.Position = UDim2New(0, Items["ColorpickerButton"].Instance.AbsolutePosition.X, 0, Items["ColorpickerButton"].Instance.AbsolutePosition.Y + 120)
 
                 Items["ColorpickerWindow"]["Outline"].Instance.Visible = true 
                 Items["ColorpickerWindow"]["Outline"].Instance.ZIndex = 25
