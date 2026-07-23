@@ -2709,7 +2709,7 @@ local Library do
 
             Items["ColorpickerWindow"] = Components.Window({
                 Position = UDim2New(0, Camera.ViewportSize.X / 3, 0, Camera.ViewportSize.Y / 3),
-                Size = UDim2New(0, 220, 0, 232),
+                Size = UDim2New(0, 220, 0, 250),
                 Parent = Library.Holder,
                 Visible = false,
                 IsTextButton = true,
@@ -2726,8 +2726,8 @@ local Library do
                 Text = "",
                 AutoButtonColor = false,
                 Name = "\0",
-                Position = UDim2New(0.05, 2, 0.06, 0),
-                Size = UDim2New(0.9, -4, 0.5, 0),
+                Position = UDim2New(0, 5, 0, 5),
+                Size = UDim2New(1, -10, 0, 100),
                 BorderSizePixel = 0,
                 TextSize = 14,
                 BackgroundColor3 = FromRGB(31, 226, 130)
@@ -2782,8 +2782,8 @@ local Library do
                 AutoButtonColor = false,
                 Image = Library:GetImage("Hue"),
                 Name = "\0",
-                Position = UDim2New(0.05, 2, 0.6, 4),
-                Size = UDim2New(0.9, -4, 0, 15),
+                Position = UDim2New(0, 5, 0, 113),
+                Size = UDim2New(1, -10, 0, 15),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             }) 
@@ -2817,8 +2817,8 @@ local Library do
                 Text = "",
                 AutoButtonColor = false,
                 Name = "\0",
-                Position = UDim2New(0.05, 2, 0.7, 8),
-                Size = UDim2New(0.9, -4, 0, 15),
+                Position = UDim2New(0, 5, 0, 132),
+                Size = UDim2New(1, -10, 0, 15),
                 BorderSizePixel = 0,
                 TextSize = 14,
                 BackgroundColor3 = FromRGB(31, 226, 130)
@@ -2870,8 +2870,8 @@ local Library do
                 BorderColor3 = FromRGB(0, 0, 0),
                 Text = "HEX:",
                 Name = "\0",
-                Size = UDim2New(0.9, -4, 0, 15),
-                Position = UDim2New(0.05, 2, 0.8, 10),
+                Size = UDim2New(1, -10, 0, 15),
+                Position = UDim2New(0, 5, 0, 151),
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
@@ -2890,8 +2890,8 @@ local Library do
                 end
             })
 
-            CopyButtonItems["Button"].Instance.Position = UDim2New(0.05, 2, 0.88, 10)
-            CopyButtonItems["Button"].Instance.Size = UDim2New(0.9, -4, 0, 17)
+            CopyButtonItems["Button"].Instance.Position = UDim2New(0, 5, 0, 170)
+            CopyButtonItems["Button"].Instance.Size = UDim2New(1, -10, 0, 17)
 
             local PasteButton, PasteButtonItems = Components.Button({
                 Name = "Paste",
@@ -2903,8 +2903,8 @@ local Library do
                 end
             })
 
-            PasteButtonItems["Button"].Instance.Position = UDim2New(0.05, 2, 0.95, 15)
-            PasteButtonItems["Button"].Instance.Size = UDim2New(0.9, -4, 0, 17)
+            PasteButtonItems["Button"].Instance.Position = UDim2New(0, 5, 0, 191)
+            PasteButtonItems["Button"].Instance.Size = UDim2New(1, -10, 0, 17)
         end
 
         local SlidingPalette = false
@@ -2973,7 +2973,7 @@ local Library do
 
             if Colorpicker.IsOpen then 
                 Debounce = true 
-                Items["ColorpickerWindow"]["Outline"].Instance.Position = UDim2New(0, Items["ColorpickerButton"].Instance.AbsolutePosition.X, 0, Items["ColorpickerButton"].Instance.AbsolutePosition.Y + 225)
+                Items["ColorpickerWindow"]["Outline"].Instance.Position = UDim2New(0, Items["ColorpickerButton"].Instance.AbsolutePosition.X, 0, Items["ColorpickerButton"].Instance.AbsolutePosition.Y + 135)
 
                 Items["ColorpickerWindow"]["Outline"].Instance.Visible = true 
                 Items["ColorpickerWindow"]["Outline"].Instance.ZIndex = 25
