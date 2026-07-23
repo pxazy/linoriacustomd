@@ -1,130 +1,3 @@
---[[
-    Made by samet.exe
-
-    Assign different flags to each element to prevent from configs overriding eachother
-    Example script is at the bottom
-
-    Documentation:
-        function Library:Window(Data: table
-        Name/name: string,
-        Size/size: UDim2,
-        GradientTitle/gradienttitle: table
-    )
-
-    function Window:Page(Data: table
-        Name/name: string,
-        Columns/columns: number
-    )
-
-    function Page:Section(Data: table
-        Name/name: string,
-        Side/side: number,
-    )
-
-    function Page:Playerlist()
-
-    function Section:Label(Data: table
-        Name/name: string,
-        Alignment/alignment: string
-    )
-
-    function Section:Toggle(Data: table
-        Name/name: string,
-        Default/default: boolean,
-        Flag/flag: string,
-        Risky/risky: boolean,
-        Callback/callback: function
-    )
-
-    function Section:Button(Data: table
-        Name/name: string,
-        Risky/risky: boolean,
-        Callback/callback: function
-    )
-
-    function Section:Slider(Data: table
-        Name/name: string,
-        Min/min: number,
-        Max/max: number,
-        Decimals/decimals: number,
-        Default/default: number,
-        Suffix/suffix: string,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Section:Textbox(Data: table
-        Name/name: string,
-        Default/default: string,
-        Placeholder/placeholder: string,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Section:Dropdown(Data: table
-        Name/name: string,
-        Items/items: table,
-        Default/default: string,
-        MaxSize/maxsize: number,
-        Flag/flag: string,
-        Multi/multi: boolean,
-        Callback/callback: function
-    )
-
-    function Section:Listbox(Data: table
-        Size/size: number,
-        Items/items: table,
-        Default/default: string,
-        Multi/multi: boolean,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Label:Keybind(Data: table
-        Name/name: string,
-        Mode/mode: string,
-        Default/default: EnumItem,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Label:Colorpicker(Data: table
-        Name/name: string,
-        Default/default: Color3,
-        Alpha/alpha: number,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Toggle:Colorpicker(Data: table
-        Name/name: string,
-        Default/default: Color3,
-        Alpha/alpha: number,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Toggle:Keybind(Data: table
-        Name/name: string,
-        Mode/mode: string,
-        Default/default: EnumItem,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Sections:Textbox(Data: table
-        Name/name: string,
-        Default/default: string,
-        Placeholder/placeholder: string,
-        Flag/flag: string,
-        Callback/callback: function
-    )
-
-    function Library:Watermark(Text: string)
-    function Library:Notification(Text: string, Duration: number, Color: Color3, Icon: table)
-    function Library:KeybindList()
-]]
-
 local LoadingTick = os.clock()
 
 if getgenv().Library then 
@@ -199,14 +72,13 @@ local Library do
             Themes = "testpath/Themes"
         },
 
-        Images = { -- you're welcome to reupload the images and replace it with your own links
+        Images = {
             ["Saturation"] = {"Saturation.png", "https://github.com/sametexe001/images/blob/main/saturation.png?raw=true" },
             ["Value"] = { "Value.png", "https://github.com/sametexe001/images/blob/main/value.png?raw=true" },
             ["Hue"] = { "Hue.png", "https://github.com/sametexe001/images/blob/main/horizontalhue.png?raw=true" },
             ["Checkers"] = { "Checkers.png", "https://github.com/sametexe001/images/blob/main/checkers.png?raw=true" },
         },
 
-        -- Ignore below
         Pages = { },
         Sections = { },
 
@@ -1910,6 +1782,10 @@ local Library do
         function Button:Press()
             Library:SafeCall(Data.Callback)
 
+            if not Library then 
+                return
+            end
+
             Items["Text"]:ChangeItemTheme({TextColor3 = "Accent"})
             Items["Button"]:ChangeItemTheme({BackgroundColor3 = "Accent"})
 
@@ -1917,6 +1793,10 @@ local Library do
             Items["Button"]:Tween(nil, {BackgroundColor3 = Library.Theme.Accent})
 
             task.wait(0.1)
+
+            if not Library then 
+                return
+            end
 
             if not Data.Risky then 
                 Items["Text"]:ChangeItemTheme({TextColor3 = "Text"})
@@ -2012,6 +1892,10 @@ local Library do
             function SubButton:Press()
                 Library:SafeCall(Data.Callback)
 
+                if not Library then 
+                    return
+                end
+
                 SubItems["Text"]:ChangeItemTheme({TextColor3 = "Accent"})
                 SubItems["Button"]:ChangeItemTheme({BackgroundColor3 = "Accent"})
 
@@ -2019,6 +1903,10 @@ local Library do
                 SubItems["Button"]:Tween(nil, {BackgroundColor3 = Library.Theme.Accent})
 
                 task.wait(0.1)
+
+                if not Library then 
+                    return
+                end
 
                 if not Data.Risky then 
                     SubItems["Text"]:ChangeItemTheme({TextColor3 = "Text"})
@@ -2670,7 +2558,7 @@ local Library do
 
             Items["ColorpickerWindow"] = Components.Window({
                 Position = UDim2New(0, Camera.ViewportSize.X / 3, 0, Camera.ViewportSize.Y / 3),
-                Size = UDim2New(0, 220, 0, 225),
+                Size = UDim2New(0, 220, 0, 240),
                 Parent = Library.Holder,
                 Visible = false,
                 IsTextButton = true,
