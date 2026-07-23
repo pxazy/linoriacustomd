@@ -611,7 +611,61 @@ local Library do
         end
     end
 
+    Library.CursorEnabled = false
+
+    Library.SetCursor = function(self, Bool)
+        if Bool == self.CursorEnabled then 
+            return
+        end
+
+        self.CursorEnabled = Bool
+
+        if not Bool then 
+            return
+        end
+
+        local RestoreMouseIcon = UserInputService.MouseIconEnabled
+
+        local Cursor = Drawing.new("Triangle")
+        Cursor.Thickness = 1
+        Cursor.Filled = true
+        Cursor.Visible = true
+
+        local CursorOutline = Drawing.new("Triangle")
+        CursorOutline.Thickness = 1
+        CursorOutline.Filled = false
+        CursorOutline.Color = FromRGB(0, 0, 0)
+        CursorOutline.Visible = true
+
+        Library:Thread(function()
+            while self.CursorEnabled do
+                UserInputService.MouseIconEnabled = false
+
+                local MousePosition = UserInputService:GetMouseLocation()
+
+                Cursor.Color = self.Theme.Accent
+
+                Cursor.PointA = Vector2New(MousePosition.X, MousePosition.Y)
+                Cursor.PointB = Vector2New(MousePosition.X + 16, MousePosition.Y + 6)
+                Cursor.PointC = Vector2New(MousePosition.X + 6, MousePosition.Y + 16)
+
+                CursorOutline.PointA = Cursor.PointA
+                CursorOutline.PointB = Cursor.PointB
+                CursorOutline.PointC = Cursor.PointC
+
+                RunService.RenderStepped:Wait()
+            end
+
+            UserInputService.MouseIconEnabled = RestoreMouseIcon
+
+            Cursor:Remove()
+            CursorOutline:Remove()
+        end)
+    end
+
     Library.Unload = function(self)
+        self:SetCursor(false)
+
         for Index, Value in self.Connections do 
             Value.Connection:Disconnect()
         end
@@ -1180,8 +1234,8 @@ local Library do
                 BorderColor3 = FromRGB(0, 0, 0),
                 Size = UDim2New(1, 11, 0, 2),
                 BorderSizePixel = 0,
-                BackgroundColor3 = Color
-            })  
+                BackgroundColor3 = FromRGB(31, 226, 130)
+            })  Items["Liner"]:AddToTheme({BackgroundColor3 = "Accent"})
 
             Instances:Create("UIGradient", {
                 Parent = Items["Liner"].Instance,
@@ -1544,7 +1598,6 @@ local Library do
                     Position = UDim2New(0, 2, 0, -2),
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = FromRGB(31, 226, 130)
                 })  Items["Title"]:AddToTheme({BackgroundColor3 = "Accent"})
 
@@ -1562,7 +1615,8 @@ local Library do
                     Text = Data.Name,
                     Size = UDim2New(0, 40, 0, 13),
                     Name = "\0",
-                    Position = UDim2New(0, 9, 0, 0),
+                    AnchorPoint = Vector2New(0.5, 0),
+                    Position = UDim2New(0.5, 0, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 12,
@@ -3886,6 +3940,8 @@ local Library do
             Window.IsOpen = Bool
 
             Items["Outline"].Instance.Visible = Bool
+
+            Library:SetCursor(Bool)
         end
 
         Library:Connect(UserInputService.InputBegan, function(Input, GameProcessed)
@@ -4549,7 +4605,7 @@ local Library do
         })
 
         function Button:SetVisibility(Bool)
-            Button:SetVisibility(Bool)
+            NewButton:SetVisibility(Bool)
         end
 
         function Button:SubButton(Data)
