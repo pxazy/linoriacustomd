@@ -3955,6 +3955,9 @@ local Library do
         end)
 
         Window.Items = Items
+
+        Window:SetOpen(Window.IsOpen)
+
         return setmetatable(Window, self)
     end
 
