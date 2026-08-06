@@ -25,7 +25,7 @@ local CustomFont;
 pcall(function()
     local Bytes = DecodeBase64Font(ProggyCleanFontBase64);
 
-    if Bytes and writefile and getcustomasset then
+    if Bytes and Bytes ~= '' and writefile and getcustomasset then
         writefile('ProggyClean.ttf', Bytes);
         local AssetId = getcustomasset('ProggyClean.ttf');
         CustomFont = Font.new(AssetId, Enum.FontWeight.Regular, Enum.FontStyle.Normal);
@@ -329,8 +329,21 @@ function Library:MapValue(Value, MinA, MaxA, MinB, MaxB)
 end;
 
 function Library:GetTextBounds(Text, Font, Size, Resolution)
-    local Bounds = TextService:GetTextSize(Text, Size, Font, Resolution or Vector2.new(1920, 1080))
-    return Bounds.X, Bounds.Y
+    if typeof(Font) == 'Font' then
+        local Params = Instance.new('GetTextBoundsParams');
+        Params.Text = Text;
+        Params.Font = Font;
+        Params.Size = Size;
+        Params.Width = (Resolution and Resolution.X) or math.huge;
+
+        local Bounds = TextService:GetTextBoundsAsync(Params);
+        Params:Destroy();
+
+        return Bounds.X, Bounds.Y;
+    end;
+
+    local Bounds = TextService:GetTextSize(Text, Size, Font, Resolution or Vector2.new(1920, 1080));
+    return Bounds.X, Bounds.Y;
 end;
 
 function Library:GetDarkerColor(Color)
