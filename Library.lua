@@ -1948,7 +1948,7 @@ do
             Min = Info.Min;
             Max = Info.Max;
             Rounding = Info.Rounding;
-            MaxSize = 232;
+            MaxSize = 0;
             Type = 'Slider';
             Callback = Info.Callback or function(Value) end;
         };
@@ -1981,6 +1981,13 @@ do
         Library:AddToRegistry(SliderOuter, {
             BorderColor3 = 'Black';
         });
+
+        Slider.MaxSize = SliderOuter.AbsoluteSize.X - 2;
+
+        SliderOuter:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
+            Slider.MaxSize = SliderOuter.AbsoluteSize.X - 2;
+            Slider:Display();
+        end);
 
         local SliderInner = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
@@ -2778,13 +2785,6 @@ do
         BackgroundColor3 = 'AccentColor';
     }, true);
 
-    Library:Create('UIStroke', {
-        Color = Library.AccentColor;
-        Thickness = 1.5;
-        Transparency = 0.35;
-        Parent = ColorFrame;
-    });
-
     local KeybindLabel = Library:CreateLabel({
         Size = UDim2.new(1, 0, 0, 20);
         Position = UDim2.fromOffset(5, 2),
@@ -3029,31 +3029,11 @@ function Library:CreateWindow(...)
         Parent = TabArea;
     });
 
-    local TabAccentLine = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(0, 8, 0, 30 - 3);
-        Size = UDim2.new(1, -16, 0, 2);
-        ZIndex = 2;
-        Parent = MainSectionInner;
-    });
-
-    Library:AddToRegistry(TabAccentLine, {
-        BackgroundColor3 = 'AccentColor';
-    });
-
-    Library:Create('UIStroke', {
-        Color = Library.AccentColor;
-        Thickness = 1.5;
-        Transparency = 0.35;
-        Parent = TabAccentLine;
-    });
-
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 30 + 4);
-        Size = UDim2.new(1, -16, 1, -38 - 4);
+        Position = UDim2.new(0, 8, 0, 30);
+        Size = UDim2.new(1, -16, 1, -38);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
