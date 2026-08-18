@@ -2964,7 +2964,7 @@ function Library:CreateWindow(...)
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
+        BorderColor3 = Library.OutlineColor;
         BorderMode = Enum.BorderMode.Inset;
         Position = UDim2.new(0, 1, 0, 1);
         Size = UDim2.new(1, -2, 1, -2);
@@ -2974,7 +2974,7 @@ function Library:CreateWindow(...)
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'AccentColor';
+        BorderColor3 = 'OutlineColor';
     });
 
     local WindowLabel = Library:CreateLabel({
@@ -3069,6 +3069,20 @@ function Library:CreateWindow(...)
             BorderColor3 = 'OutlineColor';
         });
 
+        local TabUnderline = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 0, 1, 0);
+            Size = UDim2.new(1, 0, 0, 2);
+            Visible = false;
+            ZIndex = 4;
+            Parent = TabButton;
+        });
+
+        Library:AddToRegistry(TabUnderline, {
+            BackgroundColor3 = 'AccentColor';
+        });
+
         local TabButtonLabel = Library:CreateLabel({
             Position = UDim2.new(0, 0, 0, 0);
             Size = UDim2.new(1, 0, 1, -1);
@@ -3157,6 +3171,7 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 0;
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
+            TabUnderline.Visible = true;
             TabFrame.Visible = true;
         end;
 
@@ -3164,6 +3179,7 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 1;
             TabButton.BackgroundColor3 = Library.BackgroundColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'BackgroundColor';
+            TabUnderline.Visible = false;
             TabFrame.Visible = false;
         end;
 
